@@ -1,0 +1,473 @@
+lottery:
+  decoration:
+    item:
+    - index: 0
+      name: 24K金棒
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/24K金棒.jpg
+    - index: 1
+      name: 一触即发
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/一触即发.jpg
+    - index: 2
+      name: 出阵
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/出阵.jpg
+    - index: 3
+      name: 和牌-KO
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-KO.jpg
+    - index: 4
+      name: 和牌-安可
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-安可.jpg
+    - index: 5
+      name: 和牌-幽灵嗷嗷
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-幽灵嗷嗷.jpg
+    - index: 6
+      name: 和牌-方舟反应堆
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-方舟反应堆.jpg
+    - index: 7
+      name: 和牌-旋风
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-旋风.jpg
+    - index: 8
+      name: 和牌-樱花
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-樱花.jpg
+    - index: 9
+      name: 和牌-烈焰
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-烈焰.jpg
+    - index: 10
+      name: 和牌-爆炎龙卷
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-爆炎龙卷.jpg
+    - index: 11
+      name: 和牌-红玫瑰
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-红玫瑰.jpg
+    - index: 12
+      name: 和牌-逆鳞
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-逆鳞.jpg
+    - index: 13
+      name: 和牌-黑炎
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-黑炎.jpg
+    - index: 14
+      name: 咸鱼立直棒
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/咸鱼立直棒.jpg
+    - index: 15
+      name: 大葱立直棒
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/大葱立直棒.jpg
+    - index: 16
+      name: 孔雀绿桌布
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/孔雀绿桌布.jpg
+    - index: 17
+      name: 果绿牌背
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/果绿牌背.jpg
+    - index: 18
+      name: 桌布-吃瓜
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-吃瓜.jpg
+    - index: 19
+      name: 橘猫爪
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/橘猫爪.jpg
+    - index: 20
+      name: 淡黄牌背
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/淡黄牌背.jpg
+    - index: 21
+      name: 激斗
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/激斗.jpg
+    - index: 22
+      name: 牌背-天然呆幽灵
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-天然呆幽灵.jpg
+    - index: 23
+      name: 狗骨头立直棒
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/狗骨头立直棒.jpg
+    - index: 24
+      name: 猩红立直棒
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/猩红立直棒.jpg
+    - index: 25
+      name: 玫瑰红牌背
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/玫瑰红牌背.jpg
+    - index: 26
+      name: 真剑胜负
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/真剑胜负.jpg
+    - index: 27
+      name: 立直-叮
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-叮.jpg
+    - index: 28
+      name: 立直-幻影
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-幻影.jpg
+    - index: 29
+      name: 立直-开场曲
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-开场曲.jpg
+    - index: 30
+      name: 立直-火焰
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-火焰.jpg
+    - index: 31
+      name: 立直-碎冰
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-碎冰.jpg
+    - index: 32
+      name: 立直-苍火
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-苍火.jpg
+    - index: 33
+      name: 立直-蝙蝠
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-蝙蝠.jpg
+    - index: 34
+      name: 立直-飞羽
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-飞羽.jpg
+    - index: 35
+      name: 立直-龙腾
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-龙腾.jpg
+    - index: 36
+      name: 立直棒-小恶魔蝙蝠
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-小恶魔蝙蝠.jpg
+    - index: 37
+      name: 立直棒-应援棒
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-应援棒.jpg
+    - index: 38
+      name: 立直棒-断恶
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-断恶.jpg
+    - index: 39
+      name: 立直棒-雪糕
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-雪糕.jpg
+    - index: 40
+      name: 紫罗兰桌布
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/紫罗兰桌布.jpg
+    - index: 41
+      name: 莲藕紫桌布
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/莲藕紫桌布.jpg
+    length: 42
+  gift:
+    item:
+    - index: 0
+      name: 手工曲奇
+      rare: 0
+      type: gift
+      url: ./Images/gift/00-手工曲奇.jpg
+    - index: 1
+      name: 蓝罐曲奇
+      rare: 1
+      type: gift
+      url: ./Images/gift/01-蓝罐曲奇.jpg
+    - index: 2
+      name: 香喷喷曲奇
+      rare: 2
+      type: gift
+      url: ./Images/gift/02-香喷喷曲奇.jpg
+    - index: 3
+      name: 怀旧掌机
+      rare: 0
+      type: gift
+      url: ./Images/gift/03-怀旧掌机.jpg
+    - index: 4
+      name: Twitch掌机
+      rare: 1
+      type: gift
+      url: ./Images/gift/04-Twitch掌机.jpg
+    - index: 5
+      name: 次世代游戏机
+      rare: 2
+      type: gift
+      url: ./Images/gift/05-次世代游戏机.jpg
+    - index: 6
+      name: 简易美术品
+      rare: 0
+      type: gift
+      url: ./Images/gift/06-简易美术品.jpg
+    - index: 7
+      name: 精美挂画
+      rare: 1
+      type: gift
+      url: ./Images/gift/07-精美挂画.jpg
+    - index: 8
+      name: 经典名画
+      rare: 2
+      type: gift
+      url: ./Images/gift/08-经典名画.jpg
+    - index: 9
+      name: 美味果酒
+      rare: 0
+      type: gift
+      url: ./Images/gift/09-美味果酒.jpg
+    - index: 10
+      name: 香醇红酒
+      rare: 1
+      type: gift
+      url: ./Images/gift/10-香醇红酒.jpg
+    - index: 11
+      name: 82年的拉菲
+      rare: 2
+      type: gift
+      url: ./Images/gift/11-82年的拉菲.jpg
+    - index: 12
+      name: 普通的碎钻
+      rare: 0
+      type: gift
+      url: ./Images/gift/12-普通的碎钻.jpg
+    - index: 13
+      name: 鸽子蛋宝石
+      rare: 1
+      type: gift
+      url: ./Images/gift/13-鸽子蛋宝石.jpg
+    - index: 14
+      name: 海洋之心
+      rare: 2
+      type: gift
+      url: ./Images/gift/14-海洋之心.jpg
+    - index: 15
+      name: 熊公仔
+      rare: 0
+      type: gift
+      url: ./Images/gift/15-熊公仔.jpg
+    - index: 16
+      name: 熊公仔L
+      rare: 1
+      type: gift
+      url: ./Images/gift/16-熊公仔L.jpg
+    - index: 17
+      name: 熊公仔XXL
+      rare: 2
+      type: gift
+      url: ./Images/gift/17-熊公仔XXL.jpg
+    - index: 18
+      name: 同人小册子
+      rare: 0
+      type: gift
+      url: ./Images/gift/18-同人小册子.jpg
+    - index: 19
+      name: 简装同人志
+      rare: 1
+      type: gift
+      url: ./Images/gift/19-简装同人志.jpg
+    - index: 20
+      name: 精美同人志
+      rare: 2
+      type: gift
+      url: ./Images/gift/20-精美同人志.jpg
+    - index: 21
+      name: 朴素的小裙子
+      rare: 0
+      type: gift
+      url: ./Images/gift/21-朴素的小裙子.jpg
+    - index: 22
+      name: 普通的小裙子
+      rare: 1
+      type: gift
+      url: ./Images/gift/22-普通的小裙子.jpg
+    - index: 23
+      name: 华丽的小裙子
+      rare: 2
+      type: gift
+      url: ./Images/gift/23-华丽的小裙子.jpg
+    length: 24
+  person:
+    item:
+    - index: 0
+      name: 七海礼奈
+      rare: 4
+      type: person
+      url: ./Images/person/七海礼奈.png
+    - index: 1
+      name: 三上千织
+      rare: 4
+      type: person
+      url: ./Images/person/三上千织.png
+    - index: 2
+      name: 九条璃雨
+      rare: 4
+      type: person
+      url: ./Images/person/九条璃雨.png
+    - index: 3
+      name: 二之宫花
+      rare: 4
+      type: person
+      url: ./Images/person/二之宫花.png
+    - index: 4
+      name: 五十岚阳菜
+      rare: 4
+      type: person
+      url: ./Images/person/五十岚阳菜.png
+    - index: 5
+      name: 八木唯
+      rare: 4
+      type: person
+      url: ./Images/person/八木唯.png
+    - index: 6
+      name: 凉宫杏树
+      rare: 4
+      type: person
+      url: ./Images/person/凉宫杏树.png
+    - index: 7
+      name: 北见纱和子
+      rare: 4
+      type: person
+      url: ./Images/person/北见纱和子.png
+    - index: 8
+      name: 卡维
+      rare: 4
+      type: person
+      url: ./Images/person/卡维.png
+    - index: 9
+      name: 姬川响
+      rare: 4
+      type: person
+      url: ./Images/person/姬川响.png
+    - index: 10
+      name: 寺崎千穗理
+      rare: 4
+      type: person
+      url: ./Images/person/寺崎千穗理.png
+    - index: 11
+      name: 小野寺七羽
+      rare: 4
+      type: person
+      url: ./Images/person/小野寺七羽.png
+    - index: 12
+      name: 小鸟游雏田
+      rare: 4
+      type: person
+      url: ./Images/person/小鸟游雏田.png
+    - index: 13
+      name: 抚子
+      rare: 4
+      type: person
+      url: ./Images/person/抚子.png
+    - index: 14
+      name: 森川绫子
+      rare: 4
+      type: person
+      url: ./Images/person/森川绫子.png
+    - index: 15
+      name: 泽尼娅
+      rare: 4
+      type: person
+      url: ./Images/person/泽尼娅.png
+    - index: 16
+      name: 白石奈奈
+      rare: 4
+      type: person
+      url: ./Images/person/白石奈奈.png
+    - index: 17
+      name: 相原舞
+      rare: 4
+      type: person
+      url: ./Images/person/相原舞.png
+    - index: 18
+      name: 福姬
+      rare: 4
+      type: person
+      url: ./Images/person/福姬.png
+    - index: 19
+      name: 艾丽莎
+      rare: 4
+      type: person
+      url: ./Images/person/艾丽莎.png
+    - index: 20
+      name: 莎拉
+      rare: 4
+      type: person
+      url: ./Images/person/莎拉.png
+    - index: 21
+      name: 藤本绮罗
+      rare: 4
+      type: person
+      url: ./Images/person/藤本绮罗.png
+    - index: 22
+      name: 藤田加奈
+      rare: 4
+      type: person
+      url: ./Images/person/藤田加奈.png
+    - index: 23
+      name: 辉夜姬
+      rare: 4
+      type: person
+      url: ./Images/person/辉夜姬.png
+    - index: 24
+      name: 雏桃
+      rare: 4
+      type: person
+      url: ./Images/person/雏桃.png
+    length: 25
+up:
+  decoration:
+  - 和牌-安可
+  - 立直-开场曲
+  - 立直棒-应援棒
+  person:
+  - 八木唯
+  - 北见纱和子
