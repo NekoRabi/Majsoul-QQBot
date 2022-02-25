@@ -1,0 +1,8 @@
+numpy
+Pillow
+aiohttp
+moviepy
+requests
+PyYAML
+APScheduler
+yiri-mirai
