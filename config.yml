@@ -10,6 +10,6 @@ settings:
   autogetpaipu: false
   autowelcome: true
 welcomeinfo:
-- ��ӭ %ps% ����Ⱥ�� %gn%
+- 欢迎 %ps% 加入群聊 %gn%
 whitelist:
 - 0
