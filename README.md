@@ -13,7 +13,7 @@
 可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署
 
 # 配置文件
-中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择GBK。
+中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
  ```
 admin: # 管理员QQ
 - 0
@@ -34,6 +34,9 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
 - 0
 
  ```
+
+ # 存在的问题
+ 1. 查询玩家信息的时候仍然会卡死，可能是由于超时。
 
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。
