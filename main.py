@@ -44,9 +44,10 @@ if __name__ == '__main__':
             exit(0)
 
     bot = Mirai(
-        qq=3384437741,  # 改成你的机器人的 QQ 号
+        qq=123456,  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
-            verify_key='xyshu123', host='localhost', port=17280
+            # Mirai-Http config 中的参数
+            verify_key='NekoRabi', host='localhost', port=17280
         )
     )
 

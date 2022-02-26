@@ -10,7 +10,9 @@
 
 # 如何部署
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
-可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署
+可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署。
+
+本程序 `WebSocketAdapter` 的端口号为 `17280`，运行在端口`17580`上 ~~不会占用你可能会使用的Tomcat的8080端口~~
 
 # 配置文件
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
@@ -37,6 +39,7 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
 
  # 存在的问题
  1. 查询玩家信息的时候仍然会卡死，可能是由于超时。
+ 2. config.yml编辑后乱码 ~~（大多数时候是将 UTF-8 编码保存为 GBK 或者反过来）~~
 
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。
