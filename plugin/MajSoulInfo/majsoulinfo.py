@@ -6,6 +6,7 @@ import sqlite3
 import random
 
 import yaml
+from requests.adapters import HTTPAdapter
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
@@ -18,45 +19,123 @@ user_agent_list = [
     "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36",
     "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
-    ]
+]
 
 
 def getinfo(username: str):
-    xhr3 = requests.get(
-        f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20")
-    pl3 = eval(xhr3.text)
-    xhr4 = requests.get(
-        f"https://ak-data-1.sapk.ch/api/v2/pl4/search_player/{username}?limit=20")
-    pl4 = eval(xhr4.text)
+    s3, s4 = requests.Session()
+    s3.mount('http://', HTTPAdapter(max_retries=3))
+    s3.mount('https://', HTTPAdapter(max_retries=3))
+    s4.mount('https://', HTTPAdapter(max_retries=3))
+    s4.mount('https://', HTTPAdapter(max_retries=3))
+    try:
+        xhr3 = s3.get(
+            f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20", headers={'User-Agent': random.choice(user_agent_list)})
+        pl3 = eval(xhr3.text)
+        xhr4 = s4.get(
+            f"https://ak-data-1.sapk.ch/api/v2/pl4/search_player/{username}?limit=20", headers={'User-Agent': random.choice(user_agent_list)})
+        pl4 = eval(xhr4.text)
 
-    if len(pl3) == 1:
-        pl3 = pl3[0]
-    if len(pl4) == 1:
-        pl4 = pl4[0]
+        if len(pl3) == 1:
+            pl3 = pl3[0]
+        if len(pl4) == 1:
+            pl4 = pl4[0]
 
-    if type(pl3) == dict:
-        playerid = pl3['id']
-        playername = pl3['nickname']
-    elif type(pl4) == dict:
-        playerid = pl4['id']
-        playername = pl4['nickname']
-    else:
-        playerid = None
-        playername = None
-    return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername)
+        if type(pl3) == dict:
+            playerid = pl3['id']
+            playername = pl3['nickname']
+        elif type(pl4) == dict:
+            playerid = pl4['id']
+            playername = pl4['nickname']
+        else:
+            playerid = None
+            playername = None
+        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False)
+    except requests.exceptions.ConnectionError:
+        print("查询玩家信息时连接超时")
+        return dict(error=True)
+    except requests.exceptions.ReadTimeout:
+        print("查询玩家时读取超时")
+        return dict(error=True)
 
 
-def getsomepaipu(playerid: str, type=4, counts=5):
+def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
+    xhr = ""
+    cx = sqlite3.connect('./database/majsoul.sqlite')
+    cursor = cx.cursor()
+    cursor.execute(f"select playerid from qhplayer where playername = '{playername}'")
+    playerid = cursor.fetchall()
+    cursor.close()
+    s = requests.Session()
+    if len(playerid) == 0:
+        print("数据库中无此用户，请先查询该用户。")
+        return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
+    playerid = playerid[0][0]
+    s.mount('http://', HTTPAdapter(max_retries=3))
+    s.mount('https://', HTTPAdapter(max_retries=3))
+    headers = {'User-Agent': random.choice(user_agent_list)}
     nowtime = time.time()
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
+    try:
+        if selecttype == "4":
+            xhr = s.get(
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8",
+                headers=headers)
+        else:
+            xhr = s.get(
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.26",
+                headers=headers)
+    except requests.exceptions.ConnectionError as e:
+        print(f"查询发生了错误:\t{e}\n")
+    except requests.exceptions.ReadTimeout as e:
+        print(f'读取超时:\t{e}\n')
+    content: dict = eval(xhr.text)
+    msg = f" 以下是玩家 {playername} 的数据:\n"
+    # print(content)
+    for (k, v) in content.items():
+        print("key:", k, "value", v)
+        if type(v) not in [list, dict]:
+            if str(k) in ["id", "count"]:
+                continue
+            if type(v) == float:
+                msg += f"{k:^6} : {v * 100:2.2f}%\n"
+            else:
+                msg += f"{k} : {v}\n"
+    return msg
+
+
+def getsomepaipu(playername: str, type="4", counts=5):
+    nowtime = time.time()
+    nowtime = math.floor(nowtime / 10) * 10000 + 9999
+    cx = sqlite3.connect('./database/majsoul.sqlite')
+    cursor = cx.cursor()
+    cursor.execute(f"select playerid from qhplayer where playername = '{playername}'")
+    playerid = cursor.fetchall()
+    cursor.close()
+    cx.close()
+    if len(playerid) == 0:
+        print("数据库中无此用户，请先查询该用户。")
+        return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
+    playerid = playerid[0][0]
     headers = {'User-Agent': random.choice(user_agent_list)}
     paipuInfo = f"最近{counts}场对局信息如下：\n"
+    s = requests.Session()
+    s.mount('http://', HTTPAdapter(max_retries=3))
+    s.mount('https://', HTTPAdapter(max_retries=3))
     try:
-        xhr = requests.get(
-            f"https://ak-data-1.sapk.ch/api/v2/pl{type}/player_records/{playerid}/{nowtime}/1262304000000"
-            f"?limit={counts}&mode={'8, 9, 11, 12, 16' if type==4 else '21,22,23,24,26'}&descending=true", headers=headers)
-        content = eval(xhr.text)
-        if len(content)==0:
+        if type == '3':
+            xhr = s.get(
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
+                f"?limit={counts}&mode=21,22,23,24,26&descending=true",
+                headers=headers, timeout=5)
+            content = eval(xhr.text)
+        else:
+            xhr = s.get(
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
+                f"?limit={counts}&mode=8,9,11,12,16&descending=true",
+                headers=headers, timeout=5)
+            content = eval(xhr.text)
+        if len(content) == 0:
             return "未查询到对局信息"
         for item in content:
             paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
@@ -67,14 +146,16 @@ def getsomepaipu(playerid: str, type=4, counts=5):
             players = item['players']
             paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            if type == 4:
+            if type == "4":
                 paipuInfo += f"{players[0]['nickname']}:{players[0]['score']}\n{players[1]['nickname']}:{players[1]['score']}\n{players[2]['nickname']}:{players[2]['score']}\n{players[3]['nickname']}:{players[3]['score']}\n\n "
             else:
                 paipuInfo += f"{players[0]['nickname']}:{players[0]['score']}\n{players[1]['nickname']}:{players[1]['score']}\n{players[2]['nickname']}:{players[2]['score']}\n\n "
         return paipuInfo
     except requests.exceptions.ConnectionError as e:
-        print(f"查询发生了错误{e}")
-    return "Error"
+        print(f"查询发生了错误:\t{e}\n")
+    except requests.exceptions.ReadTimeout as e:
+        print(f'读取超时:\t{e}\n')
+    return "查询失败"
 
 
 def getpaipu(playerid: str) -> dict:
@@ -82,28 +163,35 @@ def getpaipu(playerid: str) -> dict:
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     headers = {'User-Agent': random.choice(user_agent_list)}
     content = dict(p4=[], p3=[])
+    s = requests.Session()
+    s.mount('http://', HTTPAdapter(max_retries=3))
+    s.mount('https://', HTTPAdapter(max_retries=3))
     '''四麻查询'''
     try:
-        xhr4 = requests.get(
+        xhr4 = s.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-            "?limit=1&mode=8,9,11,12,16&descending=true", headers=headers)
+            "?limit=1&mode=8,9,11,12,16&descending=true", headers=headers, timeout=5)
         content['p4'] = eval(xhr4.text)
         # print(f'四麻对局信息:{eval(xhr.text)}')
     except requests.exceptions.ConnectionError as e:
-        print(f"四麻查询发生了错误{e}")
+        print(f"\n四麻查询发生了错误:\t{e}\n")
+    except requests.exceptions.ReadTimeout as e:
+        print(f'\n读取超时:\t{e}\n')
         # xhr = requests.get(
     #     f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit=10"
     #     f"&mode=21&descending=true&tag=304")
     # print(xhr.text)
     '''三麻查询'''
     try:
-        xhr3 = requests.get(
+        xhr3 = s.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
-            "?limit=1&mode=21,22,23,24,26&descending=true", headers=headers)
+            "?limit=1&mode=21,22,23,24,26&descending=true", headers=headers, timeout=5)
         content['p3'] = eval(xhr3.text)
         # print(f'三麻对局信息:{eval(xhr.text)}')
     except requests.exceptions.ConnectionError as e:
-        print(f"三麻查询发生了错误{e}")
+        print(f"\n三麻查询发生了错误:\t{e}\n")
+    except requests.exceptions.ReadTimeout as e:
+        print(f'\n读取超时:\t{e}\n')
     return content
 
 
@@ -126,19 +214,13 @@ def jiexi(paipu: dict, playerid: int) -> list:
     cx.commit()
     allpaipuinfo = []
     for item in paipu['p4']:
-        # print(item)
         hasNewPaipu = False
         paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
         startTime = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
         endTime = time.strftime('%Y-%m-%d %H:%M:%S',
                                 time.localtime(item["endTime"]))
-        # print(paipuurl)
-        # print("开始时间:" + startTime, end="\t")
-        # print("\t结束时间:" + endTime)
         players = item['players']
-        # for player in players:
-        #     print(f"{player['nickname']}:{player['score']}")
         try:
             cursor.execute(
                 "insert into paipu(uuid,watchid,startTime,endTime,player1,player2,player3,player4) values(?,?,?,?,?,?,?,?)",
@@ -248,6 +330,8 @@ def prtlevelmsg(stagelevel, scorelevel):
 
 
 def query(username: str) -> str:
+    if getinfo(username)['error']:
+        return "查询超时"
     prtmsg = "用户名:\t" + username
     userinfo = getinfo(username)
     playerid = userinfo['playerid']
@@ -309,9 +393,8 @@ def drawcards(up=False):
     baodi = False
     drawcounts = {'0gift': 0, '1gift': 0, '2gift': 0, 'person': 0, 'decoration': 0}
     results = []
-    resultsmsg = "您的抽卡结果依次为:\n"
-    # with open(r'./plugin/MajSoulInfo/config.yml', 'r') as f:
-    with open(r'./config.yml', 'r') as f:
+    resultsmsg = "\n您的抽卡结果依次为:\n"
+    with open(r'./plugin/MajSoulInfo/config.yml', 'r') as f:
 
         config = yaml.safe_load(f)
         lottery = config['lottery']
@@ -385,73 +468,8 @@ def drawcards(up=False):
                 resultsmsg += gf
             if not count == 9:
                 resultsmsg += '\n'
-    print(resultsmsg)
+    # print(resultsmsg)
     return dict(drawcounts=drawcounts, results=results, resultsmsg=resultsmsg, baodi=baodi)
-
-
-#     baodi = False
-#     drawcounts = {'0gift': 0, '1gift': 0,
-#                   '2gift': 0, 'person': 0, 'decoration': 0}
-#     results = []
-#     resultsmsg = "\n您的抽卡结果依次为:\n"
-#     with open(r'./plugin/MajSoulInfo/config.yml', 'r') as f:
-#         config = yaml.safe_load(f)
-#         lottery = config['lottery']
-#         up_person = config['up']['person']
-#         up_decoration = config['up']['decoration']
-#         decoration = lottery['decoration']
-#         gift = lottery['gift']
-#         person = lottery['person']
-#         # print(decoration)
-#         # print(gift['length'])
-#         # print(person)
-#         for count in range(10):
-#             luck = random.randint(0, 100)
-#             if count == 9 and drawcounts['2gift'] == 0:
-#                 print("出保底喽")
-#                 gift_index = random.randint(0, 5) * 3 + 2
-#                 gf = gift['item'][gift_index]['name']
-#                 gfrare = gift['item'][gift_index]['rare']
-#                 drawcounts[str(gfrare) + 'gift'] += 1
-#                 results.append(gift['item'][gift_index]['url'])
-#                 resultsmsg += gf
-#                 resultsmsg += '\n\n已触发保底。'
-#                 break
-#             if luck < 5:
-#                 person_index = random.randint(0, person['length'] - 1)
-#                 ps = person['item'][person_index]['name']
-#                 drawcounts['person'] += 1
-#                 results.append(person['item'][person_index]['url'])
-#                 resultsmsg += ps
-#             elif luck < 15:
-#                 dec_index = random.randint(0, decoration['length'] - 1)
-#                 dec = decoration['item'][dec_index]['name']
-#                 drawcounts['decoration'] += 1
-#                 results.append(decoration['item'][dec_index]['url'])
-#                 resultsmsg += dec
-#             else:
-#                 gift_index = random.randint(0, 7) * 3
-#                 gifttype = random.randint(0, 10)
-#                 if gifttype < 3:
-#                     gift_index += 2
-#                 # elif gifttype < 3:
-#                 elif gifttype <9:
-#                     gift_index += 1
-#                 if count == 9 and drawcounts['2gift'] == 0:
-#                     if gift['item'][gift_index]['rare'] == 2:
-#                         break
-#                     else:
-#                         print("出保底喽")
-#                         gift_index = random.randint(0, 5) * 3 + 2
-#                         resultsmsg += '\n\n已触发保底。'
-#                 gf = gift['item'][gift_index]['name']
-#                 gfrare = gift['item'][gift_index]['rare']
-#                 drawcounts[str(gfrare) + 'gift'] += 1
-#                 results.append(gift['item'][gift_index]['url'])
-#                 resultsmsg += gf
-#             if not count == 9:
-#                 resultsmsg += '\n'
-#     return dict(drawcounts=drawcounts, results=results, resultsmsg=resultsmsg, baodi=baodi)
 
 
 def addwatch(playername: str, groupid: int):
@@ -472,23 +490,11 @@ def addwatch(playername: str, groupid: int):
                    "playerid integer,"
                    "playername varchar(50),"
                    "UNIQUE(groupid,playerid) ON CONFLICT REPLACE)")
-    # cu.execute("insert into qhplayer() values(0, 0, 'name1')")
-    # cu.execute("insert into qhplayer() values(1, 0, 'hello')")
     cx.commit()
 
     cursor.execute(
         f"select playerid from qhplayer where playername = '{playername}'")
     playerid = cursor.fetchall()
-    # if len(cursor.fetchall()) == 0:
-    #     print('数据库中无此用户，尝试查找该用户')
-    #     playerid = getinfo(playername)['playerid']
-    #     if playerid:
-    #         cursor.execute("insert into qhplayer(playerid,playername) values(?,?)", (playerid, playername))
-    #         cx.commit()
-    #     else:
-    #         cursor.close()
-    #         cx.close()
-    #         return "未找到该用户"
     if len(playerid) == 0:
         print("数据库中无此用户，请先查询该用户。")
         return "添加失败,数据库中无此用户,请先用 qhpt 查询该用户。"
@@ -514,20 +520,6 @@ def addwatch(playername: str, groupid: int):
         cx.commit()
     except sqlite3.IntegrityError:
         print(f"用户{playername}已被其他群关注")
-
-    # nowtime = math.floor(nowtime / 10) * 10000 + 9999
-    # playerid = playerid[0]
-    # paipu4 = getpaipu(playerid)
-    # result = jiexi(paipu=paipu4, playerid=playerid)
-    # print(cu.fetchall())
-    # [(0, 0, u'name1'), (1, 0, u'hello')]
-    #
-    # cu.execute("update catalog set name='name2' where id = 0")
-    #
-    # cx.commit()
-    #
-    # cu.execute("delete from catalog where id = 1")
-    # cx.commit()
     return "添加成功"
 
 

@@ -1,9 +1,15 @@
 admin:
-  - 1215791340
-whitelist:
-  - 1215791340
+- 0
+alarmclockgroup:
+- 0
 blacklist:
-  - ''
+- 0
 mutegrouplist:
-  -
-timeout:180
+- 0
+settings:
+  autogetpaipu: false
+  autowelcome: true
+welcomeinfo:
+- ��ӭ %ps% ����Ⱥ�� %gn%
+whitelist:
+- 0
