@@ -1,3 +1,4 @@
+import os
 import random
 import re
 import asyncio
@@ -5,7 +6,7 @@ import datetime
 
 import yaml
 
-from mirai.models import MemberHonorChangeEvent, GroupEvent, MemberJoinEvent
+from mirai.models import MemberHonorChangeEvent, GroupEvent, MemberJoinEvent,NudgeEvent
 from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -13,16 +14,30 @@ from apscheduler.triggers.cron import CronTrigger
 
 import plugin.MajSoulInfo.majsoulinfo as qhinfo
 import plugin.jupai.holdup
+import plugin.Petpet.gif
+
+group_id_list = [566415871, 736711628, 696897899, 796128056]
 
 whiteList = []
 black_userlist = []
 mute_grouplist = []
-admin = [0]
+admin = [1215791340]
 welcomeinfo = []
 config = {}
 settings = {}
 alarmclockgroup = []
+commandpre = ""
 if __name__ == '__main__':
+
+
+    if not os.path.exists("./database"):
+        os.mkdir("./database")
+    if not os.path.exists("./images"):
+        os.mkdir("./images")
+    if not os.path.exists("./data"):
+        os.mkdir("./data")
+    if not os.path.exists("./log"):
+        os.mkdir("./log")
 
     try:
         with open(r'./config.yml') as f:
@@ -33,21 +48,21 @@ if __name__ == '__main__':
             settings = config['settings']
             welcomeinfo = config['welcomeinfo']
             alarmclockgroup = config['alarmclockgroup']
+            commandpre = config['commandpre']
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
-            yaml.dump(dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
-                           welcomeinfo=["欢迎 %ps% 加入 %gn% "],alarmclockgroup=[0],
+            yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
+                           welcomeinfo=["欢迎 %ps% 加入 %gn% "],alarmclockgroup=[0],commandpre = "",
                            settings=dict(autogetpaipu=False, autowelcome=True)), f,
                       allow_unicode=True)
             print("默认文件生成完成，请重新启动。")
             exit(0)
 
     bot = Mirai(
-        qq=123456,  # 改成你的机器人的 QQ 号
+        qq=3384437741,  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
-            # Mirai-Http config 中的参数
-            verify_key='NekoRabi', host='localhost', port=17280
+            verify_key='xyshu123', host='localhost', port=17280
         )
     )
 
@@ -134,9 +149,9 @@ if __name__ == '__main__':
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(r'^qhpt\s*(\w+)\s*$', msg.strip())
+        m = re.match(r'^(qhpt|雀魂分数)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.query(m.group(1)))
+            await bot.send(event, qhinfo.query(m.group(2)))
         return
 
     @bot.on(GroupMessage)
@@ -377,14 +392,6 @@ if __name__ == '__main__':
             await bot.send(event, message_chain)
 
 
-    @bot.on(GroupMessage)
-    def on_group_message(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^摸\s*(\w+)\s*$', msg.strip())
-        if At(bot.qq) in event.message_chain and m:
-            print("bot被{0}摸了一次".format(str(event.sender.id)))
-            # return bot.send(event, [At(event.sender.id), '你在叫我吗？'])
-
 
 
     # 添加白名单
@@ -402,7 +409,7 @@ if __name__ == '__main__':
                 with open(r'./config.yml', 'w') as file:
                     yaml.dump(
                         dict(admin=admin, whitelist=whiteList, blacklist=black_userlist, mutegrouplist=mute_grouplist,
-                             welcomeinfo=welcomeinfo,alarmclockgroup=alarmclockgroup, settings=settings), file,
+                             welcomeinfo=welcomeinfo,alarmclockgroup=alarmclockgroup,commandpre=commandpre, settings=settings), file,
                         allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
@@ -433,7 +440,23 @@ if __name__ == '__main__':
             print(f"在{event.group.name}群,复读一次{msg}")
             return await bot.send(event, event.message_chain)
 
+    @bot.on(GroupMessage)
+    def on_group_message(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(r'^摸(摸)?\s*(\w+)\s*$', msg.strip())
+        if At() in event.message_chain and m:
+            print("bot被{0}摸了一次".format(str(event.sender.id)))
+            # return bot.send(event, [At(event.sender.id), '你在叫我吗？'])
 
+    @bot.on(NudgeEvent)
+    async def petpet(event:NudgeEvent):
+        target = event.target
+        await plugin.Petpet.gif.petpet(target)
+        await bot.send_group_message(event.subject.id,MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+        # msg = "".join(map(str, event.message_chain[Plain]))
+        # m = re.match(r'^(摸)\s*(\w+)\s*$', msg.strip())
+        # if m:
+        #     targetid = event
     # 群龙王
     # @bot.on(GroupEvent)
     # async def dradonchange(event: MemberHonorChangeEvent):

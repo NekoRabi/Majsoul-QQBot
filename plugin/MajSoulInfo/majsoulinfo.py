@@ -23,17 +23,20 @@ user_agent_list = [
 
 
 def getinfo(username: str):
-    s3, s4 = requests.Session()
+    s3 = requests.Session()
     s3.mount('http://', HTTPAdapter(max_retries=3))
     s3.mount('https://', HTTPAdapter(max_retries=3))
+    s4 = requests.Session()
     s4.mount('https://', HTTPAdapter(max_retries=3))
     s4.mount('https://', HTTPAdapter(max_retries=3))
     try:
         xhr3 = s3.get(
-            f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20", headers={'User-Agent': random.choice(user_agent_list)})
+            f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
+            headers={'User-Agent': random.choice(user_agent_list)})
         pl3 = eval(xhr3.text)
         xhr4 = s4.get(
-            f"https://ak-data-1.sapk.ch/api/v2/pl4/search_player/{username}?limit=20", headers={'User-Agent': random.choice(user_agent_list)})
+            f"https://ak-data-1.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
+            headers={'User-Agent': random.choice(user_agent_list)})
         pl4 = eval(xhr4.text)
 
         if len(pl3) == 1:
@@ -79,26 +82,32 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
     try:
         if selecttype == "4":
             xhr = s.get(
-                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8",
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8",timeout=5,
                 headers=headers)
         else:
             xhr = s.get(
-                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.26",
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26",timeout=5,
                 headers=headers)
     except requests.exceptions.ConnectionError as e:
         print(f"查询发生了错误:\t{e}\n")
+        return "查询时发生错误,请稍后再试。\tConnectionError"
     except requests.exceptions.ReadTimeout as e:
         print(f'读取超时:\t{e}\n')
-    content: dict = eval(xhr.text)
+        return "读取超时，请稍后再试。\tReadTimeOut"
+    text = xhr.text.replace("null", "0.0")
+    content: dict = eval(text)
     msg = f" 以下是玩家 {playername} 的数据:\n"
     # print(content)
     for (k, v) in content.items():
-        print("key:", k, "value", v)
+        # print("key:", k, "value", v)
         if type(v) not in [list, dict]:
             if str(k) in ["id", "count"]:
                 continue
             if type(v) == float:
-                msg += f"{k:^6} : {v * 100:2.2f}%\n"
+                if str(k) not in ['平均起手向听', '立直巡目', '和了巡数']:
+                    msg += f"{k:<12} : {v * 100:2.2f}%\n"
+                else:
+                    msg += f"{k:<12} : {v:2.2f}\n"
             else:
                 msg += f"{k} : {v}\n"
     return msg
@@ -175,8 +184,11 @@ def getpaipu(playerid: str) -> dict:
         # print(f'四麻对局信息:{eval(xhr.text)}')
     except requests.exceptions.ConnectionError as e:
         print(f"\n四麻查询发生了错误:\t{e}\n")
+        content['e4'] = True
     except requests.exceptions.ReadTimeout as e:
         print(f'\n读取超时:\t{e}\n')
+        content['e4'] = True
+
         # xhr = requests.get(
     #     f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit=10"
     #     f"&mode=21&descending=true&tag=304")
@@ -190,8 +202,10 @@ def getpaipu(playerid: str) -> dict:
         # print(f'三麻对局信息:{eval(xhr.text)}')
     except requests.exceptions.ConnectionError as e:
         print(f"\n三麻查询发生了错误:\t{e}\n")
+        content['e3'] = True
     except requests.exceptions.ReadTimeout as e:
         print(f'\n读取超时:\t{e}\n')
+        content['e3'] = True
     return content
 
 
