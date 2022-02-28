@@ -128,7 +128,7 @@ async def petpet(member_id, flip=False, squish=0, fps=20) -> None:
         async with session.get(url=url) as resp:
             img_content = await resp.read()
 
-    avatar = IMG.open(BytesIO(img_content))
+    avatar = IMG.open(BytesIO(img_content)).convert("RGBA")
 
     # 生成每一帧
     for i in range(5):
