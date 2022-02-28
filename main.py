@@ -6,7 +6,7 @@ import datetime
 
 import yaml
 
-from mirai.models import MemberHonorChangeEvent, GroupEvent, MemberJoinEvent,NudgeEvent
+from mirai.models import MemberHonorChangeEvent, GroupEvent, MemberJoinEvent, NudgeEvent
 from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -15,20 +15,18 @@ from apscheduler.triggers.cron import CronTrigger
 import plugin.MajSoulInfo.majsoulinfo as qhinfo
 import plugin.jupai.holdup
 import plugin.Petpet.gif
-
-group_id_list = [566415871, 736711628, 696897899, 796128056]
+import plugin.KissKiss.Kisskiss
 
 whiteList = []
 black_userlist = []
 mute_grouplist = []
-admin = [1215791340]
+admin = []
 welcomeinfo = []
 config = {}
 settings = {}
 alarmclockgroup = []
 commandpre = ""
 if __name__ == '__main__':
-
 
     if not os.path.exists("./database"):
         os.mkdir("./database")
@@ -52,17 +50,17 @@ if __name__ == '__main__':
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
-            yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
-                           welcomeinfo=["欢迎 %ps% 加入 %gn% "],alarmclockgroup=[0],commandpre = "",
-                           settings=dict(autogetpaipu=False, autowelcome=True)), f,
+            yaml.dump(dict(admin=[], whitelist=[], blacklist=[], mutegrouplist=[],
+                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[], commandpre="",
+                           settings=dict(autogetpaipu=True, autowelcome=True)), f,
                       allow_unicode=True)
             print("默认文件生成完成，请重新启动。")
             exit(0)
 
     bot = Mirai(
-        qq=3384437741,  # 改成你的机器人的 QQ 号
+        qq=123465,  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
-            verify_key='xyshu123', host='localhost', port=17280
+            verify_key='NekoRabi', host='localhost', port=17280
         )
     )
 
@@ -81,7 +79,7 @@ if __name__ == '__main__':
 
     # 欢迎
     @bot.on(MemberJoinEvent)
-    async def welcome(event: MemberJoinEvent):
+    async def welcome(event: MemberJoinEvent) -> None:
         if settings['autowelcome']:
             personid = event.member.id
             personname = event.member.member_name
@@ -93,7 +91,11 @@ if __name__ == '__main__':
                 At(personid),
                 Plain(f" {info}")
             ])
-            return await bot.send_group_message(event.member.group.id, msg)
+            await bot.send_group_message(event.member.group.id, msg)
+            await plugin.Petpet.gif.petpet(personid)
+            await bot.send_group_message(event.subject.id,
+                                         MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
+            return
 
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
@@ -116,53 +118,55 @@ if __name__ == '__main__':
             return
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(r'^色图\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}色图\s*(\w+)\s*$', msg.strip())
         if m:
-            if random.randint(0, 100) < 10:
+            if random.random() * 100 < 10:
                 await bot.send(event, [At(event.sender.id), "能不能少冲点"])
         return
 
 
     """雀魂相关"""
 
-    @bot.on(GroupMessage)
-    async def getmajsoulhelp(event:GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^雀魂帮助\s*$',msg.strip())
 
+    @bot.on(GroupMessage)
+    async def getmajsoulhelp(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr'^{commandpre}(help|雀魂帮助)\s*$', msg.strip())
         if m:
-            return await bot.send(event,MessageChain([
+            return await bot.send(event, MessageChain([
                 At(event.sender.id),
                 Plain(" 指令帮助 ()内为可选项,[]为必选项,{}为可用参数:\n"
-                      " qhpt [玩家名] :查询该玩家的段位分\n"
-                      " 雀魂十连 ({限时/常驻}) :来一次模拟雀魂十连\n"
-                      " 雀魂添加关注 [玩家名] :将一个玩家添加至自动查询，有新对局记录时会广播\n"
-                      " 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
-                      " 雀魂删除关注 [玩家名] :将一个玩家从自动查询中移除，不再自动广播对局记录\n"
+                      " qhpt / 雀魂分数 [玩家名] :查询该玩家的段位分\n"
+                      " qhsl / 雀魂十连 ({限时/常驻}) :来一次模拟雀魂十连\n"
+                      " qhadd / 雀魂添加关注 [玩家名] :将一个玩家添加至自动查询，有新对局记录时会广播\n"
+                      " qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
+                      " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从自动查询中移除，不再自动广播对局记录\n"
                       " 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
-                      " 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
+                      " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
                       " 举牌 [内容] :将内容写在举牌小人上发出来\n")
             ]))
+
 
     # 查分
     @bot.on(GroupMessage)
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(r'^(qhpt|雀魂分数)\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhpt|雀魂分数)\s*(\w+)\s*$', msg.strip())
         if m:
             await bot.send(event, qhinfo.query(m.group(2)))
         return
 
+
     @bot.on(GroupMessage)
     async def getsomepaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^雀魂最近对局\s*(\w+)\s*([0-9]+)*\s*([0-9]+)*\s*$',msg.strip())
+        m = re.match(fr'^{commandpre}雀魂最近对局\s*(\w+)\s*([0-9]+)*\s*([0-9]+)*\s*$', msg.strip())
 
         if m:
             playername = m.group(1)
             searchtype = m.group(2)
-            if searchtype :
+            if searchtype:
                 if searchtype.strip() not in ['3', '4']:
                     await bot.send(event, '牌局参数有误，请输入 3 或 4')
                     return
@@ -171,37 +175,39 @@ if __name__ == '__main__':
                     if 0 < searchnumber < 5:
                         # playerid =
                         # qhinfo.getsomepaipu(m.group())
-                        await bot.send(event,qhinfo.getsomepaipu(playername=playername.strip(),type=searchtype,counts=searchnumber))
+                        await bot.send(event, qhinfo.getsomepaipu(playername=playername.strip(), type=searchtype,
+                                                                  counts=searchnumber))
                         return
                     else:
                         await bot.send(event, "牌局数量有误，最多支持5场牌局")
                         return
                 else:
-                    await bot.send(event,qhinfo.getsomepaipu(playername=playername.strip(),type=searchtype.strip()))
+                    await bot.send(event, qhinfo.getsomepaipu(playername=playername.strip(), type=searchtype.strip()))
 
 
     @bot.on(GroupMessage)
-    async def getplayerdetails(event:GroupMessage):
-        msg = "".join(map(str,event.message_chain[Plain]))
+    async def getplayerdetails(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
 
-        m = re.match(r'^雀魂玩家详情\s*(\w+)\s*(\w+)*\s*(\w+)*\s*$',msg.strip())
+        m = re.match(fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*(\w+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
         if m:
-            playername = m.group(1)
-            selecttype = m.group(2)
-            selectlevel = m.group(3)
+            playername = m.group(2)
+            selecttype = m.group(3)
+            selectlevel = m.group(4)
             if selectlevel:
                 pass
             else:
-                await bot.send(event,qhinfo.getplayerdetail(playername=playername,selecttype=selecttype))
+                await bot.send(event, qhinfo.getplayerdetail(playername=playername, selecttype=selecttype))
+
 
     # 将一个雀魂用户加入某群的关注
     @bot.on(GroupMessage)
     async def addmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(r'^雀魂添加关注\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.addwatch(m.group(1), event.sender.group.id))
+            await bot.send(event, qhinfo.addwatch(m.group(2), event.sender.group.id))
 
 
     # @bot.on(GroupMessage)
@@ -217,7 +223,10 @@ if __name__ == '__main__':
     # 获取某群的雀魂关注人员
     @bot.on(GroupMessage)
     async def getqhwatcher(event: GroupMessage):
-        if event.message_chain.has("雀魂获取本群关注"):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        # 匹配指令
+        m = re.match(fr'^{commandpre}(qhgetwatch|雀魂获取本群关注)\s*$', msg.strip())
+        if m:
             await bot.send(event, qhinfo.getallwatcher(event.group.id))
 
 
@@ -226,19 +235,19 @@ if __name__ == '__main__':
     async def delwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(r'^雀魂删除关注\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhdel|雀魂删除关注)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.removewatch(playername=m.group(1), groupid=event.sender.group.id))
+            await bot.send(event, qhinfo.removewatch(playername=m.group(2), groupid=event.sender.group.id))
 
 
     # 来一发雀魂十连
     @bot.on(GroupMessage)
     async def addmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^雀魂十连\s*(\w+)*\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhsl|雀魂十连)\s*(\w+)*\s*$', msg.strip())
         if m:
-            if m.group(1):
-                if m.group(1) == '限时':
+            if m.group(2):
+                if m.group(2) == '限时':
                     result = qhinfo.drawcards(up=True)
                     meanmessage = MessageChain([
                         At(event.sender.id),
@@ -268,7 +277,7 @@ if __name__ == '__main__':
                         At(event.sender.id),
                         Plain(result['resultsmsg'])
                     ]))
-                elif m.group(1) == '常驻':
+                elif m.group(2) == '常驻':
                     result = qhinfo.drawcards(up=False)
                     meanmessage = MessageChain([
                         At(event.sender.id),
@@ -371,7 +380,7 @@ if __name__ == '__main__':
         if len(event.message_chain[Plain]) == 1:
             msg = str(event.message_chain[Plain][0]).strip()
             if msg in ['正确的', '错误的', '辩证的', '哦对的对的', '啊对对对']:
-                if random.randint(0, 10) < 3:
+                if random.random()*100 < 30:
                     await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '哦对的对的']))
 
 
@@ -381,7 +390,7 @@ if __name__ == '__main__':
     @bot.on(GroupMessage)
     async def jupai(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'''^举牌\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$''', msg.strip())
+        m = re.match(fr'''^{commandpre}举牌\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$''', msg.strip())
         if m:
             if len(m.group(1)) > 40:
                 await bot.send(event, "最多支持做40个字的举牌哦~")
@@ -390,8 +399,6 @@ if __name__ == '__main__':
                 await Image.from_local('./images/jupai.png')
             ])
             await bot.send(event, message_chain)
-
-
 
 
     # 添加白名单
@@ -409,7 +416,8 @@ if __name__ == '__main__':
                 with open(r'./config.yml', 'w') as file:
                     yaml.dump(
                         dict(admin=admin, whitelist=whiteList, blacklist=black_userlist, mutegrouplist=mute_grouplist,
-                             welcomeinfo=welcomeinfo,alarmclockgroup=alarmclockgroup,commandpre=commandpre, settings=settings), file,
+                             welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
+                             settings=settings), file,
                         allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
@@ -422,41 +430,67 @@ if __name__ == '__main__':
 
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
-        count = random.randint(0, 1000)
+        count = random.random() * 100
         msg = event.message_chain[Plain]
         senderid = event.sender.id
         if senderid in whiteList:
             return
-        if str(msg) == "?" and count > 700:
+        if str(msg) == "?" and count > 70:
             print(f"在{event.group.name}群,复读了一次?")
             return await bot.send(event, "?")
-        if count < 2:
+        if count < 0.2:
             print(f"在{event.group.name}群,打断一次{msg}")
             return await bot.send(event, random.choice(["¿", "Lux is watching you!"]))
-        elif count < 5:
+        elif count < 0.5:
             print(f"在{event.group.name}群,打断一次{msg}")
             return await bot.send(event, "?")
-        elif count < 10:
+        elif count < 1:
             print(f"在{event.group.name}群,复读一次{msg}")
             return await bot.send(event, event.message_chain)
 
+    # 亲亲
     @bot.on(GroupMessage)
-    def on_group_message(event: GroupMessage):
+    async def on_kiss(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^摸(摸)?\s*(\w+)\s*$', msg.strip())
-        if At() in event.message_chain and m:
-            print("bot被{0}摸了一次".format(str(event.sender.id)))
-            # return bot.send(event, [At(event.sender.id), '你在叫我吗？'])
+        m = re.match(r'^(亲|亲亲)\s*@?(\w+)?\s*', msg.strip())
+        if m:
+            if At in event.message_chain:
+                operator_id = event.sender.id
+                target_id = event.message_chain.get_first(At).target
+                if operator_id == target_id:
+                    return await bot.send(event, MessageChain([Plain("请不要自交~😋")]))
+                else:
+                    await plugin.KissKiss.Kisskiss.kiss(operator_id=operator_id,target_id=target_id)
+                    await bot.send(event,MessageChain(Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
 
+    # 摸头
+    @bot.on(GroupMessage)
+    async def on_group_message(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(r'^(摸|摸摸)\s*@?(\w+)?\s*$', msg.strip())
+        if m:
+            if At in event.message_chain:
+                target = event.message_chain.get_first(At).target
+                await plugin.Petpet.gif.petpet(target)
+                await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+            else:
+                target = m.group(2)
+                await plugin.Petpet.gif.petpet(target)
+                await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+
+    # 戳一戳 出发摸头
     @bot.on(NudgeEvent)
-    async def petpet(event:NudgeEvent):
+    async def petpet(event: NudgeEvent):
         target = event.target
         await plugin.Petpet.gif.petpet(target)
-        await bot.send_group_message(event.subject.id,MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+        await bot.send_group_message(event.subject.id,
+                                     MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
         # msg = "".join(map(str, event.message_chain[Plain]))
         # m = re.match(r'^(摸)\s*(\w+)\s*$', msg.strip())
         # if m:
         #     targetid = event
+
+
     # 群龙王
     # @bot.on(GroupEvent)
     # async def dradonchange(event: MemberHonorChangeEvent):
@@ -523,5 +557,6 @@ if __name__ == '__main__':
                             await bot.send_group_message(groupid, f"晚上10点了，大家可以休息了")
         if settings['autogetpaipu']:
             await autopaipu()
+
 
     bot.run(port=17580)
