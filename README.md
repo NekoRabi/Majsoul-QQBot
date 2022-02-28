@@ -41,6 +41,13 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
  1. 查询玩家信息的时候仍然会卡死，可能是由于超时。
  2. config.yml编辑后乱码 ~~（大多数时候是将 UTF-8 编码保存为 GBK 或者反过来）~~
 
+ # 开发计划
+  [ ] 增加对天凤的支持
+
+  [ ] 指令增加英文缩写触发
+
+  [ ] 更多更多的功能
+
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。
 
