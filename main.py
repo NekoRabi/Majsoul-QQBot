@@ -3,7 +3,7 @@ import random
 import re
 import asyncio
 import datetime
-
+import json
 import yaml
 
 from mirai.models import MemberHonorChangeEvent, GroupEvent, MemberJoinEvent, NudgeEvent
@@ -20,12 +20,14 @@ import plugin.KissKiss.Kisskiss
 whiteList = []
 black_userlist = []
 mute_grouplist = []
-admin = []
+admin = [1215791340]
 welcomeinfo = []
 config = {}
 settings = {}
 alarmclockgroup = []
 commandpre = ""
+botname = "拉克丝"
+replydata = {}
 if __name__ == '__main__':
 
     if not os.path.exists("./database"):
@@ -47,18 +49,25 @@ if __name__ == '__main__':
             welcomeinfo = config['welcomeinfo']
             alarmclockgroup = config['alarmclockgroup']
             commandpre = config['commandpre']
+            botname = config['botname']
+
+        if os.path.exists(r"./data/data.json"):
+            with open(r"./data/data.json", 'r', encoding="utf-8") as jsonf:
+                replydata = json.load(jsonf)
+        else:
+            print("回复文本不存在")
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
             yaml.dump(dict(admin=[], whitelist=[], blacklist=[], mutegrouplist=[],
-                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[], commandpre="",
+                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[], commandpre="", botname="",
                            settings=dict(autogetpaipu=True, autowelcome=True)), f,
                       allow_unicode=True)
             print("默认文件生成完成，请重新启动。")
             exit(0)
 
     bot = Mirai(
-        qq=123465,  # 改成你的机器人的 QQ 号
+        qq=123456,  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
             verify_key='NekoRabi', host='localhost', port=17280
         )
@@ -96,6 +105,7 @@ if __name__ == '__main__':
             await bot.send_group_message(event.subject.id,
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
+
 
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
@@ -380,7 +390,7 @@ if __name__ == '__main__':
         if len(event.message_chain[Plain]) == 1:
             msg = str(event.message_chain[Plain][0]).strip()
             if msg in ['正确的', '错误的', '辩证的', '哦对的对的', '啊对对对']:
-                if random.random()*100 < 30:
+                if random.random() * 100 < 30:
                     await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '哦对的对的']))
 
 
@@ -417,7 +427,7 @@ if __name__ == '__main__':
                     yaml.dump(
                         dict(admin=admin, whitelist=whiteList, blacklist=black_userlist, mutegrouplist=mute_grouplist,
                              welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
-                             settings=settings), file,
+                             botname=botname, settings=settings), file,
                         allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
@@ -448,6 +458,18 @@ if __name__ == '__main__':
             print(f"在{event.group.name}群,复读一次{msg}")
             return await bot.send(event, event.message_chain)
 
+
+    @bot.on(GroupMessage)
+    async def diyreply(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        if botname in event.message_chain:
+            msg = msg.replace(f"{botname}", "", 1)
+            for k, v in replydata.items():
+                if k in msg:
+                    return await bot.send(event, random.choice(replydata.get(k)))
+            return await bot.send(event, "你在叫我吗")
+
+
     # 亲亲
     @bot.on(GroupMessage)
     async def on_kiss(event: GroupMessage):
@@ -460,8 +482,10 @@ if __name__ == '__main__':
                 if operator_id == target_id:
                     return await bot.send(event, MessageChain([Plain("请不要自交~😋")]))
                 else:
-                    await plugin.KissKiss.Kisskiss.kiss(operator_id=operator_id,target_id=target_id)
-                    await bot.send(event,MessageChain(Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
+                    await plugin.KissKiss.Kisskiss.kiss(operator_id=operator_id, target_id=target_id)
+                    await bot.send(event, MessageChain(
+                        Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
+
 
     # 摸头
     @bot.on(GroupMessage)
@@ -477,6 +501,7 @@ if __name__ == '__main__':
                 target = m.group(2)
                 await plugin.Petpet.gif.petpet(target)
                 await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+
 
     # 戳一戳 出发摸头
     @bot.on(NudgeEvent)

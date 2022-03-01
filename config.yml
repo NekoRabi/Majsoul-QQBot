@@ -4,12 +4,14 @@ alarmclockgroup:
 - 0
 blacklist:
 - 0
+botname: ''
+commandpre: ''
 mutegrouplist:
 - 0
 settings:
-  autogetpaipu: false
+  autogetpaipu: true
   autowelcome: true
 welcomeinfo:
-- æ¬¢è¿ %ps% åŠ å…¥ç¾¤èŠ %gn%
+- »¶Ó­%ps%¼ÓÈëÈºÁÄ%gn%
 whitelist:
 - 0
