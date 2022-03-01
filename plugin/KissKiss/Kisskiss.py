@@ -47,7 +47,7 @@ async def kiss(operator_id, target_id) -> None:
                 operator_img = await resp.read()
         operator = IMG.open(BytesIO(operator_img))
     else:
-        operator = IMG.open("./plugin/KissKiss/avatar.png")
+        operator = IMG.open("./plugin/KissKiss/avatar.png").convert("RGBA")
 
     if str(target_id) != "":  # admin自定义
         async with aiohttp.ClientSession() as session:
