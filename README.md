@@ -16,6 +16,7 @@
 
 # 配置文件
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
+### config.yml
  ```
 admin: # 管理员QQ
 - 0
@@ -23,6 +24,8 @@ alarmclockgroup: # 为群聊添加每天早安和准点报时
 - 0
 blacklist: # 黑名单(目前没做)
 - 0
+botname: '' #与机器人对话时的机器人名字
+commandpre: '' #指令前缀
 mutegrouplist: # 屏蔽某群的消息(目前没做)
 - 0
 settings: # 设置
@@ -36,6 +39,81 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
 - 0
 
  ```
+
+### data.json
+```
+{
+  <!-- 都是最简单的 key:[value0,value1...]  
+  前面是与机器人互动的关键词 string ，后面是回复消息的 list -->
+  "贴": [
+      "贴什么贴.....只......只能......一下哦！",
+      "贴...贴贴（靠近）",
+      "蹭蹭…你以为咱会这么说吗！baka死宅快到一边去啦！",
+      "你把脸凑这么近，咱会害羞的啦Σ>―(〃°ω°〃)♡→",
+      "退远",
+      "不可以贴"
+  ]
+}
+```
+
+### 雀魂十连的 config.yml (预计将重命名)
+
+```
+lottery:    # 奖池
+  decoration:  # 装饰品类
+    item: # 物品
+    - index: 0 # 编号
+      name: 24K金棒 # 物品名称
+      rare: 3  #稀有度
+      type: decoration # 物品类型
+      url: ./Images/decoration/24K金棒.jpg  # 物品图片链接
+    - index: 1
+      name: 一触即发
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/一触即发.jpg
+    - index: 2
+  gift:  # 礼物类
+    item:
+    - index: 0
+      name: 手工曲奇
+      rare: 0 
+      type: gift
+      url: ./Images/gift/00-手工曲奇.jpg
+    - index: 1
+      name: 蓝罐曲奇
+      rare: 1
+      type: gift
+      url: ./Images/gift/01-蓝罐曲奇.jpg
+    - index: 2
+      name: 香喷喷曲奇
+      rare: 2 
+      type: gift
+      url: ./Images/gift/02-香喷喷曲奇.jpg
+  person:
+    item:
+    - index: 0
+      name: 七海礼奈
+      rare: 4
+      type: person
+      url: ./Images/person/七海礼奈.png
+    - index: 1
+      name: 三上千织
+      rare: 4
+      type: person
+      url: ./Images/person/三上千织.png
+
+up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物出率将提高
+    # 直接填物品名字
+  decoration:
+  - 和牌-安可
+  - 立直-开场曲
+  - 立直棒-应援棒
+  person:
+  - 八木唯
+  - 北见纱和子
+```
+
 
  # 功能
 
