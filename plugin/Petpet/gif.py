@@ -1,6 +1,5 @@
 from PIL import Image as IMG
 from PIL import ImageOps
-from mirai import MessageChain, Image
 from moviepy.editor import ImageSequenceClip as imageclip
 import numpy
 import aiohttp
@@ -12,15 +11,14 @@ __name__ = "PetPet"
 __description__ = "生成摸头gif"
 __usage__ = "在群内发送 摸@目标 即可"
 
-
 async def petpet_generator(qqnumber: int):
+
+    if not os.path.exists("./images/PetPet"):
+        os.mkdir("./images/PetPet")
     if not os.path.exists("./images/PetPet/temp"):
         os.mkdir("./images/PetPet/temp")
     await petpet(member_id=qqnumber)
-    msgc = MessageChain([
-        Image(path=f"./images/PetPet/temp/tempPetPet-{qqnumber}.gif")
-    ])
-    return msgc
+    return
 
 
 frame_spec = [
@@ -130,8 +128,28 @@ async def petpet(member_id, flip=False, squish=0, fps=20) -> None:
 
     avatar = IMG.open(BytesIO(img_content)).convert("RGBA")
 
+    size = avatar.size
+    # 因为是要圆形，所以需要正方形的图片
+    r2 = min(size[0], size[1])
+    ima = avatar
+    if size[0] != size[1]:
+        ima = avatar.resize((r2, r2), IMG.ANTIALIAS)
+    # 最后生成圆的半径
+    r3 = int(r2 / 2)
+    imb = IMG.new('RGBA', (r3 * 2, r3 * 2), (255, 255, 255, 1))
+    pima = ima.load()  # 像素的访问对象
+    pimb = imb.load()
+    r = float(r2 / 2)  # 圆心横坐标
+
+    for i in range(r2):
+        for j in range(r2):
+            lx = abs(i - r)  # 到圆心距离的横坐标
+            ly = abs(j - r)  # 到圆心距离的纵坐标
+            l = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径
+            if l < r3:
+                pimb[i - (r - r3), j - (r - r3)] = pima[i, j]
     # 生成每一帧
     for i in range(5):
-        gif_frames.append(await make_frame(avatar, i, squish=squish, flip=flip))
+        gif_frames.append(await make_frame(imb, i, squish=squish, flip=flip))
     # 输出
     await save_gif(gif_frames, f'./images/PetPet/temp/tempPetPet-{member_id}.gif', fps=fps)

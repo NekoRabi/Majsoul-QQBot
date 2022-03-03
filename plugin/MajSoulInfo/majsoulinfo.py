@@ -1,4 +1,5 @@
 import math
+import os.path
 import time
 
 import requests
@@ -7,6 +8,9 @@ import random
 
 import yaml
 from requests.adapters import HTTPAdapter
+
+if not os.path.exists("./config/MajSoulInfo"):
+    os.mkdir("./config/MajSoulInfo")
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
@@ -412,7 +416,7 @@ def drawcards(up=False):
     drawcounts = {'0gift': 0, '1gift': 0, '2gift': 0, 'person': 0, 'decoration': 0}
     results = []
     resultsmsg = "\n您的抽卡结果依次为:\n"
-    with open(r'./plugin/MajSoulInfo/config.yml', 'r') as f:
+    with open(r'./config/MajSoulInfo/drawcards.yml', 'r') as f:
 
         config = yaml.safe_load(f)
         lottery = config['lottery']
@@ -524,7 +528,7 @@ def addwatch(playername: str, groupid: int):
         # 群组已添加
         pass
     try:
-        cursor.execute(f"select from group2player where groupid = {groupid} and playerid = {playerid}")
+        cursor.execute(f"select * from group2player where groupid = {groupid} and playerid = {playerid}")
         if len(cursor.fetchall()) == 0:
             cursor.execute(
                 f"insert into group2player(groupid,playerid,playername) values({groupid},{playerid},'{playername}')")

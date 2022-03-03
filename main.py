@@ -28,6 +28,8 @@ alarmclockgroup = []
 commandpre = ""
 botname = "拉克丝"
 replydata = {}
+r18reply = {}
+nudgedate = {}
 if __name__ == '__main__':
 
     if not os.path.exists("./database"):
@@ -49,27 +51,38 @@ if __name__ == '__main__':
             welcomeinfo = config['welcomeinfo']
             alarmclockgroup = config['alarmclockgroup']
             commandpre = config['commandpre']
-            botname = config['botname']
+            botname = config['botname'].strip()
 
         if os.path.exists(r"./data/data.json"):
             with open(r"./data/data.json", 'r', encoding="utf-8") as jsonf:
                 replydata = json.load(jsonf)
         else:
             print("回复文本不存在")
+        if os.path.exists(r"./data/r18data.json"):
+            with open(r"./data/r18data.json", 'r', encoding="utf-8") as jsonf:
+                r18reply = json.load(jsonf)
+        else:
+            print("r18回复文本不存在")
+
+        if os.path.exists(r"./data/nudgedata.yml"):
+            with open(r'./data/nudgedata.yml', encoding="utf-8") as nudegfile:
+                nudgedate = yaml.safe_load(nudegfile)
+        else:
+            print("摸头文本不存在")
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
-            yaml.dump(dict(admin=[], whitelist=[], blacklist=[], mutegrouplist=[],
-                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[], commandpre="", botname="",
+            yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
+                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[566415871], commandpre="", botname="",
                            settings=dict(autogetpaipu=True, autowelcome=True)), f,
                       allow_unicode=True)
             print("默认文件生成完成，请重新启动。")
             exit(0)
 
     bot = Mirai(
-        qq=123456,  # 改成你的机器人的 QQ 号
+        qq=3384437741,  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
-            verify_key='NekoRabi', host='localhost', port=17280
+            verify_key='xyshu123', host='localhost', port=17280
         )
     )
 
@@ -102,7 +115,7 @@ if __name__ == '__main__':
             ])
             await bot.send_group_message(event.member.group.id, msg)
             await plugin.Petpet.gif.petpet(personid)
-            await bot.send_group_message(event.subject.id,
+            await bot.send_group_message(event.member.group.id,
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
@@ -153,7 +166,8 @@ if __name__ == '__main__':
                       " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从自动查询中移除，不再自动广播对局记录\n"
                       " 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
                       " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
-                      " 举牌 [内容] :将内容写在举牌小人上发出来\n")
+                      " 举牌 [内容] :将内容写在举牌小人上发出来\n"
+                      " 项目地址 : 获取项目链接")
             ]))
 
 
@@ -459,15 +473,41 @@ if __name__ == '__main__':
             return await bot.send(event, event.message_chain)
 
 
+    # 获取项目地址
+    @bot.on(FriendMessage)
+    async def getlink(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(r"^项目地址\s*$", msg.strip())
+        if m:
+            return await bot.send(event, MessageChain([Plain("https://github.com/NekoRabi/Majsoul-QQBot")]))
+
+
+    @bot.on(GroupMessage)
+    async def getlink(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(r"^项目地址\s*$", msg.strip())
+        if m:
+            return await bot.send(event, MessageChain([Plain("https://github.com/NekoRabi/Majsoul-QQBot")]))
+
+
     @bot.on(GroupMessage)
     async def diyreply(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
+        senderid = event.sender.id
+        if botname == "":
+            return
         if botname in event.message_chain:
             msg = msg.replace(f"{botname}", "", 1)
-            for k, v in replydata.items():
-                if k in msg:
-                    return await bot.send(event, random.choice(replydata.get(k)))
-            return await bot.send(event, "你在叫我吗")
+            if senderid in admin:
+                for k, v in replydata.items():
+                    if k in msg:
+                        return await bot.send(event, random.choice(r18reply.get(k)))
+                return await bot.send(event, f"主人有事吗")
+            else:
+                for k, v in replydata.items():
+                    if k in msg:
+                        return await bot.send(event, random.choice(replydata.get(k)))
+                return await bot.send(event, "你在叫我吗")
 
 
     # 亲亲
@@ -497,23 +537,29 @@ if __name__ == '__main__':
                 target = event.message_chain.get_first(At).target
                 await plugin.Petpet.gif.petpet(target)
                 await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
-            else:
-                target = m.group(2)
-                await plugin.Petpet.gif.petpet(target)
-                await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+            # else:
+            #     target = m.group(2)
+            #     await plugin.Petpet.gif.petpet(target)
+            #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
 
     # 戳一戳 出发摸头
     @bot.on(NudgeEvent)
     async def petpet(event: NudgeEvent):
         target = event.target
-        await plugin.Petpet.gif.petpet(target)
-        await bot.send_group_message(event.subject.id,
-                                     MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
-        # msg = "".join(map(str, event.message_chain[Plain]))
-        # m = re.match(r'^(摸)\s*(\w+)\s*$', msg.strip())
-        # if m:
-        #     targetid = event
+        if target == bot.qq:
+            sender = event.from_id
+            if sender in admin:
+                await bot.send_group_message(event.subject.id, MessageChain([Plain(random.choice(nudgedate['admin']))]))
+                await plugin.Petpet.gif.petpet(target)
+                await bot.send_group_message(event.subject.id,
+                                             MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+            else:
+                await bot.send_group_message(event.subject.id, MessageChain([Plain(random.choice(nudgedate['other']))]))
+        else:
+            await plugin.Petpet.gif.petpet(target)
+            await bot.send_group_message(event.subject.id,
+                                         MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
 
     # 群龙王
