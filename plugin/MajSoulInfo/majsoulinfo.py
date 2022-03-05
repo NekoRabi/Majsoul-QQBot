@@ -1,7 +1,7 @@
 import math
 import os.path
 import time
-
+from PIL import Image
 import requests
 import sqlite3
 import random
@@ -86,11 +86,13 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
     try:
         if selecttype == "4":
             xhr = s.get(
-                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8",timeout=5,
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8",
+                timeout=5,
                 headers=headers)
         else:
             xhr = s.get(
-                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26",timeout=5,
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26",
+                timeout=5,
                 headers=headers)
     except requests.exceptions.ConnectionError as e:
         print(f"查询发生了错误:\t{e}\n")
@@ -139,13 +141,13 @@ def getsomepaipu(playername: str, type="4", counts=5):
         if type == '3':
             xhr = s.get(
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
-                f"?limit={counts}&mode=21,22,23,24,26&descending=true",
+                f"?limit={counts}&mode=21,22,23,24,25,26&descending=true",
                 headers=headers, timeout=5)
             content = eval(xhr.text)
         else:
             xhr = s.get(
                 f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-                f"?limit={counts}&mode=8,9,11,12,16&descending=true",
+                f"?limit={counts}&mode=8,9,11,12,15,16&descending=true",
                 headers=headers, timeout=5)
             content = eval(xhr.text)
         if len(content) == 0:
@@ -166,9 +168,10 @@ def getsomepaipu(playername: str, type="4", counts=5):
         return paipuInfo
     except requests.exceptions.ConnectionError as e:
         print(f"查询发生了错误:\t{e}\n")
+        return "连接失败，请稍后重试 ConnectionError"
     except requests.exceptions.ReadTimeout as e:
         print(f'读取超时:\t{e}\n')
-    return "查询失败"
+        return "读取超时，请稍后重试 ReadTimeOut"
 
 
 def getpaipu(playerid: str) -> dict:
@@ -183,7 +186,7 @@ def getpaipu(playerid: str) -> dict:
     try:
         xhr4 = s.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-            "?limit=1&mode=8,9,11,12,16&descending=true", headers=headers, timeout=5)
+            "?limit=1&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=5)
         content['p4'] = eval(xhr4.text)
         # print(f'四麻对局信息:{eval(xhr.text)}')
     except requests.exceptions.ConnectionError as e:
@@ -201,7 +204,7 @@ def getpaipu(playerid: str) -> dict:
     try:
         xhr3 = s.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
-            "?limit=1&mode=21,22,23,24,26&descending=true", headers=headers, timeout=5)
+            "?limit=1&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=5)
         content['p3'] = eval(xhr3.text)
         # print(f'三麻对局信息:{eval(xhr.text)}')
     except requests.exceptions.ConnectionError as e:
@@ -348,6 +351,12 @@ def prtlevelmsg(stagelevel, scorelevel):
     return msg
 
 
+def mergeimg(imgurls: list) -> Image:
+    for url in imgurls:
+        img = Image.open(f"./plugin/MajSoulInfo/Images/{url}")
+    return
+
+
 """查询雀魂用户信息"""
 
 
@@ -386,7 +395,6 @@ def query(username: str) -> str:
     except AttributeError:
         print("查询不到三麻段位")
         prtmsg += "\n未查询到三麻段位。"
-
     """四麻"""
     try:
         user_p4_levelinfo = userinfo['pl4']
@@ -397,17 +405,6 @@ def query(username: str) -> str:
     except AttributeError:
         print("查询不到四麻段位")
         prtmsg += "\n未查询到四麻段位。"
-    # try:
-    #     xhr = requests.get("https://ak-data-1.sapk.ch/api/v2/pl3/search_player/" + username + "?limit=20")
-    #     user_p3_levelinfo = eval(xhr.text)[0]
-    #     userid = user_p3_levelinfo.get('id')
-    #     user_p3_levelinfo = user_p3_levelinfo.get("level")
-    #     p3_level = user_p3_levelinfo.get("id")
-    #     p3_score = int(user_p3_levelinfo.get("score")) + int(user_p3_levelinfo.get("delta"))
-    #     prtmsg += levelswitch(p3_level, p3_score, "三麻")
-    # except:
-    #     print("查询不到三麻段位")
-    #     prtmsg += "\n未查询到三麻段位。"
     return prtmsg
 
 
@@ -429,7 +426,7 @@ def drawcards(up=False):
         # print(gift['length'])
         # print(person)
         for count in range(10):
-            luck = random.randint(0, 100)
+            luck = random.random() * 100
             if count == 9 and drawcounts['2gift'] == 0:
                 print("出保底喽")
                 gift_index = random.randint(0, 5) * 3 + 2
@@ -442,7 +439,7 @@ def drawcards(up=False):
                 break
             if luck < 5:
                 if up:
-                    if random.randint(0, 100) < 59:
+                    if random.random() * 100 < 59:
                         person_name = random.choice(up_person)
                         ps = person_name + '\n'
                         drawcounts['person'] += 1
@@ -457,7 +454,7 @@ def drawcards(up=False):
                 resultsmsg += ps
             elif luck < 15:
                 if up:
-                    if random.randint(0, 100) < 49:
+                    if random.random() * 100 < 49:
                         decoration_name = random.choice(up_decoration)
                         dec = decoration_name + '\n'
                         drawcounts['decoration'] += 1
@@ -490,7 +487,6 @@ def drawcards(up=False):
                 resultsmsg += gf
             if not count == 9:
                 resultsmsg += '\n'
-    # print(resultsmsg)
     return dict(drawcounts=drawcounts, results=results, resultsmsg=resultsmsg, baodi=baodi)
 
 
