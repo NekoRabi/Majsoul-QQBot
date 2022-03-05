@@ -2,7 +2,7 @@ adapters:
   - ws
 debug: false
 enableVerify: true
-verifyKey: xyshu123
+verifyKey: NekoRabi
 singleMode: false
 cacheSize: 4096
 adapterSettings: 
