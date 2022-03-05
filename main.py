@@ -1,12 +1,9 @@
-import os
 import random
 import re
 import asyncio
 import datetime
-import json
 import sqlite3
 
-import yaml
 
 from mirai.models import MemberJoinEvent, NudgeEvent
 from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
@@ -14,93 +11,32 @@ from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, S
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-import plugin.MajSoulInfo.majsoulinfo as qhinfo
+from plugin import *
+from plugin.MajSoulInfo import majsoulinfo,mergeimgs
 import plugin.jupai.holdup
 import plugin.Petpet.gif
 import plugin.KissKiss.Kisskiss
 import plugin.LeisurePlugin.leisure
 
-whiteList = []
-black_list = dict(user=[], group=[])
-admin = [1215791340]
-welcomeinfo = []
-config = {}
-botconfig = dict(qq=1215791340, botname='拉克丝', verify_key='xyshu123', host='localhost', port=17280)
-settings = {}
-alarmclockgroup = []
-commandpre = ""
-botname = "拉克丝"
-replydata = dict(common={}, r18={}, blackuser=[])
-nudgedate = {}
 if __name__ == '__main__':
 
-    if not os.path.exists("./database"):
-        os.mkdir("./database")
-    if not os.path.exists("./images"):
-        os.mkdir("./images")
-    if not os.path.exists("./data"):
-        os.mkdir("./data")
-    if not os.path.exists("./log"):
-        os.mkdir("./log")
+    create_folders()
+    config = load_config()
 
-    try:
-        with open(r'./config.yml') as f:
-            config = yaml.safe_load(f)
-            print(config)
-            whiteList = config['whitelist']
-            black_list['user'] = config['blacklist']
-            black_list['group'] = config['mutegrouplist']
-            settings = config['settings']
-            welcomeinfo = config['welcomeinfo']
-            alarmclockgroup = config['alarmclockgroup']
-            commandpre = config['commandpre']
-            botconfig = config['botconfig']
-            botname = botconfig['botname']
-
-    except Exception as e:
-        print("文件打开错误，尝试生成初始文件中...")
-        with open(r'./config.yml', 'w') as f:
-            yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
-                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[566415871], commandpre="", searchfrequency=6,
-                           botconfig=dict(qq=3384437741, botname="拉克丝", verify_key='xyshu123', host='localhost',
-                                          port=17280),
-                           settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True)), f,
-                      allow_unicode=True)
-            print("默认文件生成完成，请重新启动。")
-            exit(0)
-
-    if os.path.exists(r"./data/commonreply.json"):
-        with open(r"./data/commonreply.json", 'r', encoding="utf-8") as commonreply:
-            replydata['common'] = json.load(commonreply)
-    else:
-        print("回复文本不存在")
-
-    if os.path.exists(r"./data/hyperreply.json"):
-        with open(r"./data/hyperreply.json", 'r', encoding="utf-8") as r18reply:
-            replydata['r18'] = json.load(r18reply)
-    else:
-        print("r18回复文本不存在")
-
-    if os.path.exists(r"./data/black_user_reply.yml"):
-        with open(r"./data/black_user_reply.yml", encoding="utf-8") as blackreply:
-            replydata['blackuser'] = yaml.safe_load(blackreply)
-    else:
-        print("黑名单回复文本不存在")
-
-    if os.path.exists(r"./data/nudgedata.yml"):
-        with open(r'./data/nudgedata.yml', encoding="utf-8") as nudegfile:
-            nudgedate = yaml.safe_load(nudegfile)
-    else:
-        print("摸头文本不存在")
-
-    if len(welcomeinfo) == 0:
-        print("入群欢迎文本不存在，该功能将关闭")
-        settings['autowelcome'] = False
-
+    black_list = dict(user=[], group=[])
+    black_list['user'] = config['blacklist']
+    black_list['group'] = config['mutegrouplist']
+    whiteList = config['whitelist']
+    admin = config['admin']
+    settings = config['settings']
+    botname = config['botconfig']['botname']
+    replydata = load_replydata()
+    commandpre = config['commandpre']
+    alarmclockgroup = config['alarmclockgroup']
     bot = Mirai(
-        qq=botconfig['qq'],  # 改成你的机器人的 QQ 号
+        qq=config['botconfig']['qq'],  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
-            verify_key=botconfig['verify_key'], host=botconfig['host'], port=botconfig['port']
+            verify_key=config['adapter']['verify_key'], host=config['adapter']['host'], port=config['adapter']['port']
         )
     )
     print(f"机器人{botname}启动中,QQ : {bot.qq},adapter : {bot.adapter_info}")
@@ -109,7 +45,7 @@ if __name__ == '__main__':
     async def autopaipu():
         nowtime = datetime.datetime.now()
         print(f"开始查询,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
-        result = qhinfo.autoQueryPaipu()
+        result = plugin.MajSoulInfo.majsoulinfo.autoQueryPaipu()
         for info in result:
             for group in info['groups']:
                 await bot.send_group_message(group, info['text'])
@@ -125,7 +61,7 @@ if __name__ == '__main__':
             personid = event.member.id
             personname = event.member.member_name
             groupname = event.member.group.name
-            info: str = random.choice(welcomeinfo)
+            info: str = random.choice(config['welcomeinfo'])
             info = info.replace('%ps%', personname)
             info = info.replace('%gn%', groupname)
             msg = MessageChain([
@@ -151,6 +87,14 @@ if __name__ == '__main__':
             print("ping了一下")
             await bot.send(event, "pong!")
         return
+
+
+    @bot.on(FriendMessage)
+    async def on_friend_message(event: FriendMessage):
+        if str(event.message_chain) == '雀魂十连':
+            resultsurl = plugin.MajSoulInfo.majsoulinfo.drawcards().get('results')
+            plugin.MajSoulInfo.mergeimgs.mergeimgs(resultsurl,event.sender.id)
+            return bot.send(event, MessageChain([Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
 
 
     @bot.on(GroupMessage)
@@ -197,7 +141,7 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhpt|雀魂分数)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.query(m.group(2)))
+            await bot.send(event, plugin.MajSoulInfo.majsoulinfo.query(m.group(2)))
         return
 
 
@@ -216,16 +160,14 @@ if __name__ == '__main__':
                 if m.group(3):
                     searchnumber = int(m.group(3))
                     if 0 < searchnumber < 5:
-                        # playerid =
-                        # qhinfo.getsomepaipu(m.group())
-                        await bot.send(event, qhinfo.getsomepaipu(playername=playername.strip(), type=searchtype,
+                        await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getsomepaipu(playername=playername.strip(), type=searchtype,
                                                                   counts=searchnumber))
                         return
                     else:
                         await bot.send(event, "牌局数量有误，最多支持5场牌局")
                         return
                 else:
-                    await bot.send(event, qhinfo.getsomepaipu(playername=playername.strip(), type=searchtype.strip()))
+                    await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getsomepaipu(playername=playername.strip(), type=searchtype.strip()))
 
 
     @bot.on(GroupMessage)
@@ -240,7 +182,7 @@ if __name__ == '__main__':
             if selectlevel:
                 pass
             else:
-                await bot.send(event, qhinfo.getplayerdetail(playername=playername, selecttype=selecttype))
+                await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getplayerdetail(playername=playername, selecttype=selecttype))
 
 
     # 将一个雀魂用户加入某群的关注
@@ -250,7 +192,7 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.addwatch(m.group(2), event.sender.group.id))
+            await bot.send(event, plugin.MajSoulInfo.majsoulinfo.addwatch(m.group(2), event.sender.group.id))
 
 
     # @bot.on(GroupMessage)
@@ -270,7 +212,7 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhgetwatch|雀魂获取本群关注)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.getallwatcher(event.group.id))
+            await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getallwatcher(event.group.id))
 
 
     # 删除某群雀魂关注
@@ -280,7 +222,7 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhdel|雀魂删除关注)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, qhinfo.removewatch(playername=m.group(2), groupid=event.sender.group.id))
+            await bot.send(event, plugin.MajSoulInfo.majsoulinfo.removewatch(playername=m.group(2), groupid=event.sender.group.id))
 
 
     # 来一发雀魂十连
@@ -291,126 +233,50 @@ if __name__ == '__main__':
         if m:
             if m.group(2):
                 if m.group(2) == '限时':
-                    result = qhinfo.drawcards(up=True)
-                    meanmessage = MessageChain([
+                    result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=True)
+                    plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                    await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][0]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][1]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][2]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][3]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][4]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][5]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][6]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][7]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][8]}')),
-                        Image(path=str(f'./plugin/MajSoulInfo/{result["results"][9]}'))
-                    ])
-                    await bot.send(event, meanmessage)
-                    await bot.send(event, MessageChain([
+                        Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
+                    return await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain(result['resultsmsg'])
                     ]))
                 elif m.group(2) == '常驻':
-                    result = qhinfo.drawcards(up=False)
-                    meanmessage = MessageChain([
+                    result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=False)
+                    plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                    await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][0]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][1]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][2]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][3]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][4]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][5]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][6]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][7]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][8]}')),
-                        Image(path=str(f'./plugin/MajSoulInfo/{result["results"][9]}'))
-                    ])
-                    await bot.send(event, meanmessage)
-                    await bot.send(event, MessageChain([
+                        Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
+                    return await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain(result['resultsmsg'])
                     ]))
                 else:
                     await bot.send(event, MessageChain([At(event.sender.id), Plain('参数输入有误，请输入“限时”或“常驻”，此次十连将输出常驻')]))
-                    result = qhinfo.drawcards(up=False)
-                    meanmessage = MessageChain([
+                    result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=False)
+                    plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                    await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][0]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][1]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][2]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][3]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][4]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][5]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][6]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][7]}')),
-                        Image(
-                            path=str(f'./plugin/MajSoulInfo/{result["results"][8]}')),
-                        Image(path=str(f'./plugin/MajSoulInfo/{result["results"][9]}'))
-                    ])
-                    await bot.send(event, meanmessage)
-                    await bot.send(event, MessageChain([
+                        Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
+                    return await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain(result['resultsmsg'])
                     ]))
             else:
-                result = qhinfo.drawcards(up=False)
-                meanmessage = MessageChain([
-                    At(event.sender.id),
-                    Plain("\n 抽卡结果:\n"),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][0]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][1]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][2]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][3]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][4]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][5]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][6]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][7]}')),
-                    Image(
-                        path=str(f'./plugin/MajSoulInfo/{result["results"][8]}')),
-                    Image(path=str(f'./plugin/MajSoulInfo/{result["results"][9]}'))
-                ])
-                await bot.send(event, meanmessage)
+                result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=False)
+                plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
                 await bot.send(event, MessageChain([
                     At(event.sender.id),
-                    Plain(result['resultsmsg'])
-                ]))
+                    Plain("\n 抽卡结果:\n"),
+                    Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
+                return await bot.send(event, MessageChain([
+                        At(event.sender.id),
+                        Plain(result['resultsmsg'])
+                    ]))
 
 
     '''通用功能'''
@@ -474,12 +340,7 @@ if __name__ == '__main__':
 
                 whiteList.append(int(m.group(1)))
                 with open(r'./config.yml', 'w') as file:
-                    yaml.dump(
-                        dict(admin=admin, whitelist=whiteList, blacklist=black_list['user'],
-                             mutegrouplist=black_list['group'],
-                             welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
-                             botconfig=botconfig, settings=settings), file,
-                        allow_unicode=True)
+                    yaml.dump(config, file,allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
             else:
@@ -500,12 +361,7 @@ if __name__ == '__main__':
                 black_list['user'].append(int(m.group(1)))
                 print(black_list['user'])
                 with open(r'./config.yml', 'w') as file:
-                    yaml.dump(
-                        dict(admin=admin, whitelist=whiteList, blacklist=black_list['user'],
-                             mutegrouplist=black_list['group'],
-                             welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
-                             botconfig=botconfig, settings=settings), file,
-                        allow_unicode=True)
+                    yaml.dump(config, file,allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
             else:
@@ -524,12 +380,7 @@ if __name__ == '__main__':
                 if delperson in black_list['user']:
                     black_list['user'].remove(delperson)
                     with open(r'./config.yml', 'w') as file:
-                        yaml.dump(
-                            dict(admin=admin, whitelist=whiteList, blacklist=black_list['user'],
-                                 mutegrouplist=black_list['group'],
-                                 welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
-                                 botname=botname, botconfig=botconfig, settings=settings), file,
-                            allow_unicode=True)
+                        yaml.dump(config, file,allow_unicode=True)
                     return await bot.send(event, "删除成功")
                 else:
                     return await bot.send(event, "删除失败,用户不存在")
@@ -662,12 +513,12 @@ if __name__ == '__main__':
         if target == bot.qq:
             sender = event.from_id
             if sender in admin:
-                await bot.send_group_message(event.subject.id, MessageChain([Plain(random.choice(nudgedate['admin']))]))
+                await bot.send_group_message(event.subject.id, MessageChain([Plain(random.choice(replydata['nudgedate']['admin']))]))
                 await plugin.Petpet.gif.petpet(target)
                 await bot.send_group_message(event.subject.id,
                                              MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
             else:
-                await bot.send_group_message(event.subject.id, MessageChain([Plain(random.choice(nudgedate['other']))]))
+                await bot.send_group_message(event.subject.id, MessageChain([Plain(random.choice(replydata['nudgedate']['other']))]))
         else:
             await plugin.Petpet.gif.petpet(target)
             await bot.send_group_message(event.subject.id,
@@ -727,7 +578,7 @@ if __name__ == '__main__':
 
 
     # 雀魂对局记录轮询器
-    @scheduler.scheduled_job(CronTrigger(hour='*', minute='*'))
+    @scheduler.scheduled_job(CronTrigger(hour='*', minute=f'0/{config["searchfrequency"]}'))
     async def paiputimer():
         minute_now = datetime.datetime.now().minute
         hour_now = datetime.datetime.now().hour
@@ -738,13 +589,11 @@ if __name__ == '__main__':
                         await bot.send_group_message(groupid, f"准点报时: {datetime.datetime.now().hour}:00")
                         if hour_now == 22:
                             await bot.send_group_message(groupid, f"晚上10点了，大家可以休息了")
-        if minute_now % config['searchfrequency'] == 0:
-            if settings['autogetpaipu']:
-                try:
-                    await autopaipu()
-                except sqlite3.OperationalError:
-                    print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
-                    settings['autogetpaipu'] = False
-
+        if settings['autogetpaipu']:
+            try:
+               await autopaipu()
+            except sqlite3.OperationalError:
+                print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
+                settings['autogetpaipu'] = False
 
     bot.run(port=17580)
