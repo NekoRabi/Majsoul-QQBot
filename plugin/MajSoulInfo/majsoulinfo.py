@@ -86,12 +86,14 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
     try:
         if selecttype == "4":
             xhr = s.get(
-                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8",
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode"
+                f"=16.12.9.15.11.8", 
                 timeout=5,
                 headers=headers)
         else:
             xhr = s.get(
-                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26",
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode"
+                f"=21.22.23.24.25.26", 
                 timeout=5,
                 headers=headers)
     except requests.exceptions.ConnectionError as e:
@@ -408,7 +410,9 @@ def query(username: str) -> str:
     return prtmsg
 
 
-def drawcards(up=False):
+def drawcards(up=False) -> dict:
+    if not os.path.exists('./images/MajsoulInfo'):
+        os.mkdir('./images/MajsoulInfo')
     baodi = False
     drawcounts = {'0gift': 0, '1gift': 0, '2gift': 0, 'person': 0, 'decoration': 0}
     results = []
