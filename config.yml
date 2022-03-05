@@ -11,7 +11,7 @@ botconfig:
   qq: 123456
   verify_key: NekoRabi
 commandpre: ''
-searchfrequency: 3
+searchfrequency: 6
 mutegrouplist:
 - 0
 settings:

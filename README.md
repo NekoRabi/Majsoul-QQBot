@@ -1,4 +1,4 @@
-# 当前正在快速写bot，短期内各种config 和 .py可能都会发送巨大的变化
+# 当前正在快速写bot，短期内各种config 和 py文件可能都会发送巨大的变化
 
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
@@ -34,12 +34,14 @@ botconfig: # 机器人配置
   port: 17280
   qq: 123456
   verify_key: NekoRabi
-searchfrequency: 3 # 雀魂牌谱查询频率
+searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数，网络请求很耗时间，在查询的过程中机器人不会对外响应，尤其是数据库用户很多的时候
 mutegrouplist: # 屏蔽某群的消息(目前没做)
 - 0
 settings: # 设置
   autogetpaipu: true  # 自动抓取牌谱并广播,默认开启
   autowelcome: true # 自动欢迎新人入群,默认开启
+  r18talk: true
+
 welcomeinfo: 
 # 欢迎消息,新人入群会从下面随机选择一条发送。 
 # %ps% 用于指代新入群的用户名字, %gn% 用于指代加入的群的群名字
