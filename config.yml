@@ -4,14 +4,21 @@ alarmclockgroup:
 - 0
 blacklist:
 - 0
-botname: ''
+botconfig:
+  botname: ""
+  host: localhost
+  port: 17280
+  qq: 123456
+  verify_key: NekoRabi
 commandpre: ''
+searchfrequency: 3
 mutegrouplist:
 - 0
 settings:
   autogetpaipu: true
   autowelcome: true
+  r18talk: true
 welcomeinfo:
-- »¶Ó­%ps%¼ÓÈëÈºÁÄ%gn%
+- æ¬¢è¿Ž%ps%åŠ å…¥%gn%
 whitelist:
 - 0

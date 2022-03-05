@@ -1,4 +1,4 @@
-# 当前正在快速写bot，短期内各种config核.py可能都会发送巨大的变化
+# 当前正在快速写bot，短期内各种config 和 .py可能都会发送巨大的变化
 
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
@@ -14,7 +14,7 @@
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
 可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署。
 
-本程序 `WebSocketAdapter` 的端口号为 `17280`，运行在端口`17580`上 ~~不占用可能会使用的Tomcat的8080端口~~
+本程序 `WebSocketAdapter` 的端口号为 `17280` 
 
 # 配置文件
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
@@ -24,10 +24,17 @@ admin: # 管理员QQ
 - 0
 alarmclockgroup: # 为群聊添加每天早安和准点报时
 - 0
-blacklist: # 黑名单(目前没做)
+blacklist: # 黑名单
 - 0
 botname: '' #与机器人对话时的机器人名字
 commandpre: '' #指令前缀
+botconfig: # 机器人配置
+  botname: "" # 机器人的称呼，用来和机器人聊天
+  host: localhost 
+  port: 17280
+  qq: 123456
+  verify_key: NekoRabi
+searchfrequency: 3 # 雀魂牌谱查询频率
 mutegrouplist: # 屏蔽某群的消息(目前没做)
 - 0
 settings: # 设置
@@ -42,7 +49,7 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
 
  ```
 
-### data.json
+### reply.json
 ```
 {
   <!-- 都是最简单的 key:[value0,value1...]  
@@ -58,7 +65,7 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
 }
 ```
 
-### 雀魂十连的 config.yml (预计将重命名)
+### 雀魂十连的 drawcards.yml 
 
 ```
 lottery:    # 奖池

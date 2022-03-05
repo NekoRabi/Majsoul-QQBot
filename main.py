@@ -4,9 +4,11 @@ import re
 import asyncio
 import datetime
 import json
+import sqlite3
+
 import yaml
 
-from mirai.models import MemberHonorChangeEvent, GroupEvent, MemberJoinEvent, NudgeEvent
+from mirai.models import MemberJoinEvent, NudgeEvent
 from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -16,19 +18,19 @@ import plugin.MajSoulInfo.majsoulinfo as qhinfo
 import plugin.jupai.holdup
 import plugin.Petpet.gif
 import plugin.KissKiss.Kisskiss
+import plugin.LeisurePlugin.leisure
 
 whiteList = []
-black_userlist = []
-mute_grouplist = []
+black_list = dict(user=[], group=[])
 admin = [1215791340]
 welcomeinfo = []
 config = {}
+botconfig = dict(qq=1215791340, botname='拉克丝', verify_key='xyshu123', host='localhost', port=17280)
 settings = {}
 alarmclockgroup = []
 commandpre = ""
 botname = "拉克丝"
-replydata = {}
-r18reply = {}
+replydata = dict(common={}, r18={}, blackuser=[])
 nudgedate = {}
 if __name__ == '__main__':
 
@@ -46,45 +48,62 @@ if __name__ == '__main__':
             config = yaml.safe_load(f)
             print(config)
             whiteList = config['whitelist']
-            mute_grouplist = config['mutegrouplist']
+            black_list['user'] = config['blacklist']
+            black_list['group'] = config['mutegrouplist']
             settings = config['settings']
             welcomeinfo = config['welcomeinfo']
             alarmclockgroup = config['alarmclockgroup']
             commandpre = config['commandpre']
-            botname = config['botname'].strip()
+            botconfig = config['botconfig']
+            botname = botconfig['botname']
 
-        if os.path.exists(r"./data/data.json"):
-            with open(r"./data/data.json", 'r', encoding="utf-8") as jsonf:
-                replydata = json.load(jsonf)
-        else:
-            print("回复文本不存在")
-        if os.path.exists(r"./data/r18data.json"):
-            with open(r"./data/r18data.json", 'r', encoding="utf-8") as jsonf:
-                r18reply = json.load(jsonf)
-        else:
-            print("r18回复文本不存在")
-
-        if os.path.exists(r"./data/nudgedata.yml"):
-            with open(r'./data/nudgedata.yml', encoding="utf-8") as nudegfile:
-                nudgedate = yaml.safe_load(nudegfile)
-        else:
-            print("摸头文本不存在")
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
             yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
-                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[566415871], commandpre="", botname="",
-                           settings=dict(autogetpaipu=True, autowelcome=True)), f,
+                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[566415871], commandpre="", searchfrequency=6,
+                           botconfig=dict(qq=3384437741, botname="拉克丝", verify_key='xyshu123', host='localhost',
+                                          port=17280),
+                           settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True)), f,
                       allow_unicode=True)
             print("默认文件生成完成，请重新启动。")
             exit(0)
 
+    if os.path.exists(r"./data/commonreply.json"):
+        with open(r"./data/commonreply.json", 'r', encoding="utf-8") as commonreply:
+            replydata['common'] = json.load(commonreply)
+    else:
+        print("回复文本不存在")
+
+    if os.path.exists(r"./data/hyperreply.json"):
+        with open(r"./data/hyperreply.json", 'r', encoding="utf-8") as r18reply:
+            replydata['r18'] = json.load(r18reply)
+    else:
+        print("r18回复文本不存在")
+
+    if os.path.exists(r"./data/black_user_reply.yml"):
+        with open(r"./data/black_user_reply.yml", encoding="utf-8") as blackreply:
+            replydata['blackuser'] = yaml.safe_load(blackreply)
+    else:
+        print("黑名单回复文本不存在")
+
+    if os.path.exists(r"./data/nudgedata.yml"):
+        with open(r'./data/nudgedata.yml', encoding="utf-8") as nudegfile:
+            nudgedate = yaml.safe_load(nudegfile)
+    else:
+        print("摸头文本不存在")
+
+    if len(welcomeinfo) == 0:
+        print("入群欢迎文本不存在，该功能将关闭")
+        settings['autowelcome'] = False
+
     bot = Mirai(
-        qq=3384437741,  # 改成你的机器人的 QQ 号
+        qq=botconfig['qq'],  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
-            verify_key='xyshu123', host='localhost', port=17280
+            verify_key=botconfig['verify_key'], host=botconfig['host'], port=botconfig['port']
         )
     )
+    print(f"机器人{botname}启动中,QQ : {bot.qq},adapter : {bot.adapter_info}")
 
 
     async def autopaipu():
@@ -407,6 +426,12 @@ if __name__ == '__main__':
                 if random.random() * 100 < 30:
                     await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '哦对的对的']))
 
+            # 方舟肉鸽词库
+            elif msg in ['迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']:
+                if random.random() * 100 < 30:
+                    await bot.send(event, random.choice(
+                        ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
+
 
     '''创建举牌文字'''
 
@@ -425,28 +450,89 @@ if __name__ == '__main__':
             await bot.send(event, message_chain)
 
 
+    @bot.on(FriendMessage)
+    async def getbotinfo(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr'^{commandpre}getinfo\s*$', msg.strip())
+        if m:
+            if userid in admin:
+                return await bot.send(event,
+                                      f"机器人设置:{config}\n白名单用户:{whiteList}\n黑名单用户:{black_list['user']}\n屏蔽群组:{black_list['group']}")
+
+
     # 添加白名单
     @bot.on(GroupMessage)
     async def addwhitelist(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         userid = event.sender.id
         # 匹配指令
-        m = re.match(r'^addwhitelist\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}addwhitelist\s*([0-9]+)\s*$', msg.strip())
         if m:
             if userid in admin and userid not in whiteList:
 
-                whiteList.append(m.group(1))
-                print(whiteList)
+                whiteList.append(int(m.group(1)))
                 with open(r'./config.yml', 'w') as file:
                     yaml.dump(
-                        dict(admin=admin, whitelist=whiteList, blacklist=black_userlist, mutegrouplist=mute_grouplist,
+                        dict(admin=admin, whitelist=whiteList, blacklist=black_list['user'],
+                             mutegrouplist=black_list['group'],
                              welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
-                             botname=botname, settings=settings), file,
+                             botconfig=botconfig, settings=settings), file,
                         allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
             else:
                 return await bot.send(event, "添加失败,用户已存在")
+
+
+    # 添加黑名单
+    @bot.on(FriendMessage)
+    async def addblacklist(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr'^{commandpre}addblacklist\s*([0-9]+)\s*$', msg.strip())
+        if m:
+            if userid in admin:
+                if int(m.group(1)) in admin:
+                    return await bot.send(event, "请不要将管理员加入黑名单")
+                black_list['user'].append(int(m.group(1)))
+                print(black_list['user'])
+                with open(r'./config.yml', 'w') as file:
+                    yaml.dump(
+                        dict(admin=admin, whitelist=whiteList, blacklist=black_list['user'],
+                             mutegrouplist=black_list['group'],
+                             welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
+                             botconfig=botconfig, settings=settings), file,
+                        allow_unicode=True)
+                print(m)
+                return await bot.send(event, "添加成功")
+            else:
+                return await bot.send(event, "添加失败,用户已存在")
+
+
+    @bot.on(FriendMessage)
+    async def delblacklist(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr'^{commandpre}delblacklist\s*([0-9]+)\s*$', msg.strip())
+        if m:
+            if userid in admin:
+                delperson = int(m.group(1))
+                if delperson in black_list['user']:
+                    black_list['user'].remove(delperson)
+                    with open(r'./config.yml', 'w') as file:
+                        yaml.dump(
+                            dict(admin=admin, whitelist=whiteList, blacklist=black_list['user'],
+                                 mutegrouplist=black_list['group'],
+                                 welcomeinfo=welcomeinfo, alarmclockgroup=alarmclockgroup, commandpre=commandpre,
+                                 botname=botname, botconfig=botconfig, settings=settings), file,
+                            allow_unicode=True)
+                    return await bot.send(event, "删除成功")
+                else:
+                    return await bot.send(event, "删除失败,用户不存在")
 
 
     '''随机打断、复读、嘲讽'''
@@ -497,16 +583,24 @@ if __name__ == '__main__':
         if botname == "":
             return
         if botname in event.message_chain:
+            if senderid in black_list['user']:
+                return await bot.send(event, random.choice(replydata['blackuser']))
             msg = msg.replace(f"{botname}", "", 1)
-            if senderid in admin:
-                for k, v in replydata.items():
-                    if k in msg:
-                        return await bot.send(event, random.choice(r18reply.get(k)))
-                return await bot.send(event, f"主人有事吗")
+            if settings['r18talk']:
+                if senderid in admin:
+                    for k, v in replydata['r18'].items():
+                        if k in msg:
+                            return await bot.send(event, random.choice(v))
+                    return await bot.send(event, f"主人有事吗")
+                else:
+                    for k, v in replydata['common'].items():
+                        if k in msg:
+                            return await bot.send(event, random.choice(v))
+                    return await bot.send(event, "你在叫我吗")
             else:
-                for k, v in replydata.items():
+                for k, v in replydata['common'].items():
                     if k in msg:
-                        return await bot.send(event, random.choice(replydata.get(k)))
+                        return await bot.send(event, random.choice(v))
                 return await bot.send(event, "你在叫我吗")
 
 
@@ -514,7 +608,7 @@ if __name__ == '__main__':
     @bot.on(GroupMessage)
     async def on_kiss(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^(亲|亲亲)\s*@?(\w+)?\s*', msg.strip())
+        m = re.match(fr'^{commandpre}(亲|亲亲)\s*@?(\w+)?\s*', msg.strip())
         if m:
             if At in event.message_chain:
                 operator_id = event.sender.id
@@ -531,7 +625,7 @@ if __name__ == '__main__':
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r'^(摸|摸摸)\s*@?(\w+)?\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(摸|摸摸)\s*@?(\w+)?\s*$', msg.strip())
         if m:
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
@@ -541,6 +635,24 @@ if __name__ == '__main__':
             #     target = m.group(2)
             #     await plugin.Petpet.gif.petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+
+
+    @bot.on(GroupMessage)
+    async def signin(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr'^{commandpre}\s*签到\s*$', msg.strip())
+        if m:
+            signmsg = plugin.LeisurePlugin.leisure.siginin(event.sender.id)
+            return await bot.send(event, MessageChain([Plain(signmsg)]))
+
+
+    @bot.on(GroupMessage)
+    async def getuserscore(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr'^{commandpre}\s*获取当前积分\s*$', msg.strip())
+        if m:
+            scoremsg = plugin.LeisurePlugin.leisure.getscore(userid=event.sender.id)
+            return await bot.send(event, MessageChain([Plain(scoremsg)]))
 
 
     # 戳一戳 出发摸头
@@ -615,7 +727,7 @@ if __name__ == '__main__':
 
 
     # 雀魂对局记录轮询器
-    @scheduler.scheduled_job(CronTrigger(hour='*', minute='0/6'))
+    @scheduler.scheduled_job(CronTrigger(hour='*', minute='*'))
     async def paiputimer():
         minute_now = datetime.datetime.now().minute
         hour_now = datetime.datetime.now().hour
@@ -626,8 +738,13 @@ if __name__ == '__main__':
                         await bot.send_group_message(groupid, f"准点报时: {datetime.datetime.now().hour}:00")
                         if hour_now == 22:
                             await bot.send_group_message(groupid, f"晚上10点了，大家可以休息了")
-        if settings['autogetpaipu']:
-            await autopaipu()
+        if minute_now % config['searchfrequency'] == 0:
+            if settings['autogetpaipu']:
+                try:
+                    await autopaipu()
+                except sqlite3.OperationalError:
+                    print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
+                    settings['autogetpaipu'] = False
 
 
     bot.run(port=17580)
