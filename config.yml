@@ -1,3 +1,7 @@
+adapter:
+  host: localhost
+  port: 17280
+  verify_key: NekoRabi
 admin:
 - 0
 alarmclockgroup:
@@ -6,14 +10,11 @@ blacklist:
 - 0
 botconfig:
   botname: ""
-  host: localhost
-  port: 17280
   qq: 123456
-  verify_key: NekoRabi
 commandpre: ''
-searchfrequency: 6
 mutegrouplist:
 - 0
+searchfrequency: 6
 settings:
   autogetpaipu: true
   autowelcome: true

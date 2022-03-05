@@ -1,5 +1,8 @@
 # 当前正在快速写bot，短期内各种config 和 py文件可能都会发送巨大的变化
 
+# 项目缓慢重构中，逻辑非常乱 
+~~当然原来也很乱~~
+
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
 、模拟十连、入群欢迎 和 制作图片等功能。
@@ -20,6 +23,10 @@
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
 ### config.yml
  ```
+adapter: # Mirai-Http-adapter参数
+  host: localhost
+  port: 17280
+  verify_key: NekoRabi
 admin: # 管理员QQ
 - 0
 alarmclockgroup: # 为群聊添加每天早安和准点报时
@@ -35,6 +42,7 @@ botconfig: # 机器人配置
   qq: 123456
   verify_key: NekoRabi
 searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数，网络请求很耗时间，在查询的过程中机器人不会对外响应，尤其是数据库用户很多的时候
+                   # 建议为 5-6
 mutegrouplist: # 屏蔽某群的消息(目前没做)
 - 0
 settings: # 设置
@@ -139,7 +147,7 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  解决办法: 将config.yml用GBK编码打开并保存 
 
  # 开发计划
-  [ ] 将十连的图片合并为一张
+  [√] 将十连的图片合并为一张
 
   [ ] 增加何切
 
@@ -149,9 +157,14 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
   [ ] 更多更多的功能
 
-  [ ]将所有功能都写进配置文件，提供高度自定义
+  [?]将所有功能都写进配置文件，提供高度自定义
 
   [ ]打包成exe
+
+# 联系方式
+QQ:1215791340 验证消息： 可爱的拉克丝
+
+有需求、bug、问题欢迎提的
 
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。
