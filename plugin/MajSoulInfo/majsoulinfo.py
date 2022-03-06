@@ -87,13 +87,13 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
         if selecttype == "4":
             xhr = s.get(
                 f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode"
-                f"=16.12.9.15.11.8", 
+                f"=16.12.9.15.11.8",
                 timeout=5,
                 headers=headers)
         else:
             xhr = s.get(
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode"
-                f"=21.22.23.24.25.26", 
+                f"=21.22.23.24.25.26",
                 timeout=5,
                 headers=headers)
     except requests.exceptions.ConnectionError as e:
@@ -253,7 +253,8 @@ def jiexi(paipu: dict, playerid: int) -> list:
             cx.commit()
             paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            paipuInfo += f"{players[0]['nickname']}:{players[0]['score']}\n{players[1]['nickname']}:{players[1]['score']}\n{players[2]['nickname']}:{players[2]['score']}\n{players[3]['nickname']}:{players[3]['score']}\n\n "
+            for info in players:
+                paipuInfo += f"{info['nickname']}:{info['score']}({info['gradingScore']})\n"
             hasNewPaipu = True
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
@@ -276,7 +277,8 @@ def jiexi(paipu: dict, playerid: int) -> list:
             cx.commit()
             paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            paipuInfo += f"{players[0]['nickname']}:{players[0]['score']}\n{players[1]['nickname']}:{players[1]['score']}\n{players[2]['nickname']}:{players[2]['score']} "
+            for info in players:
+                paipuInfo += f"{info['nickname']}:{info['score']}({info['gradingScore']})\n"
             hasNewPaipu = True
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
@@ -426,9 +428,6 @@ def drawcards(up=False) -> dict:
         decoration = lottery['decoration']
         gift = lottery['gift']
         person = lottery['person']
-        # print(decoration)
-        # print(gift['length'])
-        # print(person)
         for count in range(10):
             luck = random.random() * 100
             if count == 9 and drawcounts['2gift'] == 0:
@@ -533,6 +532,9 @@ def addwatch(playername: str, groupid: int):
             cursor.execute(
                 f"insert into group2player(groupid,playerid,playername) values({groupid},{playerid},'{playername}')")
             cx.commit()
+        else:
+            print("此群该用户已添加关注，无需重复关注")
+            return "添加失败,此群该用户已添加关注，无需重复关注"
     except sqlite3.IntegrityError:
         print("此群该用户已添加关注，无需重复关注")
         return "添加失败,该用户已添加关注，无需重复关注"
