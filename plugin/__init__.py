@@ -4,6 +4,7 @@ from plugin.Petpet import *
 from plugin.KissKiss import *
 from plugin.MajSoulInfo import *
 from plugin.preinit import *
+from plugin.Setu import *
 import os
 
 def create_folders():

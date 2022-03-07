@@ -1,9 +1,9 @@
-import random
 import re
 import asyncio
 import datetime
 import sqlite3
 
+import mirai.exceptions
 from mirai.models import MemberJoinEvent, NudgeEvent
 from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image, MessageEvent
@@ -40,7 +40,6 @@ if __name__ == '__main__':
     )
     print(f"机器人{botname}启动中,QQ : {bot.qq},adapter : {bot.adapter_info}")
 
-
     async def autopaipu():
         nowtime = datetime.datetime.now()
         print(f"开始查询,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
@@ -52,8 +51,8 @@ if __name__ == '__main__':
         print(f"查询结束,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
         return
 
-
     # 欢迎
+
     @bot.on(MemberJoinEvent)
     async def welcome(event: MemberJoinEvent) -> None:
         if settings['autowelcome']:
@@ -74,14 +73,13 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
-
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
         if str(event.message_chain) == '你好':
             return bot.send(event, 'Hello, World!')
 
-
     # PING
+
     @bot.on(FriendMessage)
     async def ping(event: FriendMessage):
         if event.message_chain.has("ping"):
@@ -89,38 +87,54 @@ if __name__ == '__main__':
             await bot.send(event, "pong!")
         return
 
-
     # 强制复读
-    @bot.on(MessageEvent)
-    async def forceRepeat(event: MessageEvent):
+
+    @bot.on(FriendMessage)
+    async def forceRepeat(event: FriendMessage):
         if event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
-            m = re.match(fr"^{commandpre}repeat::\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$", msg.strip())
+            m = re.match(
+                fr"^{commandpre}repeat::\s*([0-9]+)\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$", msg.strip())
             if m:
-                return await bot.send(event, m.group(1))
+                return await bot.send_group_message(int(m.group(1)), m.group(2))
 
 
     @bot.on(GroupMessage)
-    async def shaochongtixing(event: GroupMessage):
-        senderid = event.sender.id
-        if senderid in whiteList:
-            return
+    async def forceRepeat(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        # 匹配指令
-        m = re.match(fr'^{commandpre}色图\s*(\w+)\s*$', msg.strip())
+        m = re.match(
+            fr"^{commandpre}at::\s*([\u4e00-\u9fa5\w%&',@;=?!^.$\x22，。？！]+)\s*$", msg.strip())
         if m:
-            if random.random() * 100 < 10:
-                await bot.send(event, [At(event.sender.id), "能不能少冲点"])
+            if At in event.message_chain:
+                target = event.message_chain.get_first(At).target
+                return await bot.send(event, MessageChain([At(target),Plain(m.group(1))]))
+
+
+    @bot.on(MessageEvent)
+    async def setu(event: MessageEvent):
+        if settings['setu']:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            # 匹配指令
+            m = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
+            if m:
+                print(f"收到来自{event.sender.id}的色图请求")
+                if random.random() * 100 < 10:
+                    print("但不发")
+                    await bot.send(event, [At(event.sender.id), " 能不能少冲点，这次我就不发了。"])
+                else:
+                    imginfo = getsetu(m.group(2).strip())
+                    try:
+                        await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
+                    except Exception as e:
+                        print(f"色图请求失败:{e}")
+                        await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
         return
-
-
     """雀魂相关"""
-
 
     @bot.on(MessageEvent)
     async def getmajsoulhelp(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(help|雀魂帮助)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(help|帮助)\s*$', msg.strip())
         if m:
             return await bot.send(event, MessageChain([
                 Plain(" 指令帮助 ()内为可选项,[]为必选项,{}为可用参数:\n"
@@ -132,11 +146,13 @@ if __name__ == '__main__':
                       " 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
                       " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
                       " 举牌 [内容] :将内容写在举牌小人上发出来\n"
+                      " 亲/亲亲 @用户 : 两人互亲\n"
+                      " 摸/摸摸/摸头 @用户 : 摸某人头\n"
                       " 项目地址 : 获取项目链接")
             ]))
 
-
     # 查分
+
     @bot.on(GroupMessage)
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -146,11 +162,11 @@ if __name__ == '__main__':
             await bot.send(event, plugin.MajSoulInfo.majsoulinfo.query(m.group(2)))
         return
 
-
     @bot.on(GroupMessage)
     async def getsomepaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}雀魂最近对局\s*(\w+)\s*([0-9]+)*\s*([0-9]+)*\s*$', msg.strip())
+        m = re.match(
+            fr'^{commandpre}雀魂最近对局\s*(\w+)\s*([0-9]+)*\s*([0-9]+)*\s*$', msg.strip())
 
         if m:
             playername = m.group(1)
@@ -173,12 +189,12 @@ if __name__ == '__main__':
                     await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getsomepaipu(playername=playername.strip(),
                                                                                       type=searchtype.strip()))
 
-
     @bot.on(GroupMessage)
     async def getplayerdetails(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
 
-        m = re.match(fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*(\w+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
+        m = re.match(
+            fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*(\w+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
         if m:
             playername = m.group(2)
             selecttype = m.group(3)
@@ -189,8 +205,8 @@ if __name__ == '__main__':
                 await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getplayerdetail(playername=playername,
                                                                                      selecttype=selecttype))
 
-
     # 将一个雀魂用户加入某群的关注
+
     @bot.on(GroupMessage)
     async def addmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -198,7 +214,6 @@ if __name__ == '__main__':
         m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*(\w+)\s*$', msg.strip())
         if m:
             await bot.send(event, plugin.MajSoulInfo.majsoulinfo.addwatch(m.group(2), event.group.id))
-
 
     # @bot.on(GroupMessage)
     # async def refresh(event: GroupMessage):
@@ -211,6 +226,7 @@ if __name__ == '__main__':
     #         await autopaipu()
 
     # 获取某群的雀魂关注人员
+
     @bot.on(GroupMessage)
     async def getqhwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -219,8 +235,8 @@ if __name__ == '__main__':
         if m:
             await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getallwatcher(event.group.id))
 
-
     # 删除某群雀魂关注
+
     @bot.on(GroupMessage)
     async def delwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -230,8 +246,8 @@ if __name__ == '__main__':
             await bot.send(event,
                            plugin.MajSoulInfo.majsoulinfo.removewatch(playername=m.group(2), groupid=event.group.id))
 
-
     # 来一发雀魂十连
+
     @bot.on(GroupMessage)
     async def addmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -240,7 +256,8 @@ if __name__ == '__main__':
             if m.group(2):
                 if m.group(2) == '限时':
                     result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=True)
-                    plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                    plugin.MajSoulInfo.mergeimgs.mergeimgs(
+                        result.get('results'), event.sender.id)
                     await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
@@ -251,7 +268,8 @@ if __name__ == '__main__':
                     ]))
                 elif m.group(2) == '常驻':
                     result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=False)
-                    plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                    plugin.MajSoulInfo.mergeimgs.mergeimgs(
+                        result.get('results'), event.sender.id)
                     await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
@@ -263,7 +281,8 @@ if __name__ == '__main__':
                 else:
                     await bot.send(event, MessageChain([At(event.sender.id), Plain('参数输入有误，请输入“限时”或“常驻”，此次十连将输出常驻')]))
                     result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=False)
-                    plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                    plugin.MajSoulInfo.mergeimgs.mergeimgs(
+                        result.get('results'), event.sender.id)
                     await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
@@ -274,7 +293,8 @@ if __name__ == '__main__':
                     ]))
             else:
                 result = plugin.MajSoulInfo.majsoulinfo.drawcards(up=False)
-                plugin.MajSoulInfo.mergeimgs.mergeimgs(result.get('results'), event.sender.id)
+                plugin.MajSoulInfo.mergeimgs.mergeimgs(
+                    result.get('results'), event.sender.id)
                 await bot.send(event, MessageChain([
                     At(event.sender.id),
                     Plain("\n 抽卡结果:\n"),
@@ -284,19 +304,17 @@ if __name__ == '__main__':
                     Plain(result['resultsmsg'])
                 ]))
 
-
     '''通用功能'''
 
     '''随机搞怪回复'''
-
 
     @bot.on(GroupMessage)
     async def duideduide(event: GroupMessage):
         if len(event.message_chain[Plain]) == 1:
             msg = str(event.message_chain[Plain][0]).strip()
-            if msg in ['正确的', '错误的', '辩证的', '哦对的对的', '啊对对对']:
+            if msg in ['正确的', '错误的', '辩证的', '对的对的', '啊对对对']:
                 if random.random() * 100 < 30:
-                    await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '哦对的对的']))
+                    await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '对的对的']))
 
             # 方舟肉鸽词库
             elif msg in ['迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']:
@@ -304,14 +322,13 @@ if __name__ == '__main__':
                     await bot.send(event, random.choice(
                         ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
 
-
     '''创建·文字'''
 
-
-    @bot.on(GroupMessage)
-    async def jupai(event: GroupMessage):
+    @bot.on(MessageEvent)
+    async def jupai(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'''^{commandpre}举牌\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$''', msg.strip())
+        m = re.match(
+            fr'''^{commandpre}举牌\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$''', msg.strip())
         if m:
             if len(m.group(1)) > 40:
                 await bot.send(event, "最多支持做40个字的举牌哦~")
@@ -320,7 +337,6 @@ if __name__ == '__main__':
                 await Image.from_local(f'./images/jupai/{event.sender.id}.png')
             ])
             await bot.send(event, message_chain)
-
 
     @bot.on(FriendMessage)
     async def getbotinfo(event: FriendMessage):
@@ -333,8 +349,8 @@ if __name__ == '__main__':
                 return await bot.send(event,
                                       f"机器人设置:{config}\n白名单用户:{whiteList}\n黑名单用户:{black_list['user']}\n屏蔽群组:{black_list['group']}")
 
-
     # 添加白名单
+
     @bot.on(GroupMessage)
     async def addwhitelist(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -352,8 +368,8 @@ if __name__ == '__main__':
             else:
                 return await bot.send(event, "添加失败,用户已存在")
 
-
     # 添加黑名单
+
     @bot.on(FriendMessage)
     async def addblacklist(event: FriendMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -373,8 +389,8 @@ if __name__ == '__main__':
             else:
                 return await bot.send(event, "添加失败,用户已存在")
 
-
     # 移出黑名单
+
     @bot.on(FriendMessage)
     async def delblacklist(event: FriendMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -392,9 +408,7 @@ if __name__ == '__main__':
                 else:
                     return await bot.send(event, "删除失败,用户不存在")
 
-
     '''随机打断、复读、嘲讽'''
-
 
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
@@ -403,7 +417,7 @@ if __name__ == '__main__':
         senderid = event.sender.id
         if senderid in whiteList:
             return
-        if str(event.message_chain) in ['?',"？"] and count > 80:
+        if str(event.message_chain) in ['?', "？"] and count > 80:
             print(f"在{event.group.name}群,复读了一次?")
             return await bot.send(event, "?")
         if count < 0.2:
@@ -416,20 +430,20 @@ if __name__ == '__main__':
             print(f"在{event.group.name}群,复读一次{msg}")
             return await bot.send(event, event.message_chain)
 
-
     # 获取项目地址
+
     @bot.on(MessageEvent)
     async def getlink(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(r"^项目地址\s*$", msg.strip())
+        m = re.match(fr"^{commandpre}项目地址\s*$", msg.strip())
         if m:
             return await bot.send(event, MessageChain([Plain(
                 "Github : https://github.com/NekoRabi/Majsoul-QQBot\nGitee : https://gitee.com/Syaro/Majsoul-QQBot\n如果觉得好可以点个star⭐")]))
 
-
     # 与机器人互动
-    @bot.on(GroupMessage)
-    async def diyreply(event: GroupMessage):
+
+    @bot.on(MessageEvent)
+    async def diyreply(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         senderid = event.sender.id
         if botname == "":
@@ -455,8 +469,8 @@ if __name__ == '__main__':
                         return await bot.send(event, random.choice(v))
                 return await bot.send(event, random.choice(replydata['mismatch']['common']))
 
-
     # 亲亲
+
     @bot.on(GroupMessage)
     async def on_kiss(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -472,12 +486,12 @@ if __name__ == '__main__':
                     await bot.send(event, MessageChain(
                         Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
 
-
     # 摸头
+
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(摸|摸摸)\s*@?(\w+)?\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(摸|摸摸|摸头)\s*@?(\w+)?\s*$', msg.strip())
         if m:
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
@@ -488,28 +502,29 @@ if __name__ == '__main__':
             #     await plugin.Petpet.gif.petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
-
     # 签到获取积分
-    @bot.on(GroupMessage)
-    async def signin(event: GroupMessage):
+
+    @bot.on(MessageEvent)
+    async def signin(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}\s*签到\s*$', msg.strip())
         if m:
             signmsg = plugin.LeisurePlugin.leisure.siginin(event.sender.id)
             return await bot.send(event, MessageChain([Plain(signmsg)]))
 
-
     # 查询积分
+
     @bot.on(GroupMessage)
     async def getuserscore(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}\s*获取当前积分\s*$', msg.strip())
         if m:
-            scoremsg = plugin.LeisurePlugin.leisure.getscore(userid=event.sender.id)
+            scoremsg = plugin.LeisurePlugin.leisure.getscore(
+                userid=event.sender.id)
             return await bot.send(event, MessageChain([Plain(scoremsg)]))
 
-
     # 戳一戳 出发摸头
+
     @bot.on(NudgeEvent)
     async def Nudgepetpet(event: NudgeEvent):
         target = event.target
@@ -529,7 +544,6 @@ if __name__ == '__main__':
             await bot.send_group_message(event.subject.id,
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
-
     # 群龙王
     # @bot.on(GroupEvent)
     # async def dradonchange(event: MemberHonorChangeEvent):
@@ -541,7 +555,6 @@ if __name__ == '__main__':
     #                 await bot.send(event, "我是水群冠军！")
 
     _task = None
-
 
     @bot.on(Startup)
     async def start_scheduler(_):
@@ -561,28 +574,24 @@ if __name__ == '__main__':
         global _task
         _task = asyncio.create_task(timer())
 
-
     @bot.on(Shutdown)
     async def stop_scheduler(_):
         # 退出时停止定时任务
         if _task:
             _task.cancel()
 
-
     scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
-
 
     @bot.on(Startup)
     def start_scheduler(_):
         scheduler.start()  # 启动定时器
 
-
     @bot.on(Shutdown)
     def stop_scheduler(_):
         scheduler.shutdown(True)  # 结束定时器
 
-
     # 雀魂对局记录轮询器
+
     @scheduler.scheduled_job(CronTrigger(hour='*', minute=f'0/{config["searchfrequency"]}'))
     async def paiputimer():
         minute_now = datetime.datetime.now().minute
@@ -600,6 +609,5 @@ if __name__ == '__main__':
             except sqlite3.OperationalError:
                 print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                 settings['autogetpaipu'] = False
-
 
     bot.run(port=17580)

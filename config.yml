@@ -19,6 +19,7 @@ settings:
   autogetpaipu: true
   autowelcome: true
   r18talk: true
+  setu: false
 welcomeinfo:
 - 欢迎%ps%加入%gn%
 whitelist:
