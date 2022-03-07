@@ -237,7 +237,6 @@ def jiexi(paipu: dict, playerid: int) -> list:
     cx.commit()
     allpaipuinfo = []
     for item in paipu['p4']:
-        hasNewPaipu = False
         paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
         startTime = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
@@ -260,7 +259,6 @@ def jiexi(paipu: dict, playerid: int) -> list:
             # print(f"存在uuid={item['uuid']}的记录")
             pass
     for item in paipu['p3']:
-        hasNewPaipu = False
         paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
         startTime = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
@@ -601,8 +599,8 @@ def autoQueryPaipu() -> list:
                 cursor.execute(
                     f"select groupid from group2player where playerid = {playerid}")
                 grouplist = cursor.fetchall()
-                temp = []
+                groups = []
                 for groupid in grouplist:
-                    temp.append(groupid[0])
-                msglist.append(dict(text=msg['paipuInfo'], groups=temp))
+                    groups.append(groupid[0])
+                msglist.append(dict(text=msg['paipuInfo'], groups=groups))
     return msglist
