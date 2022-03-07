@@ -36,7 +36,11 @@
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
 可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署。
 
-本程序 `WebSocketAdapter` 的端口号为 `17280` 
+可以使用  ` pip install -r requirements.txt` 来快速安装所需依赖
+
+我提供了自己的Mirai-Http配置，可以直接进行复制和替换。
+
+本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
 # 配置文件
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
