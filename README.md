@@ -61,14 +61,15 @@ botconfig: # 机器人配置
   qq: 123456
   verify_key: NekoRabi
 searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数，网络请求很耗时间，在查询的过程中机器人不会对外响应，尤其是数据库用户很多的时候
-                   # 建议为 5-6
+                   # 建议为 5-6 分钟
 mutegrouplist: # 屏蔽某群的消息(目前没做)
 - 0
 settings: # 设置
   autogetpaipu: true  # 自动抓取牌谱并广播,默认开启
   autowelcome: true # 自动欢迎新人入群,默认开启
   r18talk: true
-
+  setu: false # 开关色图功能
+              # 但是大概率会因为网络请求超时而发不出来
 welcomeinfo: 
 # 欢迎消息,新人入群会从下面随机选择一条发送。 
 # %ps% 用于指代新入群的用户名字, %gn% 用于指代加入的群的群名字
@@ -157,13 +158,14 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
  - 雀魂相关功能，如模拟抽卡，查询玩家信息，定时播报玩家最近战绩
  - 入群欢迎
-- 摸头、举牌等图片制作功能
-- 自定义回复
+ - 摸头、互亲、举牌、色图等图片相关功能
+ - 自定义回复
 
  # 存在的问题
- 1. 查询玩家信息的时候仍然会卡死，可能是由于超时。
+ 1. ~~查询玩家信息的时候仍然会卡死，可能是由于超时。~~（已解决）
  2. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  解决办法: 将config.yml用GBK编码打开并保存 
+ 3. 涩图请求超时
 
  # 开发计划
   [√] 将十连的图片合并为一张
@@ -176,9 +178,13 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
   [ ] 更多更多的功能
 
-  [?]将所有功能都写进配置文件，提供高度自定义
+  [?] 将所有功能都写进配置文件，提供高度自定义
 
-  [ ]打包成exe
+  [ ] 打包成exe
+
+  [√] 发送涩图
+
+  [ ] 重构
 
 # 联系方式
 QQ:1215791340 验证消息： 可爱的拉克丝
@@ -200,3 +206,5 @@ QQ:1215791340 验证消息： 可爱的拉克丝
 [Saya_plugins_collection](https://github.com/SAGIRI-kawaii/saya_plugins_collection)
 
 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)
+
+[Lolicon API](https://api.lolicon.app/#/setu)

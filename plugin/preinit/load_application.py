@@ -27,12 +27,12 @@ def load_config() -> dict:
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
-            yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
-                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[566415871], commandpre="", searchfrequency=6,
-                           botconfig=dict(qq=3384437741, botname="拉克丝", ),
-                           adapter=dict(verify_key='xyshu123', host='localhost',
+            yaml.dump(dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
+                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0], commandpre="", searchfrequency=6,
+                           botconfig=dict(qq=123456, botname="", ),
+                           adapter=dict(verify_key='NekoRabi', host='localhost',
                                         port=17280),
-                           settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True)), f,
+                           settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True,setu=False)), f,
                       allow_unicode=True)
             print("默认文件生成完成，请重新启动。")
             exit(0)
@@ -51,7 +51,7 @@ def load_replydata() -> dict:
             replydata['r18'] = json.load(r18reply)
     else:
         print("r18回复文本不存在")
-        replydata['r18'] = {"你好": ["爱你"]}
+        replydata['r18'] = {"你好": ["爱你呦~"]}
 
     if os.path.exists(r"./data/black_user_reply.yml"):
         with open(r"./data/black_user_reply.yml", encoding="utf-8") as blackreply:

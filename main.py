@@ -100,14 +100,14 @@ if __name__ == '__main__':
 
 
     @bot.on(GroupMessage)
-    async def forceRepeat(event: GroupMessage):
+    async def forceAt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr"^{commandpre}at::\s*([\u4e00-\u9fa5\w%&',@;=?!^.$\x22，。？！]+)\s*$", msg.strip())
         if m:
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
-                return await bot.send(event, MessageChain([At(target),Plain(m.group(1))]))
+                return await bot.send(event, MessageChain([At(target),Plain(f" {m.group(1)}")]))
 
 
     @bot.on(MessageEvent)
@@ -422,7 +422,7 @@ if __name__ == '__main__':
             return await bot.send(event, "?")
         if count < 0.2:
             print(f"在{event.group.name}群,打断一次{msg}")
-            return await bot.send(event, random.choice(["¿", "Lux is watching you!"]))
+            return await bot.send(event, random.choice(["¿", "¿?"]))
         elif count < 0.5:
             print(f"在{event.group.name}群,打断一次{msg}")
             return await bot.send(event, "?")
