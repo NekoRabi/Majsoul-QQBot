@@ -112,16 +112,16 @@ if __name__ == '__main__':
 
     @bot.on(MessageEvent)
     async def setu(event: MessageEvent):
-        if settings['setu']:
-            msg = "".join(map(str, event.message_chain[Plain]))
+        msg = "".join(map(str, event.message_chain[Plain]))
             # 匹配指令
-            m = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
-            if m:
-                print(f"收到来自{event.sender.id}的色图请求")
-                if random.random() * 100 < 10:
-                    print("但不发")
-                    await bot.send(event, [At(event.sender.id), " 能不能少冲点，这次我就不发了。"])
-                else:
+        m = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
+        if m:
+            print(f"收到来自{event.sender.id}的色图请求")
+            if random.random() * 100 < 10:
+                print(f"发出对{event.sender.id}的少冲提醒")
+                await bot.send(event, [At(event.sender.id), " 能不能少冲点啊"])
+            else:
+                if settings['setu']:
                     imginfo = getsetu(m.group(2).strip())
                     try:
                         await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
@@ -177,13 +177,13 @@ if __name__ == '__main__':
                     return
                 if m.group(3):
                     searchnumber = int(m.group(3))
-                    if 0 < searchnumber < 5:
+                    if 0 < searchnumber < 11:
                         await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getsomepaipu(playername=playername.strip(),
                                                                                           type=searchtype,
                                                                                           counts=searchnumber))
                         return
                     else:
-                        await bot.send(event, "牌局数量有误，最多支持5场牌局")
+                        await bot.send(event, "牌局数量有误，最多支持10场牌局")
                         return
                 else:
                     await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getsomepaipu(playername=playername.strip(),
@@ -422,7 +422,7 @@ if __name__ == '__main__':
             return await bot.send(event, "?")
         if count < 0.2:
             print(f"在{event.group.name}群,打断一次{msg}")
-            return await bot.send(event, random.choice(["¿", "¿?"]))
+            return await bot.send(event, random.choice(["¿", "Lux is watching you!"]))
         elif count < 0.5:
             print(f"在{event.group.name}群,打断一次{msg}")
             return await bot.send(event, "?")
