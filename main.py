@@ -99,7 +99,6 @@ if __name__ == '__main__':
                 return await bot.send_group_message(int(m.group(1)), m.group(2))
 
 
-
     @bot.on(GroupMessage)
     async def forceAt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -207,7 +206,6 @@ if __name__ == '__main__':
                 await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getplayerdetail(playername=playername,
                                                                                      selecttype=selecttype))
 
-<<<<<<< HEAD
 
     @bot.on(GroupMessage)
     async def getmondetails(event: GroupMessage):
@@ -223,8 +221,6 @@ if __name__ == '__main__':
             await bot.send(event,MessageChain([Plain(majsoulinfo.getmonthreport(playername=playername,selecttype=selecttype,year=year,month=month))]))
             # await bot.send(event,MessageChain([Plain(f"你要查询的是{playername}在{year}年{month}月的{selecttype}麻的雀魂月报吗?\n这个功能还没做哦~")]))
         return
-=======
->>>>>>> 9180dd3100f2be2610885afb45c37b0b23e7b6c8
     # 将一个雀魂用户加入某群的关注
 
     @bot.on(GroupMessage)

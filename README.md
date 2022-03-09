@@ -1,13 +1,15 @@
-# 当前正在快速写bot，短期内各种config 和 py文件可能都会发送巨大的变化
+# 当前正在快速写bot，短期内各种config 和 py文件可能都会发送巨大的变化，变量名和方法名随时都可能发生变化
 
-# 项目缓慢重构中，逻辑非常乱 
-~~当然原来也很乱~~
+# 项目缓慢重构中，逻辑比较乱 
+~~当然原来也很乱，现在旧功能一个基本稳定了~~
 
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
 、模拟十连、入群欢迎 和 制作图片等功能。
 
 后续会添加更多的功能来让机器人更加完善。
+
+## [指令帮助](./command_help.md)
 
 # 效果展示
 
@@ -32,20 +34,26 @@
 数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
 
 
-# 如何部署
+# 如何使用
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
+
+如果Mirai安装了`chat-command`，建议在Mirai控制台界面中输入 `/perm permit u* console:command.help`，来禁用Mirai的帮助输出。
+
 可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署。
 
-可以使用  ` pip install -r requirements.txt` 来快速安装所需依赖
+可以使用 ``` pip install -r requirements.txt``` 来快速安装所需依赖。
 
 我提供了自己的Mirai-Http配置，可以直接进行复制和替换。
 
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
 # 配置文件
+
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
 ### config.yml
+## 注意, '冒号 '(`:`) 后需要有空格
  ```
+ # 注意, '冒号' : 后需要有空格
 adapter: # Mirai-Http-adapter参数
   host: localhost
   port: 17280
@@ -64,26 +72,28 @@ botconfig: # 机器人配置
   port: 17280
   qq: 123456
   verify_key: NekoRabi
-searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数，网络请求很耗时间，在查询的过程中机器人不会对外响应，尤其是数据库用户很多的时候
-                   # 建议为 5-6 分钟
+searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数
+                   # 建议为 5 或 6 分钟
+                   # 网络请求很耗时间,尤其是数据库用户很多的时候，在查询的过程中
+                   # 机器人不会对外响应，所有操作将排队
 mutegrouplist: # 屏蔽某群的消息(目前没做)
 - 0
-settings: # 设置
+settings: # 各项开关设置
   autogetpaipu: true  # 自动抓取牌谱并广播,默认开启
   autowelcome: true # 自动欢迎新人入群,默认开启
-  r18talk: true
+  r18talk: true # 管理员应有独特对话的权力，对吧
   setu: false # 开关色图功能
               # 但是大概率会因为网络请求超时而发不出来
 welcomeinfo: 
 # 欢迎消息,新人入群会从下面随机选择一条发送。 
 # %ps% 用于指代新入群的用户名字, %gn% 用于指代加入的群的群名字
 - 欢迎 %ps% 加入群聊 %gn%
-whitelist: # 白名单(目前只有不复读白名单用户的功能)
+whitelist: # 白名单(功能暂无)
 - 0
 
  ```
-
-### reply.json
+## 回复文本相关
+### 以 reply.json 为例
 ```
 {
   <!-- 都是最简单的 key:[value0,value1...]  
@@ -99,7 +109,8 @@ whitelist: # 白名单(目前只有不复读白名单用户的功能)
 }
 ```
 
-### 雀魂十连的 drawcards.yml 
+### 雀魂十连的配置 drawcards.yml 
+#### 我会不定期更新配置和图片资源
 
 ```
 lottery:    # 奖池
@@ -146,8 +157,8 @@ lottery:    # 奖池
       type: person
       url: ./Images/person/三上千织.png
 
-up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物出率将提高
-    # 直接填物品名字
+up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物出率将提高(与雀魂一致)
+    # 直接填名字
   decoration:
   - 和牌-安可
   - 立直-开场曲
@@ -164,21 +175,22 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  - 入群欢迎
  - 摸头、互亲、举牌、色图等图片相关功能
  - 自定义回复
+ - 以后会有更多
 
  # 存在的问题
  1. ~~查询玩家信息的时候仍然会卡死，可能是由于超时。~~（已解决）
- 2. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
+ 2. 自动抓取牌谱时存在较长时间的无响应
+ 3. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  解决办法: 将config.yml用GBK编码打开并保存 
- 3. 涩图请求超时
+ 4. 涩图请求超时
 
  # 开发计划
-  [√] 将十连的图片合并为一张
 
   [ ] 增加何切
 
   [ ] 增加对天凤的支持
 
-  [√] 指令增加英文缩写触发
+  [ ] `要在自动查询牌谱时仍然能够对外相应`
 
   [ ] 更多更多的功能
 
@@ -186,29 +198,27 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
   [ ] 打包成exe
 
-  [√] 发送涩图
-
   [ ] 重构
 
 # 联系方式
 QQ:1215791340 验证消息： 可爱的拉克丝
 
-有需求、bug、问题欢迎提的
+欢迎提交 需求、BUG、问题，也可以找我询问项目相关的问题
 
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。
 
 请注意，AGPL-3.0 是传染性协议。如果你的项目引用了或改造了我的项目，请在发布时公开源代码，并同样采用 AGPL-3.0 协议。
 
-# 参考项目
-[YiriMirai](https://github.com/YiriMiraiProject/YiriMirai)
+# 项目支持
+[Mirai](https://github.com/mamoe/mirai) : 提供 QQ Android 协议支持的高效率机器人库 
 
-[Yuzi_project](https://github.com/MEYUYU/yuzi-project)
+[YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) : 提供SDK
 
-[Mirai](https://github.com/mamoe/mirai)
+[Yuzi_project](https://github.com/MEYUYU/yuzi-project) : 作者提供了大量帮助
 
-[Saya_plugins_collection](https://github.com/SAGIRI-kawaii/saya_plugins_collection)
+[Saya_plugins_collection](https://github.com/SAGIRI-kawaii/saya_plugins_collection) : 移植功能
 
-[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)
+[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ： 回复语录提供
 
-[Lolicon API](https://api.lolicon.app/#/setu)
+[Lolicon API](https://api.lolicon.app/#/setu) : 色图
