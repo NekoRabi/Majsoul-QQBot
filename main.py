@@ -90,13 +90,14 @@ if __name__ == '__main__':
     # 强制复读
 
     @bot.on(FriendMessage)
-    async def forceRepeat(event: FriendMessage):
+    async def sendmsgTogroup(event: FriendMessage):
         if event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}repeat::\s*([0-9]+)\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$", msg.strip())
+                fr"^{commandpre}stext::\s*([0-9]+)\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$", msg.strip())
             if m:
                 return await bot.send_group_message(int(m.group(1)), m.group(2))
+
 
 
     @bot.on(GroupMessage)
@@ -145,6 +146,7 @@ if __name__ == '__main__':
                       " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从自动查询中移除，不再自动广播对局记录\n"
                       " 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
                       " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
+                      " qhyb / 雀魂月报 [玩家名] [{3/4}] [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报"
                       " 举牌 [内容] :将内容写在举牌小人上发出来\n"
                       " 亲/亲亲 @用户 : 两人互亲\n"
                       " 摸/摸摸/摸头 @用户 : 摸某人头\n"
@@ -205,6 +207,24 @@ if __name__ == '__main__':
                 await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getplayerdetail(playername=playername,
                                                                                      selecttype=selecttype))
 
+<<<<<<< HEAD
+
+    @bot.on(GroupMessage)
+    async def getmondetails(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+
+        m = re.match(
+            fr'^{commandpre}(qhyb|雀魂月报)\s*(\w+)\s*(3|4)\s*([0-9]{{1,4}})\-([0-9]{{1,2}})\s*$', msg.strip())
+        if m:
+            playername = m.group(2)
+            selecttype = m.group(3)
+            year = m.group(4)
+            month = m.group(5)
+            await bot.send(event,MessageChain([Plain(majsoulinfo.getmonthreport(playername=playername,selecttype=selecttype,year=year,month=month))]))
+            # await bot.send(event,MessageChain([Plain(f"你要查询的是{playername}在{year}年{month}月的{selecttype}麻的雀魂月报吗?\n这个功能还没做哦~")]))
+        return
+=======
+>>>>>>> 9180dd3100f2be2610885afb45c37b0b23e7b6c8
     # 将一个雀魂用户加入某群的关注
 
     @bot.on(GroupMessage)

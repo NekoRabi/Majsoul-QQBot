@@ -123,6 +123,7 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
 
 def getsomepaipu(playername: str, type="4", counts=5):
     nowtime = time.time()
+    ptupdate = 0
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     cx = sqlite3.connect('./database/majsoul.sqlite')
     cursor = cx.cursor()
@@ -163,10 +164,12 @@ def getsomepaipu(playername: str, type="4", counts=5):
             players = item['players']
             paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            if type == "4":
-                paipuInfo += f"{players[0]['nickname']}:{players[0]['score']}\n{players[1]['nickname']}:{players[1]['score']}\n{players[2]['nickname']}:{players[2]['score']}\n{players[3]['nickname']}:{players[3]['score']}\n\n "
-            else:
-                paipuInfo += f"{players[0]['nickname']}:{players[0]['score']}\n{players[1]['nickname']}:{players[1]['score']}\n{players[2]['nickname']}:{players[2]['score']}\n\n "
+            for player in players:
+                if player['nickname'].strip() == playername.strip():
+                    ptupdate += int(player['gradingScore'])
+                paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
+
+        paipuInfo += f"\n总PT变化 : {ptupdate}"
         return paipuInfo
     except requests.exceptions.ConnectionError as e:
         print(f"查询发生了错误:\t{e}\n")
@@ -198,10 +201,6 @@ def getpaipu(playerid: str) -> dict:
         print(f'\n读取超时:\t{e}\n')
         content['e4'] = True
 
-        # xhr = requests.get(
-    #     f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit=10"
-    #     f"&mode=21&descending=true&tag=304")
-    # print(xhr.text)
     '''三麻查询'''
     try:
         xhr3 = s.get(
@@ -253,7 +252,8 @@ def jiexi(paipu: dict, playerid: int) -> list:
             paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for info in players:
-                paipuInfo += f"{info['nickname']}:{info['score']}({info['gradingScore']})\n"
+                paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
+            paipuInfo += "\n"
             hasNewPaipu = True
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
@@ -276,7 +276,8 @@ def jiexi(paipu: dict, playerid: int) -> list:
             paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for info in players:
-                paipuInfo += f"{info['nickname']}:{info['score']}({info['gradingScore']})\n"
+                paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
+            paipuInfo += "\n"
             hasNewPaipu = True
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
@@ -544,6 +545,109 @@ def addwatch(playername: str, groupid: int):
         print(f"用户{playername}已被其他群关注")
     return "添加成功"
 
+
+def getmonthreport(playername: str, selecttype: str, year: str, month: str):
+    def getrank(playerinfo: dict):
+        return playerinfo['score']
+
+    ptchange = 0
+    msg = ""
+    rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
+    paipumsg = f"玩家{playername}在{year}年{month}月"
+    selectmonth = f"{year}-{month}"
+    playerslist = []
+    if month == "12":
+        nextmonth = f"{int(year) + 1}-1"
+    else:
+        nextmonth = f"{year}-{int(month) + 1}"
+    cx = sqlite3.connect('./database/majsoul.sqlite')
+    cursor = cx.cursor()
+    cursor.execute(f"select playerid from qhplayer where playername = '{playername}'")
+    playerid = cursor.fetchall()
+    cursor.close()
+    cx.close()
+    if len(playerid) == 0:
+        print("数据库中无此用户，请先查询该用户。")
+        return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
+    playerid = playerid[0][0]
+    selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
+    nextmontht =int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
+    session_paipu = requests.session()
+    session_paipu.mount('http://', HTTPAdapter(max_retries=3))
+    session_paipu.mount('https://', HTTPAdapter(max_retries=3))
+    session_info = requests.session()
+    session_info.mount('http://', HTTPAdapter(max_retries=3))
+    session_info.mount('https://', HTTPAdapter(max_retries=3))
+    headers = {'User-Agent': random.choice(user_agent_list)}
+    try:
+        if selecttype == "4":
+            paipuresponse = session_paipu.get(
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nextmontht}/{selectmontht}"
+                "?mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=5)
+        else:
+            paipuresponse = session_paipu.get(
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}"
+                "?mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=5)
+        paipuresponse = eval(paipuresponse.text)
+        paipumsg += f"总共进行了{len(paipuresponse)}场对局,共计"
+        for players in paipuresponse:
+            temp: list = players['players']
+            temp.sort(key=getrank)
+            playerslist.append(temp)
+        for playerrank in playerslist:
+            if selecttype == "4":
+                rank = 4
+            else:
+                rank = 3
+            for player in playerrank:
+                if player['nickname'] == playername:
+                    ptchange += player['gradingScore']
+                    rankdict[f"{rank}"] += 1
+                    if player['score'] <0:
+                        rankdict['fly'] +=1
+                    break
+                rank = rank - 1
+        averagerank = (rankdict['1'] + rankdict['2'] *2 + rankdict['3'] *3 + rankdict['4'] *4) / len(paipuresponse)
+        if selecttype == "4":
+            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}"
+        else:
+            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,平均顺位:{averagerank:1.2f}"
+        if rankdict['fly'] > 0:
+            paipumsg += f",其中被飞了{rankdict['fly']}次"
+        paipumsg += f"。PT总得失: {ptchange}\n"
+        msg += paipumsg
+    except requests.exceptions.ConnectionError as e:
+        print(f"\n牌谱查询超时:\t{e}\n")
+        return "查询超时"
+    except requests.exceptions.ReadTimeout as e:
+        print(f'\n牌谱读取超时:\t{e}\n')
+        return "查询超时"
+
+    try:
+        if selecttype == "4":
+            inforesponse = session_info.get(
+                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode"
+                f"=16.12.9.15.11.8",
+                timeout=5,
+                headers=headers)
+        else:
+            inforesponse = session_info.get(
+                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode"
+                f"=21.22.23.24.25.26",
+                timeout=5,
+                headers=headers)
+        inforesponse = eval(inforesponse.text)
+        infomsg = f"该月立直率: {inforesponse['立直率'] *100 :2.2f}%,副露率: {inforesponse['副露率'] *100 :2.2f}%," \
+                  f"和牌率: {inforesponse['和牌率'] *100 :2.2f}%,放铳率 : {inforesponse['放铳率'] *100 :2.2f}%," \
+                  f"默听率: {inforesponse['默听率'] * 100:2.2f}%"
+        msg += infomsg
+    except requests.exceptions.ConnectionError as e:
+        print(f"\n玩家详情查询超时:\t{e}\n")
+        return "查询超时"
+    except requests.exceptions.ReadTimeout as e:
+        print(f'\n玩家详情读取超时:\t{e}\n')
+        return "查询超时"
+    return msg
 
 def removewatch(playername: str, groupid: int) -> str:
     cx = sqlite3.connect("./database/majsoul.sqlite")
