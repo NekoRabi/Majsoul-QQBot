@@ -8,7 +8,7 @@ if not os.path.exists("./database/LeisurePlugin"):
 
 def siginin(userid: int) -> str:
     singinmsg = "签到成功,积分+1\n当前积分 : "
-    cx = sqlite3.connect("./database/LeisurePlugin/leisure")
+    cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
     cursor = cx.cursor()
     cursor.execute('create table IF NOT EXISTS userinfo('
                    'id integer primary key,'
@@ -37,7 +37,7 @@ def siginin(userid: int) -> str:
 
 def getscore(userid: int):
     score = 0
-    cx = sqlite3.connect("./database/LeisurePlugin/leisure")
+    cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
     cursor = cx.cursor()
     cursor.execute('create table IF NOT EXISTS userinfo('
                    'id integer primary key,'

@@ -3,7 +3,7 @@ import asyncio
 import datetime
 import sqlite3
 
-import mirai.exceptions
+import aiohttp
 from mirai.models import MemberJoinEvent, NudgeEvent
 from mirai import FriendMessage, Mirai, WebSocketAdapter, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image, MessageEvent
@@ -40,6 +40,7 @@ if __name__ == '__main__':
     )
     print(f"机器人{botname}启动中,QQ : {bot.qq},adapter : {bot.adapter_info}")
 
+
     async def autopaipu():
         nowtime = datetime.datetime.now()
         print(f"开始查询,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
@@ -50,6 +51,7 @@ if __name__ == '__main__':
         nowtime = datetime.datetime.now()
         print(f"查询结束,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
         return
+
 
     # 欢迎
 
@@ -73,10 +75,12 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
+
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
         if str(event.message_chain) == '你好':
             return bot.send(event, 'Hello, World!')
+
 
     # PING
 
@@ -86,6 +90,7 @@ if __name__ == '__main__':
             print("ping了一下")
             await bot.send(event, "pong!")
         return
+
 
     # 强制复读
 
@@ -107,13 +112,13 @@ if __name__ == '__main__':
         if m:
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
-                return await bot.send(event, MessageChain([At(target),Plain(f" {m.group(1)}")]))
+                return await bot.send(event, MessageChain([At(target), Plain(f" {m.group(1)}")]))
 
 
     @bot.on(MessageEvent)
     async def setu(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-            # 匹配指令
+        # 匹配指令
         m = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
         if m:
             print(f"收到来自{event.sender.id}的色图请求")
@@ -129,7 +134,10 @@ if __name__ == '__main__':
                         print(f"色图请求失败:{e}")
                         await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
         return
+
+
     """雀魂相关"""
+
 
     @bot.on(MessageEvent)
     async def getmajsoulhelp(event: MessageEvent):
@@ -152,6 +160,7 @@ if __name__ == '__main__':
                       " 项目地址 : 获取项目链接")
             ]))
 
+
     # 查分
 
     @bot.on(GroupMessage)
@@ -162,6 +171,7 @@ if __name__ == '__main__':
         if m:
             await bot.send(event, plugin.MajSoulInfo.majsoulinfo.query(m.group(2)))
         return
+
 
     @bot.on(GroupMessage)
     async def getsomepaipu(event: GroupMessage):
@@ -189,6 +199,7 @@ if __name__ == '__main__':
                 else:
                     await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getsomepaipu(playername=playername.strip(),
                                                                                       type=searchtype.strip()))
+
 
     @bot.on(GroupMessage)
     async def getplayerdetails(event: GroupMessage):
@@ -218,9 +229,12 @@ if __name__ == '__main__':
             selecttype = m.group(3)
             year = m.group(4)
             month = m.group(5)
-            await bot.send(event,MessageChain([Plain(majsoulinfo.getmonthreport(playername=playername,selecttype=selecttype,year=year,month=month))]))
+            await bot.send(event, MessageChain([Plain(
+                majsoulinfo.getmonthreport(playername=playername, selecttype=selecttype, year=year, month=month))]))
             # await bot.send(event,MessageChain([Plain(f"你要查询的是{playername}在{year}年{month}月的{selecttype}麻的雀魂月报吗?\n这个功能还没做哦~")]))
         return
+
+
     # 将一个雀魂用户加入某群的关注
 
     @bot.on(GroupMessage)
@@ -230,6 +244,7 @@ if __name__ == '__main__':
         m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*(\w+)\s*$', msg.strip())
         if m:
             await bot.send(event, plugin.MajSoulInfo.majsoulinfo.addwatch(m.group(2), event.group.id))
+
 
     # @bot.on(GroupMessage)
     # async def refresh(event: GroupMessage):
@@ -251,6 +266,7 @@ if __name__ == '__main__':
         if m:
             await bot.send(event, plugin.MajSoulInfo.majsoulinfo.getallwatcher(event.group.id))
 
+
     # 删除某群雀魂关注
 
     @bot.on(GroupMessage)
@@ -261,6 +277,7 @@ if __name__ == '__main__':
         if m:
             await bot.send(event,
                            plugin.MajSoulInfo.majsoulinfo.removewatch(playername=m.group(2), groupid=event.group.id))
+
 
     # 来一发雀魂十连
 
@@ -320,25 +337,37 @@ if __name__ == '__main__':
                     Plain(result['resultsmsg'])
                 ]))
 
+
     '''通用功能'''
 
     '''随机搞怪回复'''
+
 
     @bot.on(GroupMessage)
     async def duideduide(event: GroupMessage):
         if len(event.message_chain[Plain]) == 1:
             msg = str(event.message_chain[Plain][0]).strip()
-            if msg in ['正确的', '错误的', '辩证的', '对的对的', '啊对对对']:
-                if random.random() * 100 < 30:
-                    await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '对的对的']))
+            # if msg in ['正确的', '错误的', '辩证的', '对的对的', '啊对对对',"理性的","中肯的",'客观的','整体的','全面的']:
+            #     if random.random() * 100 < 30:
+            #         await bot.send(event, random.choice(['正确的', '错误的', '辩证的', '对的对的', '不对的', '对的对的']))
 
+            if msg in ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的', '一针见血的',
+                       '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分', '的离题万里的',
+                       '不痛不痒的']:
+                if random.random() * 100 < 30:
+                    await bot.send(event, random.choice(
+                        ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的', '一针见血的',
+                         '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分的', '离题万里的',
+                         '不痛不痒的']))
             # 方舟肉鸽词库
             elif msg in ['迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']:
                 if random.random() * 100 < 30:
                     await bot.send(event, random.choice(
                         ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
 
+
     '''创建·文字'''
+
 
     @bot.on(MessageEvent)
     async def jupai(event: MessageEvent):
@@ -354,6 +383,7 @@ if __name__ == '__main__':
             ])
             await bot.send(event, message_chain)
 
+
     @bot.on(FriendMessage)
     async def getbotinfo(event: FriendMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -364,6 +394,7 @@ if __name__ == '__main__':
             if userid in admin:
                 return await bot.send(event,
                                       f"机器人设置:{config}\n白名单用户:{whiteList}\n黑名单用户:{black_list['user']}\n屏蔽群组:{black_list['group']}")
+
 
     # 添加白名单
 
@@ -383,6 +414,7 @@ if __name__ == '__main__':
                 return await bot.send(event, "添加成功")
             else:
                 return await bot.send(event, "添加失败,用户已存在")
+
 
     # 添加黑名单
 
@@ -405,6 +437,7 @@ if __name__ == '__main__':
             else:
                 return await bot.send(event, "添加失败,用户已存在")
 
+
     # 移出黑名单
 
     @bot.on(FriendMessage)
@@ -424,7 +457,9 @@ if __name__ == '__main__':
                 else:
                     return await bot.send(event, "删除失败,用户不存在")
 
+
     '''随机打断、复读、嘲讽'''
+
 
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
@@ -438,13 +473,14 @@ if __name__ == '__main__':
             return await bot.send(event, "?")
         if count < 0.2:
             print(f"在{event.group.name}群,打断一次{msg}")
-            return await bot.send(event, random.choice(["¿", "Lux is watching you!"]))
+            return await bot.send(event, random.choice(["¿", “??"]))
         elif count < 0.5:
             print(f"在{event.group.name}群,打断一次{msg}")
             return await bot.send(event, "?")
         elif count < 1:
             print(f"在{event.group.name}群,复读一次{msg}")
             return await bot.send(event, event.message_chain)
+
 
     # 获取项目地址
 
@@ -454,9 +490,50 @@ if __name__ == '__main__':
         m = re.match(fr"^{commandpre}项目地址\s*$", msg.strip())
         if m:
             return await bot.send(event, MessageChain([Plain(
-                "Github : https://github.com/NekoRabi/Majsoul-QQBot\nGitee : https://gitee.com/Syaro/Majsoul-QQBot\n如果觉得好可以点个star⭐")]))
+                "Github : https://github.com/NekoRabi/Majsoul-QQBot\nGitee : "
+                "https://gitee.com/Syaro/Majsoul-QQBot\n如果觉得好可以点个star⭐")]))
 
-    # 与机器人互动
+            # 与机器人互动
+
+
+    last_bvid = {}
+
+
+    @bot.on(GroupMessage)
+    # 哔哩哔哩解析
+    async def bili_resolve(event: GroupMessage):
+        global last_bvid
+        text = str(event.message_chain.as_mirai_code)
+        text = text.replace('\\n', '').replace('\\', '')
+        if 'b23.tv/' in text:
+            b23_url = re.findall('b23.tv/[A-Za-z0-9]+', text)[0]
+            url = f'https://{b23_url}'
+            resp = requests.get(url, allow_redirects=False)
+            text = resp.text
+        if 'BV' in text:
+            bvid = re.findall('BV[A-Za-z0-9]+', text)[0]
+        else:
+            return
+        if event.group.id in last_bvid.keys():
+            if bvid == last_bvid[event.group.id]:
+                return
+        # if event.message_chain.has("www.bilibili.com/video"):
+        #     bvid = re.findall('BV[A-Za-z0-9]',"".join(map(str, event.message_chain[Plain])).strip())[0]
+        last_bvid[event.group.id] = bvid
+        bv_url = f'http://api.bilibili.com/x/web-interface/view?bvid={bvid}'
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url=bv_url) as resp:
+                data = await resp.json()
+        if data['code'] != 0:
+            return
+        img_url = data['data']['pic']
+        '''if event.message_chain[1].type == 'App':
+            app = event.message_chain[1].as_json()
+            url = app['meta']['detail_1']['preview']
+            img_url = f'http://{url}'''
+        message_chain = MessageChain([Plain(text=bvid), Image(url=img_url)])
+        await bot.send(event, message_chain)
+
 
     @bot.on(MessageEvent)
     async def diyreply(event: MessageEvent):
@@ -485,6 +562,7 @@ if __name__ == '__main__':
                         return await bot.send(event, random.choice(v))
                 return await bot.send(event, random.choice(replydata['mismatch']['common']))
 
+
     # 亲亲
 
     @bot.on(GroupMessage)
@@ -502,6 +580,7 @@ if __name__ == '__main__':
                     await bot.send(event, MessageChain(
                         Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
 
+
     # 摸头
 
     @bot.on(GroupMessage)
@@ -518,6 +597,7 @@ if __name__ == '__main__':
             #     await plugin.Petpet.gif.petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
+
     # 签到获取积分
 
     @bot.on(MessageEvent)
@@ -527,6 +607,7 @@ if __name__ == '__main__':
         if m:
             signmsg = plugin.LeisurePlugin.leisure.siginin(event.sender.id)
             return await bot.send(event, MessageChain([Plain(signmsg)]))
+
 
     # 查询积分
 
@@ -538,6 +619,7 @@ if __name__ == '__main__':
             scoremsg = plugin.LeisurePlugin.leisure.getscore(
                 userid=event.sender.id)
             return await bot.send(event, MessageChain([Plain(scoremsg)]))
+
 
     # 戳一戳 出发摸头
 
@@ -560,6 +642,7 @@ if __name__ == '__main__':
             await bot.send_group_message(event.subject.id,
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
+
     # 群龙王
     # @bot.on(GroupEvent)
     # async def dradonchange(event: MemberHonorChangeEvent):
@@ -571,6 +654,7 @@ if __name__ == '__main__':
     #                 await bot.send(event, "我是水群冠军！")
 
     _task = None
+
 
     @bot.on(Startup)
     async def start_scheduler(_):
@@ -590,21 +674,26 @@ if __name__ == '__main__':
         global _task
         _task = asyncio.create_task(timer())
 
+
     @bot.on(Shutdown)
     async def stop_scheduler(_):
         # 退出时停止定时任务
         if _task:
             _task.cancel()
 
+
     scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
+
 
     @bot.on(Startup)
     def start_scheduler(_):
         scheduler.start()  # 启动定时器
 
+
     @bot.on(Shutdown)
     def stop_scheduler(_):
         scheduler.shutdown(True)  # 结束定时器
+
 
     # 雀魂对局记录轮询器
 
@@ -625,5 +714,6 @@ if __name__ == '__main__':
             except sqlite3.OperationalError:
                 print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                 settings['autogetpaipu'] = False
+
 
     bot.run(port=17580)

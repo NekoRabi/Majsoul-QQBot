@@ -27,6 +27,8 @@ user_agent_list = [
 
 
 def getinfo(username: str):
+    muti3 = False
+    muti4 = False
     s3 = requests.Session()
     s3.mount('http://', HTTPAdapter(max_retries=3))
     s3.mount('https://', HTTPAdapter(max_retries=3))
@@ -39,15 +41,17 @@ def getinfo(username: str):
             headers={'User-Agent': random.choice(user_agent_list)})
         pl3 = eval(xhr3.text)
         xhr4 = s4.get(
-            f"https://ak-data-1.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
+            f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
             headers={'User-Agent': random.choice(user_agent_list)})
         pl4 = eval(xhr4.text)
-
-        if len(pl3) == 1:
+        if len(pl3) > 0:
+            if len(pl4) > 1:
+                muti3 = True
             pl3 = pl3[0]
-        if len(pl4) == 1:
+        if len(pl4) > 0:
+            if len(pl4) > 1:
+                muti4 = True
             pl4 = pl4[0]
-
         if type(pl3) == dict:
             playerid = pl3['id']
             playername = pl3['nickname']
@@ -57,13 +61,13 @@ def getinfo(username: str):
         else:
             playerid = None
             playername = None
-        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False)
+        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4)
     except requests.exceptions.ConnectionError:
         print("查询玩家信息时连接超时")
-        return dict(error=True)
+        return dict(error=True, muti3=muti3, muti4=muti4)
     except requests.exceptions.ReadTimeout:
         print("查询玩家时读取超时")
-        return dict(error=True)
+        return dict(error=True, muti3=muti3, muti4=muti4)
 
 
 def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
@@ -162,13 +166,13 @@ def getsomepaipu(playername: str, type="4", counts=5):
             endTime = time.strftime('%Y-%m-%d %H:%M:%S',
                                     time.localtime(item["endTime"]))
             players = item['players']
-            paipuInfo += f"牌谱链接 : {paipuurl}\n"
+            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for player in players:
                 if player['nickname'].strip() == playername.strip():
                     ptupdate += int(player['gradingScore'])
                 paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
-
+            paipuInfo += "\n"
         paipuInfo += f"\n总PT变化 : {ptupdate}"
         return paipuInfo
     except requests.exceptions.ConnectionError as e:
@@ -249,11 +253,10 @@ def jiexi(paipu: dict, playerid: int) -> list:
                  f"{players[1]['nickname']}:{players[1]['score']}", f"{players[2]['nickname']}:{players[2]['score']}",
                  f"{players[3]['nickname']}:{players[3]['score']}"))
             cx.commit()
-            paipuInfo += f"牌谱链接 : {paipuurl}\n"
+            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for info in players:
                 paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
-            paipuInfo += "\n"
             hasNewPaipu = True
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
@@ -273,11 +276,10 @@ def jiexi(paipu: dict, playerid: int) -> list:
                  f"{players[1]['nickname']}:{players[1]['score']}", f"{players[2]['nickname']}:{players[2]['score']}",
                  f"Null"))
             cx.commit()
-            paipuInfo += f"牌谱链接 : {paipuurl}\n"
+            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for info in players:
                 paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
-            paipuInfo += "\n"
             hasNewPaipu = True
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
@@ -364,10 +366,10 @@ def mergeimg(imgurls: list) -> Image:
 
 
 def query(username: str) -> str:
-    if getinfo(username)['error']:
+    userinfo = getinfo(username)
+    if userinfo['error']:
         return "查询超时"
     prtmsg = "用户名:\t" + username
-    userinfo = getinfo(username)
     playerid = userinfo['playerid']
     if playerid:
         pass
@@ -390,6 +392,9 @@ def query(username: str) -> str:
     cx.close()
     """三麻"""
     try:
+        if userinfo['muti3']:
+            print("查到多位同名三麻玩家")
+            prtmsg += f" \n\n查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
         user_p3_levelinfo = userinfo['pl3']
         user_p3_levelinfo = user_p3_levelinfo.get("level")
         p3_level = user_p3_levelinfo.get("id")
@@ -400,6 +405,9 @@ def query(username: str) -> str:
         prtmsg += "\n未查询到三麻段位。"
     """四麻"""
     try:
+        if userinfo['muti4']:
+            print("查到多位同名四麻玩家")
+            prtmsg += f" \n\n查到多位同名四麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
         user_p4_levelinfo = userinfo['pl4']
         user_p4_levelinfo = user_p4_levelinfo.get("level")
         p4_level = user_p4_levelinfo.get("id")
@@ -571,7 +579,7 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
         return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
     playerid = playerid[0][0]
     selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
-    nextmontht =int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
+    nextmontht = int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
     session_paipu = requests.session()
     session_paipu.mount('http://', HTTPAdapter(max_retries=3))
     session_paipu.mount('https://', HTTPAdapter(max_retries=3))
@@ -603,11 +611,11 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
                 if player['nickname'] == playername:
                     ptchange += player['gradingScore']
                     rankdict[f"{rank}"] += 1
-                    if player['score'] <0:
-                        rankdict['fly'] +=1
+                    if player['score'] < 0:
+                        rankdict['fly'] += 1
                     break
                 rank = rank - 1
-        averagerank = (rankdict['1'] + rankdict['2'] *2 + rankdict['3'] *3 + rankdict['4'] *4) / len(paipuresponse)
+        averagerank = (rankdict['1'] + rankdict['2'] * 2 + rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
         if selecttype == "4":
             paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}"
         else:
@@ -636,10 +644,10 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
                 f"=21.22.23.24.25.26",
                 timeout=5,
                 headers=headers)
-        inforesponse = eval(inforesponse.text)
-        infomsg = f"该月立直率: {inforesponse['立直率'] *100 :2.2f}%,副露率: {inforesponse['副露率'] *100 :2.2f}%," \
-                  f"和牌率: {inforesponse['和牌率'] *100 :2.2f}%,放铳率 : {inforesponse['放铳率'] *100 :2.2f}%," \
-                  f"默听率: {inforesponse['默听率'] * 100:2.2f}%"
+        inforesponse = eval(inforesponse.text.replace("null", "0.0"))
+        infomsg = f"该月立直率: {inforesponse['立直率'] * 100 :2.2f}%, 副露率: {inforesponse['副露率'] * 100 :2.2f}%," \
+                  f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%, 放铳率 : {inforesponse['放铳率'] * 100 :2.2f}%," \
+                  f" 默听率: {inforesponse['默听率'] * 100:2.2f}%\n平均打点 : {inforesponse['平均打点']}, 平均铳点 : {inforesponse['平均铳点']}"
         msg += infomsg
     except requests.exceptions.ConnectionError as e:
         print(f"\n玩家详情查询超时:\t{e}\n")
@@ -648,6 +656,7 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
         print(f'\n玩家详情读取超时:\t{e}\n')
         return "查询超时"
     return msg
+
 
 def removewatch(playername: str, groupid: int) -> str:
     cx = sqlite3.connect("./database/majsoul.sqlite")
