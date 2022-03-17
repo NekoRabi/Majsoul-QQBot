@@ -6,3 +6,4 @@ requests
 PyYAML
 APScheduler
 yiri-mirai
+uvicorn
