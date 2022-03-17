@@ -1,1 +1,0 @@
-from plugin.preinit.load_application import *

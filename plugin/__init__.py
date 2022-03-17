@@ -5,6 +5,7 @@ from plugin.KissKiss import *
 from plugin.MajSoulInfo import *
 from plugin.preinit import *
 from plugin.Setu import *
+from plugin.Remake import *
 import os
 
 def create_folders():
