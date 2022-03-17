@@ -4,7 +4,7 @@
 一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
 、玩家详情、模拟十连、入群欢迎 和 制作图片等功能。
 
-后续会添加更多的功能来让机器人更加完善。
+最初目的是上面这样，但是，后续会添加更多的功能来让机器人更加完善。
 
  [指令帮助](./command_help.md)
 
@@ -44,13 +44,16 @@
 
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
+我也提供了自己的Mirai，可以直接使用
+
 # 配置文件
 
 中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
 ### config.yml
  ``` 注意, '冒号' (:) 后必须有空格 ```
  ```
- # 注意, '冒号' : 后需要有空格
+
+### 请注意 ， 冒号(:)和横线(-)  后面必须要有用空格
 adapter: # Mirai-Http-adapter参数
   host: localhost
   port: 17280
@@ -61,14 +64,10 @@ alarmclockgroup: # 为群聊添加每天早安和准点报时
 - 0
 blacklist: # 黑名单
 - 0
-botname: '' #与机器人对话时的机器人名字
-commandpre: '' #指令前缀
-botconfig: # 机器人配置
-  botname: "" # 机器人的称呼，用来和机器人聊天
-  host: localhost 
-  port: 17280
-  qq: 123456
-  verify_key: NekoRabi
+botconfig:
+  botname: ''  # 机器人的昵称，用于和机器人聊天交互
+  qq: 123456  # 请改成机器人的QQ号
+commandpre: '' # 指令前缀
 searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数
                    # 建议为 5 或 6 分钟
                    # 网络请求很耗时间,尤其是数据库用户很多的时候，在查询的过程中
