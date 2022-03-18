@@ -31,6 +31,9 @@
 数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
 
 
+# 常见错误
+[查看帮助](./faq.md)
+
 # 如何使用
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
 
@@ -45,6 +48,18 @@
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
 我也提供了自己的Mirai，可以直接使用
+
+# 环境
+
+我自己电脑是Python 3.8   Java 15， 服务器是 Python 3.9   Java 17.
+
+已知Python 3.10 跑不起来，如已安装，请降级安装python 3.9
+
+# 关于风控
+
+风控相当于把这台设备禁言了，能够收到消息，后台显示发出消息了，但是并没发出去
+
+如果是初次使用Mirai，风控几乎是必然的。机器人挂着放一两天就好了。
 
 # 配置文件
 
