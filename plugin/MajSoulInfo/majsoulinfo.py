@@ -14,6 +14,13 @@ if not os.path.exists("./config/MajSoulInfo"):
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
+infomodel = dict(基本=['胡牌率', '放铳率', '自摸率', '默胡率', '流局率', '流听率', '副露率', '立直率', '胡了巡数', '平均打点', '平均铳点', '平均顺位', '被飞率'],
+             立直=['立直率', '立直和了', '立直放铳A', '立直放铳B', '立直收支', '立直收入', '立直支出', '先制率', '追立率', '被追率', '立直巡目', '立直流局', '一发率',
+                 '振听率', '立直多面', '立直好型'],
+             更多=['最大连庄', '里宝率', '被炸率', '平均被炸点数', '放铳时立直率', '放铳时副露率', '副露后放铳率', '副露后流局率', '副露后和牌率', '打点效率', '铳点损失',
+                 '净打点效率'],
+             血统=['役满', '累计役满', '两立直', '流满', '最大累计番数', '平均起手向听'])
+
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
@@ -70,7 +77,9 @@ def getinfo(username: str):
         return dict(error=True, muti3=muti3, muti4=muti4)
 
 
-def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
+def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, model='基本') ->str:
+    if not model in ['基本','更多','立直','血统','all']:
+        return "参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'"
     xhr = ""
     cx = sqlite3.connect('./database/majsoul.sqlite')
     cursor = cx.cursor()
@@ -115,17 +124,27 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None):
         if type(v) not in [list, dict]:
             if str(k) in ["id", "count"]:
                 continue
-            if type(v) == float:
-                if str(k) not in ['平均起手向听', '立直巡目', '和了巡数']:
-                    msg += f"{k:<12} : {v * 100:2.2f}%\n"
+            if model in ['基本','更多','血统','立直']:
+                if str(k) in infomodel.get(model):
+                    if type(v) == float:
+                        if str(k) not in ['平均起手向听', '立直巡目', '和了巡数']:
+                            msg += f"{k:<12} : {v * 100:2.2f}%\n"
+                        else:
+                            msg += f"{k:<12} : {v:2.2f}\n"
+                    else:
+                        msg += f"{k} : {v}\n"
+            elif model == 'all':
+                if type(v) == float:
+                    if str(k) not in ['平均起手向听', '立直巡目', '和了巡数']:
+                        msg += f"{k:<12} : {v * 100:2.2f}%\n"
+                    else:
+                        msg += f"{k:<12} : {v:2.2f}\n"
                 else:
-                    msg += f"{k:<12} : {v:2.2f}\n"
-            else:
-                msg += f"{k} : {v}\n"
+                    msg += f"{k} : {v}\n"
     return msg
 
 
-def getsomepaipu(playername: str, type="4", counts=5):
+def getsomeqhpaipu(playername: str, type="4", counts=5):
     nowtime = time.time()
     ptupdate = 0
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
@@ -226,17 +245,6 @@ def jiexi(paipu: dict, playerid: int) -> list:
     paipuInfo = "检测到新的对局信息:\n"
     cx = sqlite3.connect('./database/majsoul.sqlite')
     cursor = cx.cursor()
-    cursor.execute("create table IF NOT EXISTS paipu("
-                   "id integer primary key,"
-                   "uuid varchar(50) UNIQUE,"
-                   "watchid integer,"
-                   "startTime varchar(50),"
-                   "endTime varchar(50),"
-                   "player1 varcher(50),"
-                   "player2 varcher(50),"
-                   "player3 varcher(50),"
-                   "player4 varcher(50)"
-                   ")")
     cx.commit()
     allpaipuinfo = []
     for item in paipu['p4']:
@@ -377,10 +385,6 @@ def query(username: str) -> str:
         return "该用户不存在"
     cx = sqlite3.connect("./database/majsoul.sqlite")
     cursor = cx.cursor()
-    cursor.execute('create table IF NOT EXISTS qhplayer ('
-                   'id integer primary key,'
-                   'playerid integer,'
-                   'playername varchar(50) UNIQUE)')
     cx.commit()
     cursor.execute(
         f"select playerid from qhplayer where playername = '{username}'")
@@ -504,20 +508,6 @@ def addwatch(playername: str, groupid: int):
     print(f'groupid= {groupid},playername= {playername}')
     cx = sqlite3.connect("./database/majsoul.sqlite")
     cursor = cx.cursor()
-
-    cursor.execute('create table IF NOT EXISTS watchedplayer ('
-                   'id integer primary key,'
-                   'playerid integer,'
-                   'playername varchar(50) UNIQUE)')
-    cursor.execute("create table IF NOT EXISTS QQgroup("
-                   "id integer primary key ,"
-                   "groupid integer UNIQUE)")
-    cursor.execute("create table IF NOT EXISTS group2player("
-                   "id integer primary key,"
-                   "groupid integer,"
-                   "playerid integer,"
-                   "playername varchar(50),"
-                   "UNIQUE(groupid,playerid) ON CONFLICT REPLACE)")
     cx.commit()
 
     cursor.execute(
