@@ -1,4 +1,4 @@
-# 重构基本完成了
+# 重构基本完成了，天凤功能安排中
 
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
@@ -59,7 +59,7 @@
 
 风控相当于把这台设备禁言了，能够收到消息，后台显示发出消息了，但是并没发出去
 
-如果是初次使用Mirai，风控几乎是必然的。机器人挂着放一两天就好了。
+如果是初次使用，风控几乎是必然的。机器人挂着放一两天就好了。
 
 # 配置文件
 
@@ -67,40 +67,68 @@
 ### config.yml
  ``` 注意, '冒号' (:) 后必须有空格 ```
  ```
-
 ### 请注意 ， 冒号(:)和横线(-)  后面必须要有用空格
-adapter: # Mirai-Http-adapter参数
+
+# Mirai
+adapter: 
   host: localhost
   port: 17280
   verify_key: NekoRabi
-admin: # 管理员QQ
+
+
+# 以下都是管理员
+admin: 
 - 0
-alarmclockgroup: # 为群聊添加每天早安和准点报时
+
+alarmclockgroup: # 设置闹钟群聊
 - 0
+
 blacklist: # 黑名单
 - 0
-botconfig:
-  botname: ''  # 机器人的昵称，用于和机器人聊天交互
-  qq: 123456  # 请改成机器人的QQ号
-commandpre: '' # 指令前缀
-searchfrequency: 6 # 雀魂牌谱查询频率(单位: 分钟)，不要太快,最好为60的因数
-                   # 建议为 5 或 6 分钟
-                   # 网络请求很耗时间,尤其是数据库用户很多的时候，在查询的过程中
-                   # 机器人不会对外响应，所有操作将排队
-mutegrouplist: # 屏蔽某群的消息(目前没做)
+
+botconfig: 
+  botname: '' # 机器人名字,若为空则没有机器人互动
+  qq: 123456  # 机器人QQ
+
+commandpre: ''  # 指令前缀
+
+mutegrouplist:
 - 0
-settings: # 各项开关设置
-  autogetpaipu: true  # 自动抓取牌谱并广播,默认开启
-  autowelcome: true # 自动欢迎新人入群,默认开启
-  r18talk: true # 管理员应有独特对话的权力，对吧
-  setu: false # 开关色图功能
-              # 但是大概率会因为网络请求超时而发不出来
-welcomeinfo: 
-# 欢迎消息,新人入群会从下面随机选择一条发送。 
-# %ps% 用于指代新入群的用户名字, %gn% 用于指代加入的群的群名字
-- 欢迎 %ps% 加入群聊 %gn%
-whitelist: # 白名单(功能暂无)
-- 0
+
+searchfrequency: 6 # 查询频率，建议为 6
+
+# 各项开关
+settings: 
+  autogetpaipu: true # 自动获取雀魂牌谱
+  autowelcome: true # 自动欢迎新人
+  r18talk: true     # 开启管理员词库
+  setu: false       # 色图
+  silence: false    # 全局沉默
+
+
+# 回复、打断相关，要求值从上到下排序为从大到小，否则不触发
+# 数值为百分数，如 20 是 20% 或者 0.2 的概率
+repeatconfig:         
+  repeatQ: 20         # 复读问号 的概率
+  repeatmsg: 1        # 复读的概率
+  interruptQ: 0.5     # 用 ? 打断发言的概率
+  interruptQQ: 0.1    # 用 ¿ 或多个??打断发言的概率
+
+
+ # 设置单群沉默
+silencegroup:
+- 0    
+
+
+# 新人入群欢迎词，发送时 %ps% 会自动替换为新人名字， %gn% 会替换为群聊名字
+welcomeinfo:  
+- 欢迎%ps%加入%gn%
+
+
+# 白名单
+whitelist:
+- 0   
+
 
  ```
 ## 回复文本相关
@@ -199,7 +227,7 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
   [ ] 增加何切支持
 
-  [ ] 增加对天凤的支持
+  [?] 增加对天凤的支持
 
   [ ] `要在自动查询牌谱时仍然能够对外相应`
 
@@ -225,8 +253,6 @@ QQ:1215791340 验证消息： 可爱的拉克丝
 [Mirai](https://github.com/mamoe/mirai) : 提供 QQ Android 协议支持的高效率机器人库 
 
 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) : 提供SDK
-
-[Yuzi_project](https://github.com/MEYUYU/yuzi-project) : 作者提供了大量帮助
 
 [Saya_plugins_collection](https://github.com/SAGIRI-kawaii/saya_plugins_collection) : 移植功能
 

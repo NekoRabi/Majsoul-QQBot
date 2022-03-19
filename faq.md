@@ -1,5 +1,3 @@
-
-
 # yaml.scanner.ScannerError:
 解决方法：yaml文件的格式不对，请检查 冒号 (:) 和 横线 (-) 后面是否有空格，并检查缩进
 
@@ -27,38 +25,6 @@ pip install uvicorn
 或
 pip install hypercorn
 ```
+#  文件打开错误，尝试生成初始文件中...
 
-# AttributeError: 'NoneType’object has no attribute 'call_soon_threadsafeTraceback (most recent call last) :
-可能是由以下代码引起的，可以在 main.py 中将这段删掉
-
-**大概率是由 _task.cancel() 引起的**
-```
-    _task = None
-
-
-    @bot.on(Startup)
-    async def start_scheduler(_):
-
-        async def timer():
-            today_finished = False  # 设置变量标识今天是会否完成任务，防止重复发送
-            while True:
-                await asyncio.sleep(1)
-                now = datetime.datetime.now()
-                if now.hour == 7 and now.minute == 30 and not today_finished:  # 每天早上 7:30 发送早安
-                    for group in alarmclockgroup:
-                        await bot.send_group_message(group, "早上好")
-                    today_finished = True
-                if now.hour == 7 and now.minute == 31:
-                    today_finished = False  # 早上 7:31，重置今天是否完成任务的标识
-
-        global _task
-        _task = asyncio.create_task(timer())
-
-
-    @bot.on(Shutdown)
-    async def stop_scheduler(_):
-        # 退出时停止定时任务
-        global _task
-        if _task:
-            _task.cancel()
-```
+请检查config.yml的数据是否齐全，格式是否正确 **(冒号和横线后面必须有空格)**

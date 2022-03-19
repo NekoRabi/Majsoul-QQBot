@@ -28,12 +28,12 @@ def load_config() -> dict:
     except Exception as e:
         print("文件打开错误，尝试生成初始文件中...")
         with open(r'./config.yml', 'w') as f:
-            yaml.dump(dict(admin=[1215791340], whitelist=[1215791340], blacklist=[0], mutegrouplist=[0],
-                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[566415871],
+            yaml.dump(dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
+                           welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
                            silencegroup=[0], commandpre="", searchfrequency=6,
-                           botconfig=dict(qq=3384437741, botname="拉克丝", ),
+                           botconfig=dict(qq=123456, botname="", ),
                            repeatconfig=dict(repeatQ=20, repeatmsg=1, interruptQ=0.5, interruptQQ=0.1),
-                           adapter=dict(verify_key='xyshu123', host='localhost',
+                           adapter=dict(verify_key='NekoRabi', host='localhost',
                                         port=17280),
                            settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True, setu=False, silence=False)),
                       f, allow_unicode=True)
