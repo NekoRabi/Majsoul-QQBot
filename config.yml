@@ -1,26 +1,34 @@
-adapter:
+adapter: # Mirai
   host: localhost
   port: 17280
   verify_key: NekoRabi
-admin:
+admin: # 以下都是管理员
 - 0
-alarmclockgroup:
+alarmclockgroup: # 设置闹钟群聊
 - 0
-blacklist:
+blacklist: # 黑名单
 - 0
-botconfig:
-  botname: ""
-  qq: 123456
-commandpre: ''
+botconfig: 
+  botname: '' # 机器人名字
+  qq: 123456  # 机器人QQ
+commandpre: ''  # 指令前缀
 mutegrouplist:
 - 0
-searchfrequency: 6
-settings:
-  autogetpaipu: true
-  autowelcome: true
-  r18talk: true
-  setu: false
-welcomeinfo:
+searchfrequency: 6 # 查询频率，建议为 6
+settings: # 各项开关
+  autogetpaipu: true # 自动获取雀魂牌谱
+  autowelcome: true # 自动欢迎新人
+  r18talk: true     # 开启管理员词库
+  setu: false       # 色图
+  silence: false    # 全局沉默
+repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
+  repeatQ: 20         # 复读问号 的概率
+  repeatmsg: 1        # 复读的概率
+  interruptQ: 0.5     # 用 ? 打断发言的概率
+  interruptQQ: 0.1    # 用 ¿ 或多个??打断发言的概率
+silencegroup:
+- 0     # 设置单群沉默
+welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
 - 欢迎%ps%加入%gn%
 whitelist:
-- 0
+- 0   # 白名单
