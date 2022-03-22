@@ -28,3 +28,19 @@ pip install hypercorn
 #  文件打开错误，尝试生成初始文件中...
 
 请检查config.yml的数据是否齐全，格式是否正确 **(冒号和横线后面必须有空格)**
+
+
+# mirai.exceptions.ApiError: ERROR 51发送消息目标不存在，或指定对象不存在。
+
+使用 `bot.send_group_message(groupid,MessageChain)`时，需要指定发送的群组id，请检查groupid是否有误，机器人是否加入了这个群聊。
+
+一般多出现于发送准点报时功能，如果不需要该功能，请在config中将 `alarmclockgroup` 设置为 0
+```
+alarmclockgroup: # 设置闹钟群聊
+- 0
+```
+
+# sqlite3.OperationalError: no such table:xxx
+数据库错误:缺少表xxx
+
+请用`sqlite`打开相应插件的数据库文件，检查是否有这张表

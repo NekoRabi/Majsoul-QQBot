@@ -27,14 +27,27 @@
 
 ![最近对局](./other/效果展示/最近对局.png)
 
+## 对局开始报幕
+
+![thstartmatch](./other/效果展示/thstartmatch.png)
+
+## 对局结算播报
+
+![thbordercastmatch](./other/效果展示/thbordercastmatch.png)
+
 # 如何实现
-数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
+
+雀魂数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
+
+天凤数据来自角田提供的数据接口，自行存储数据
 
 
 # 常见错误
+
 [查看帮助](./faq.md)
 
 # 如何使用
+
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
 
 如果Mirai安装了`chat-command`，建议在Mirai控制台界面中输入 `/perm permit u* console:command.help`，来禁用Mirai的帮助输出。
@@ -69,65 +82,74 @@
  ```
 ### 请注意 ， 冒号(:)和横线(-)  后面必须要有用空格
 
-# Mirai
-adapter: 
+adapter: # Mirai
   host: localhost
   port: 17280
   verify_key: NekoRabi
 
-
-# 以下都是管理员
-admin: 
+admin: # 以下都是管理员
 - 0
 
-alarmclockgroup: # 设置闹钟群聊
+alarmclockgroup: # 设置准点报时群聊
 - 0
 
 blacklist: # 黑名单
 - 0
 
 botconfig: 
-  botname: '' # 机器人名字,若为空则没有机器人互动
+  botname: '' # 机器人名字
   qq: 123456  # 机器人QQ
 
 commandpre: ''  # 指令前缀
+
+master: 0  # 机器人主人
 
 mutegrouplist:
 - 0
 
 searchfrequency: 6 # 查询频率，建议为 6
 
-# 各项开关
-settings: 
+settings: # 各项开关
   autogetpaipu: true # 自动获取雀魂牌谱
   autowelcome: true # 自动欢迎新人
+  nudgereply: true  # 摸头事件
   r18talk: true     # 开启管理员词库
   setu: false       # 色图
   silence: false    # 全局沉默
+  norepeat: false   # 全局自动回复
 
-
-# 回复、打断相关，要求值从上到下排序为从大到小，否则不触发
-# 数值为百分数，如 20 是 20% 或者 0.2 的概率
+# 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
 repeatconfig:         
   repeatQ: 20         # 复读问号 的概率
   repeatmsg: 1        # 复读的概率
   interruptQ: 0.5     # 用 ? 打断发言的概率
   interruptQQ: 0.1    # 用 ¿ 或多个??打断发言的概率
 
-
- # 设置单群沉默
 silencegroup:
-- 0    
+- 0     # 设置单群沉默
 
-
-# 新人入群欢迎词，发送时 %ps% 会自动替换为新人名字， %gn% 会替换为群聊名字
-welcomeinfo:  
+welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
 - 欢迎%ps%加入%gn%
 
-
-# 白名单
 whitelist:
-- 0   
+- 0   # 白名单
+
+# 雀魂指令控制
+qhsettings: # 是否启用
+  qhpt: true
+  qhinfo: true
+  qhsl: true
+  qhyb: true
+  disptgroup: # 在某群禁用 qhpt
+    - 0
+
+# 在某群禁用 摸头事件
+disnudgegroup:
+ - 0
+ 
+# 在某群关闭自动回复
+norepeatgroup:
+  - 0
 
 
  ```
@@ -213,8 +235,8 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  - 雀魂相关功能，如模拟抽卡，查询玩家信息，定时播报玩家最近战绩
  - 天凤对局播报
  - 入群欢迎
- - 摸头、互亲、举牌、色图等图片相关功能
- - 自定义回复
+ - 摸头、互亲、举牌、~~色图~~等图片相关功能
+ - 强交互性，提供自定义回复
  - 以后会有更多
 
  # 存在的问题
