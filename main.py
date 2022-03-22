@@ -19,7 +19,8 @@ if __name__ == '__main__':
     black_list['user'] = config['blacklist']
     black_list['group'] = config['mutegrouplist']
     whiteList = config['whitelist']
-    admin = config['admin']
+    admin:list = config['admin']
+    master = config['master']
     settings = config['settings']
     botname = config['botconfig']['botname']
     replydata = load_replydata()
@@ -27,10 +28,13 @@ if __name__ == '__main__':
     alarmclockgroup = config['alarmclockgroup']
     silencegroup = config['silencegroup']
     repeatconfig = config['repeatconfig']
-
+    norepeatgroup = config['norepeatgroup']
+    qhsettings = config['qhsettings']
+    disnudgegroup = config['disnudgegroup']
     bot = create_bot(config)
-
-    print(f"机器人{botname}启动中,QQ : {bot.qq},\nadapter : {bot.adapter_info}")
+    if master not in admin:
+        admin.append(master)
+    print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
 
 
     # 自动获取雀魂牌谱
@@ -48,12 +52,32 @@ if __name__ == '__main__':
 
     # 自动获取天凤对局
     async def thautopaipu():
-        print("开始查询天风对局信息")
+        print("开始查询天风结算信息")
         msglist = autoget_th_match()
+        print(f'正在进行的对局有{msglist}')
         for msgobj in msglist:
             for group in msgobj['groups']:
                 await bot.send_group_message(group, msgobj['msg'])
         return
+
+    # 自动广播天凤对局开始信息
+    async def thbroadcastmatch():
+        print("开始查询天风对局信息")
+        msglist = auto_get_th_matching()
+        for msgobj in msglist:
+            for group in msgobj['groups']:
+                await bot.send_group_message(group, msgobj['msg'])
+        return
+
+
+    def get_groupsender_permission(event: GroupMessage):
+        return event.sender.permission
+
+
+    def is_havingadmin(event: GroupMessage):
+        if event.sender.permission == "MEMBER":
+            return False
+        return True
 
 
     # 欢迎
@@ -78,6 +102,37 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
+
+    @bot.on(GroupMessage)
+    async def addadmin(event: GroupMessage):
+        if event.sender.id == master:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(
+                fr"^{commandpre}addadmin\s*(\d+)\s*$", msg.strip())
+            if m:
+                if m.group(1) in admin:
+                    admin.append(m.group(1))
+
+                    with open(r'./config.yml', 'w') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+                    return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 添加为机器人管理员")))
+        return
+
+
+    @bot.on(GroupMessage)
+    async def deladmin(event: GroupMessage):
+        if event.sender.id == master:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(
+                fr"^{commandpre}deladmin\s*(\d+)\s*$", msg.strip())
+            if m:
+                if not m.group(1) in admin:
+                    admin.remove(m.group(1))
+
+                    with open(r'./config.yml', 'w') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+                    return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 从机器人管理员中移出")))
+        return
 
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
@@ -168,6 +223,42 @@ if __name__ == '__main__':
             ]))
 
 
+    # 禁用功能
+
+    @bot.on(GroupMessage)
+    async def disableqhplugin(event: GroupMessage):
+        # 匹配指令
+        if is_havingadmin(event) or event.sender.id in admin:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(fr'^{commandpre}disable\s*(\w+)\s*$', msg.strip())
+            if m:
+                command = m.group(1)
+                group = event.group.id
+                if command == 'pt':
+                    if not group in qhsettings['disptgroup']:
+                        qhsettings['disptgroup'].append(group)
+                        with open(r'./config.yml', 'w') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+                        # return await bot.send(event,f'查分功能禁用成功')
+
+
+    @bot.on(GroupMessage)
+    async def enableqhplugin(event: GroupMessage):
+        # 匹配指令
+        if is_havingadmin(event) or event.sender.id in admin:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(fr'^{commandpre}enable\s*(\w+)\s*$', msg.strip())
+            if m:
+                command = m.group(1)
+                group = event.group.id
+                if command == 'pt':
+                    if group in qhsettings['disptgroup']:
+                        qhsettings['disptgroup'].remove(group)
+                        with open(r'./config.yml', 'w') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+                            # return await bot.send(event, f'查分功能启用成功')
+
+
     # 查分
 
     @bot.on(GroupMessage)
@@ -176,8 +267,9 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhpt|雀魂分数)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event, query(m.group(2)))
-        return
+            if qhsettings['qhpt'] and not event.group.id in qhsettings['disptgroup']:
+                await bot.send(event, query(m.group(2)))
+            return
 
 
     @bot.on(GroupMessage)
@@ -299,54 +391,63 @@ if __name__ == '__main__':
         if m:
             if m.group(2):
                 if m.group(2) == '限时':
-                    result = drawcards(up=True)
+                    result = drawcards(userid=event.sender.id, up=True)
+                    if result['error']:
+                        return await bot.send(event, MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
                     mergeimgs(
                         result.get('results'), event.sender.id)
                     await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
                         Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
-                    return await bot.send(event, MessageChain([
-                        At(event.sender.id),
-                        Plain(result['resultsmsg'])
-                    ]))
+                    # return await bot.send(event, MessageChain([
+                    #     At(event.sender.id),
+                    #     Plain(result['resultsmsg'])
+                    # ]))
                 elif m.group(2) == '常驻':
-                    result = drawcards(up=False)
+                    result = drawcards(userid=event.sender.id, up=False)
+                    if result['error']:
+                        return await bot.send(event, MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
                     mergeimgs(
                         result.get('results'), event.sender.id)
                     await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
                         Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
-                    return await bot.send(event, MessageChain([
-                        At(event.sender.id),
-                        Plain(result['resultsmsg'])
-                    ]))
+                    # return await bot.send(event, MessageChain([
+                    #     At(event.sender.id),
+                    #     Plain(result['resultsmsg'])
+                    # ]))
                 else:
+                    result = drawcards(userid=event.sender.id, up=False)
+                    if result['error']:
+                        return await bot.send(event, MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
                     await bot.send(event, MessageChain([At(event.sender.id), Plain('参数输入有误，请输入“限时”或“常驻”，此次十连将输出常驻')]))
-                    result = drawcards(up=False)
                     mergeimgs(
                         result.get('results'), event.sender.id)
                     await bot.send(event, MessageChain([
                         At(event.sender.id),
                         Plain("\n 抽卡结果:\n"),
                         Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
-                    return await bot.send(event, MessageChain([
-                        At(event.sender.id),
-                        Plain(result['resultsmsg'])
-                    ]))
+                    # return await bot.send(event, MessageChain([
+                    #     At(event.sender.id),
+                    #     Plain(result['resultsmsg'])
+                    # ]))
             else:
-                result = drawcards(up=False)
+                result = drawcards(userid=event.sender.id, up=False)
+                if result['error']:
+                    return await bot.send(event, MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
                 mergeimgs(
                     result.get('results'), event.sender.id)
                 await bot.send(event, MessageChain([
                     At(event.sender.id),
                     Plain("\n 抽卡结果:\n"),
                     Image(path=f"./images/MajSoulInfo/{event.sender.id}.png")]))
-                return await bot.send(event, MessageChain([
-                    At(event.sender.id),
-                    Plain(result['resultsmsg'])
-                ]))
+                # return await bot.send(event, MessageChain([
+                #     At(event.sender.id),
+                #     Plain(result['resultsmsg'])
+                # ]))
+        return
 
 
     '''天凤相关'''
@@ -489,6 +590,29 @@ if __name__ == '__main__':
                             yaml.dump(config, file, allow_unicode=True)
 
 
+    # 关闭复读
+    @bot.on(GroupMessage)
+    async def norepeatbygroup(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        if userid in admin:
+            m = re.match(fr'^{commandpre}norepeat\s*(\w+)\s*$', msg.strip())
+            if m:
+                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
+                    print(f'已将{event.group.id}的复读关闭')
+                    if not event.group.id in norepeatgroup:
+                        norepeatgroup.append(event.group.id)
+                        with open(r'./config.yml', 'w') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+                else:
+                    if event.group.id in norepeatgroup:
+                        print(f'已将{event.group.id}的复读开启')
+                        norepeatgroup.remove(event.group.id)
+                        with open(r'./config.yml', 'w') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+
+
     # 添加白名单
 
     @bot.on(GroupMessage)
@@ -556,25 +680,27 @@ if __name__ == '__main__':
 
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
-        if not settings['silence']:
+        if not (settings['silence'] or settings['norepeat']):
             if not event.group.id in silencegroup:
-                count = random.random() * 100
-                msg = event.message_chain[Plain]
-                senderid = event.sender.id
-                if senderid in whiteList:
-                    return
-                if str(event.message_chain) in ['?', "？"] and count < repeatconfig['repeatQ']:
-                    print(f"在{event.group.name}群,复读了一次?")
-                    return await bot.send(event, "?")
-                if count < repeatconfig['interruptQQ']:
-                    print(f"在{event.group.name}群,打断一次{msg}")
-                    return await bot.send(event, random.choice(["¿", "??"]))
-                elif count < repeatconfig['interruptQ']:
-                    print(f"在{event.group.name}群,打断一次{msg}")
-                    return await bot.send(event, "?")
-                elif count < repeatconfig['repeatmsg']:
-                    print(f"在{event.group.name}群,复读一次{msg}")
-                    return await bot.send(event, event.message_chain)
+                if not event.group.id in norepeatgroup:
+                    count = random.random() * 100
+                    msg = event.message_chain[Plain]
+                    senderid = event.sender.id
+                    if senderid in whiteList:
+                        return
+                    if str(event.message_chain) in ['?', "？"] and count < repeatconfig['repeatQ']:
+                        print(f"在{event.group.name}群,复读了一次?")
+                        return await bot.send(event, "?")
+                    if count < repeatconfig['interruptQQ']:
+                        print(f"在{event.group.name}群,打断一次{msg}")
+                        return await bot.send(event, random.choice(["¿", "?????"]))
+                    elif count < repeatconfig['interruptQ']:
+                        print(f"在{event.group.name}群,打断一次{msg}")
+                        return await bot.send(event, "?")
+                    elif count < repeatconfig['repeatmsg']:
+                        print(f"在{event.group.name}群,复读一次{msg}")
+                        return await bot.send(event, event.message_chain)
+        return
 
 
     # 获取项目地址
@@ -673,7 +799,7 @@ if __name__ == '__main__':
                 operator_id = event.sender.id
                 target_id = event.message_chain.get_first(At).target
                 if operator_id == target_id:
-                    return await bot.send(event, MessageChain([Plain("请不要自交~😋")]))
+                    return await bot.send(event, MessageChain([Plain("请不要自交~")]))
                 else:
                     await kiss(operator_id=operator_id, target_id=target_id)
                     await bot.send(event, MessageChain(
@@ -735,9 +861,9 @@ if __name__ == '__main__':
 
     @bot.on(NudgeEvent)
     async def Nudgepetpet(event: NudgeEvent):
-        if not settings['silence']:
+        if (not settings['silence']) or settings['nudgereply']:
             if event.subject.kind == 'Group':
-                if not event.subject.id in silencegroup:
+                if not (event.subject.id in silencegroup or event.subject.id in disnudgegroup):
                     target = event.target
                     if target == bot.qq:
                         sender = event.from_id
@@ -771,36 +897,6 @@ if __name__ == '__main__':
     #             else:
     #                 await bot.send(event, "我是水群冠军！")
 
-    _task = None
-
-
-    @bot.on(Startup)
-    async def start_scheduler(_):
-
-        async def timer():
-            today_finished = False  # 设置变量标识今天是会否完成任务，防止重复发送
-            while True:
-                await asyncio.sleep(1)
-                now = datetime.datetime.now()
-                if now.hour == 7 and now.minute == 30 and not today_finished:  # 每天早上 7:30 发送早安
-                    for group in alarmclockgroup:
-                        await bot.send_group_message(group, "早上好")
-                    today_finished = True
-                if now.hour == 7 and now.minute == 31:
-                    today_finished = False  # 早上 7:31，重置今天是否完成任务的标识
-
-        global _task
-        _task = asyncio.create_task(timer())
-
-
-    @bot.on(Shutdown)
-    async def stop_scheduler(_):
-        # 退出时停止定时任务
-        global _task
-        if _task:
-            _task.cancel()
-
-
     scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
 
 
@@ -833,8 +929,8 @@ if __name__ == '__main__':
             except sqlite3.OperationalError:
                 print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                 settings['autogetpaipu'] = False
-            if minute_now % 12 == 0:
-                await thautopaipu()
+            await thautopaipu()
+            await thbroadcastmatch()
 
 
     bot.run(port=17580)

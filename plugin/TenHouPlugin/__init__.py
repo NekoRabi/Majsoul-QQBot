@@ -1,6 +1,7 @@
 import os
+import sqlite3
 
-from plugin.TenHouPlugin.TenHou import *
+from plugin.TenHouPlugin.TenHou import auto_get_th_matching,addthwatch,autoget_th_match,removethwatch,getthwatch
 
 if not os.path.exists("./database/TenHouPlugin"):
     os.mkdir("./database/TenHouPlugin")
@@ -31,16 +32,11 @@ cursor.execute("create table IF NOT EXISTS paipu("
                "player3 varcher(50),"
                "player4 varcher(50)"
                ")")
-cursor.execute("create table IF NOT EXISTS prp("  # 玩家 最近牌谱
-               "id integer primary key,"
-               "startTime varchar(50),"
-               "model varchar(50),"
-               "duration varchar(50),"
-               "player1 varcher(50),"
-               "player2 varcher(50),"
-               "player3 varcher(50),"
-               "player4 varcher(50) default Null"
+cursor.execute("create table if not exists isgaming("
+               "playername varchar(50),"
+               "url varchar(20)"
                ")")
+
 cx.commit()
 cursor.close()
 cx.close()

@@ -12,15 +12,20 @@ botconfig:
   botname: '' # 机器人名字
   qq: 123456  # 机器人QQ
 commandpre: ''  # 指令前缀
+master: 0  # 机器人主人
+
 mutegrouplist:
 - 0
 searchfrequency: 6 # 查询频率，建议为 6
 settings: # 各项开关
   autogetpaipu: true # 自动获取雀魂牌谱
   autowelcome: true # 自动欢迎新人
+  nudgereply: true  # 摸头事件
   r18talk: true     # 开启管理员词库
   setu: false       # 色图
   silence: false    # 全局沉默
+  norepeat: false   # 全局自动回复
+
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
   repeatQ: 20         # 复读问号 的概率
   repeatmsg: 1        # 复读的概率
@@ -32,3 +37,20 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 - 欢迎%ps%加入%gn%
 whitelist:
 - 0   # 白名单
+
+# 雀魂指令控制
+qhsettings: # 是否启用
+  qhpt: true
+  qhinfo: true
+  qhsl: true
+  qhyb: true
+  disptgroup: # 在某群禁用 qhpt
+    - 0
+
+# 在某群禁用 摸头事件
+disnudgegroup:
+ - 0
+ 
+# 在某群关闭自动回复
+norepeatgroup:
+  - 0

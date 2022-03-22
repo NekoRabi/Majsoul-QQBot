@@ -1,4 +1,4 @@
-from plugin.Petpet.gif import *
+from plugin.Petpet.gif import petpet
 import os
 
 
