@@ -211,7 +211,22 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/莲藕紫桌布.jpg
-    length: 42
+    - index: 42
+      name: 和牌-核心裂变
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-核心裂变.jpg
+    - index: 43
+      name: 立直-虚拟导航
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-虚拟导航.jpg
+    - index: 44
+      name: 立直棒-仿生喵
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-仿生喵.jpg
+    length: 45
   gift:
     item:
     - index: 0
@@ -465,9 +480,9 @@ lottery:
     length: 25
 up:
   decoration:
-  - 和牌-安可
-  - 立直-开场曲
-  - 立直棒-应援棒
+  - 立直-虚拟导航
+  - 立直棒-仿生喵
+  - 和牌-核心裂变
   person:
-  - 八木唯
-  - 北见纱和子
+  - 五十岚阳菜
+  - 福姬

@@ -1,17 +1,28 @@
-import re
-import asyncio
-import datetime
+import logging, asyncio, nest_asyncio, re
+
+import websockets.exceptions
 
 from plugin import *
-
-from mirai.models import MemberJoinEvent, NudgeEvent
-from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
-    Image, MessageEvent
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
+    Image, MessageEvent
+from mirai.models import MemberJoinEvent, NudgeEvent
 
 if __name__ == '__main__':
 
+    rootlogger = logging.getLogger()
+    logging.basicConfig(level=logging.DEBUG  # 设置日志输出格式
+                        , filename="./log/log.log"  # log日志输出的文件位置和文件名
+                        , filemode="a"  # 文件的写入格式，w为重新写入文件，默认是追加
+                        ,
+                        format="%(asctime)s - %(name)s - %(levelname)-9s - %(filename)-8s : %(lineno)s line - %(message)s"
+                        # 日志输出的格式
+                        # -8表示占位符，让输出左对齐，输出长度都为8位
+                        , datefmt="%Y-%m-%d %H:%M:%S"  # 时间输出的格式
+                        )
+
+    nest_asyncio.apply()
     create_folders()
     config = load_config()
 
@@ -19,7 +30,7 @@ if __name__ == '__main__':
     black_list['user'] = config['blacklist']
     black_list['group'] = config['mutegrouplist']
     whiteList = config['whitelist']
-    admin:list = config['admin']
+    admin: list = config['admin']
     master = config['master']
     settings = config['settings']
     botname = config['botconfig']['botname']
@@ -39,34 +50,61 @@ if __name__ == '__main__':
 
     # 自动获取雀魂牌谱
     async def autopaipu():
-        nowtime = datetime.datetime.now()
-        print(f"开始查询,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
         result = autoQueryPaipu()
+        logging.info(result)
         for info in result:
             for group in info['groups']:
                 await bot.send_group_message(group, info['text'])
-        nowtime = datetime.datetime.now()
-        print(f"查询结束,当前时间{nowtime.hour}:{nowtime.minute}:{nowtime.second}")
         return
 
 
     # 自动获取天凤对局
     async def thautopaipu():
         print("开始查询天风结算信息")
-        msglist = autoget_th_match()
-        print(f'正在进行的对局有{msglist}')
-        for msgobj in msglist:
-            for group in msgobj['groups']:
-                await bot.send_group_message(group, msgobj['msg'])
+        # msglist = autoget_th_match()
+        # print(f'正在进行的对局有{msglist}')
+        # for msgobj in msglist:
+        #     for group in msgobj['groups']:
+        #         await bot.send_group_message(group, msgobj['msg'])
+
+        # print(f'正在进行的对局有{results}')
+        # for group in results['groups']:
+        #     await bot.send_group_message(group, results['msg'])
+
+        tasks = [asyncio.ensure_future(autoget_th_match())]
+        loop = asyncio.get_event_loop()
+        tasks = asyncio.gather(*tasks)
+        loop.run_until_complete(tasks)
+        for results in tasks.result():
+            # print(task, type(task))
+            if len(results) > 0:
+                print(f'正在进行的对局有{results}')
+                for msgobj in results:
+                    for group in msgobj['groups']:
+                        await bot.send_group_message(group, msgobj['msg'])
         return
+
 
     # 自动广播天凤对局开始信息
     async def thbroadcastmatch():
         print("开始查询天风对局信息")
-        msglist = auto_get_th_matching()
-        for msgobj in msglist:
-            for group in msgobj['groups']:
-                await bot.send_group_message(group, msgobj['msg'])
+        # msglist = auto_get_th_matching()
+        # for msgobj in msglist:
+        #     for group in msgobj['groups']:
+        #         await bot.send_group_message(group, msgobj['msg'])
+
+        tasks = [asyncio.ensure_future(autoget_th_matching())]
+        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
+        tasks = asyncio.gather(*tasks)
+        loop.run_until_complete(tasks)
+
+        for results in tasks.result():
+            if len(results) > 0:
+                print(f'结算信息有:{results}')
+                for msgobj in results:
+                    for group in msgobj['groups']:
+                        await bot.send_group_message(group, msgobj['msg'])
         return
 
 
@@ -103,8 +141,8 @@ if __name__ == '__main__':
             return
 
 
-    @bot.on(GroupMessage)
-    async def addadmin(event: GroupMessage):
+    @bot.on(FriendMessage)
+    async def addadmin(event: FriendMessage):
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
@@ -119,8 +157,8 @@ if __name__ == '__main__':
         return
 
 
-    @bot.on(GroupMessage)
-    async def deladmin(event: GroupMessage):
+    @bot.on(FriendMessage)
+    async def deladmin(event: FriendMessage):
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
@@ -133,6 +171,7 @@ if __name__ == '__main__':
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 从机器人管理员中移出")))
         return
+
 
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
@@ -750,11 +789,14 @@ if __name__ == '__main__':
                 if data['code'] != 0:
                     return
                 img_url = data['data']['pic']
+                author = data['data']['owner']['name']
+                title = data['data']['title']
+                msg = f'{bvid}\nUP主:{author}\n标题:{title}'
                 '''if event.message_chain[1].type == 'App':
                     app = event.message_chain[1].as_json()
                     url = app['meta']['detail_1']['preview']
                     img_url = f'http://{url}'''
-                message_chain = MessageChain([Plain(text=bvid), Image(url=img_url)])
+                message_chain = MessageChain([Image(url=img_url), Plain(text=msg)])
                 return await bot.send(event, message_chain)
 
 
@@ -916,6 +958,7 @@ if __name__ == '__main__':
     async def paiputimer():
         minute_now = datetime.datetime.now().minute
         hour_now = datetime.datetime.now().hour
+        second_now = datetime.datetime.now().second
         if minute_now == 0:
             if 7 < hour_now < 23:
                 for groupid in alarmclockgroup:
@@ -924,13 +967,19 @@ if __name__ == '__main__':
                         if hour_now == 22:
                             await bot.send_group_message(groupid, f"晚上10点了，大家可以休息了")
         if settings['autogetpaipu']:
+            print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
             try:
                 await autopaipu()
-            except sqlite3.OperationalError:
-                print("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
+                await thautopaipu()
+                await thbroadcastmatch()
+            except sqlite3.OperationalError as e:
+                logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
+                logging.warning(f'{e}')
                 settings['autogetpaipu'] = False
-            await thautopaipu()
-            await thbroadcastmatch()
+            except websockets.exceptions.ConnectionClosedError as e:
+                logging.error(f'websockets发生错误{e}')
+                logging.exception(e)
+            print(f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
 
 
     bot.run(port=17580)

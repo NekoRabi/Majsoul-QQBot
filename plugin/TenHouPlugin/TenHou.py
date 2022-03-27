@@ -3,6 +3,7 @@ import gzip
 import datetime
 import random
 
+import aiohttp
 import pytz
 import re
 import sqlite3
@@ -29,6 +30,8 @@ bordercast_temple = {
 }
 
 
+timeout = aiohttp.ClientTimeout(total=330)
+
 # 解压gz
 def un_gz(file_name):
     """ungz zip file"""
@@ -43,72 +46,87 @@ def un_gz(file_name):
 
 
 # 自动抓取天风对局
-def autoget_th_match() -> list:
-    # tz = pytz.timezone('Asia/Tokyo')
-    tz = pytz.timezone('Asia/Shanghai')
-    nowtime = datetime.datetime.now(tz=tz).strftime("%Y%m%d%H")
-    # daytime = time.strftime("%Y-%m-%d", time.localtime())
-    daytime = datetime.datetime.now(tz=tz).strftime("%Y-%m-%d")
-    msglist = []
+async def autoget_th_match() -> list:
+    jptz = pytz.timezone('Asia/Tokyo')
+    zhtz = pytz.timezone('Asia/Shanghai')
+    minute = datetime.datetime.now(tz=zhtz).strftime("%M")
+    zhnowtime = datetime.datetime.now(tz=zhtz).strftime("%Y%m%d%H")
+    jpnowtime = datetime.datetime.now(tz=jptz).strftime("%Y%m%d%H")
+    zhdaytime = datetime.datetime.now(tz=zhtz).strftime("%Y-%m-%d")
+    jpdaytime = datetime.datetime.now(tz=jptz).strftime("%Y-%m-%d")
 
-    response = requests.get(f'https://tenhou.net/sc/raw/dat/scb{nowtime}.log.gz',
-                            headers={'User-Agent': random.choice(user_agent_list)}, allow_redirects=True)
-    open(f'./data/TenHouPlugin/scb{nowtime}.log.gz', 'wb').write(response.content)
-    un_gz(f'./data/TenHouPlugin/scb{nowtime}.log.gz')
-    os.remove(f'./data/TenHouPlugin/scb{nowtime}.log.gz')
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    cursor.execute("select playername from watchedplayer")
-    result = cursor.fetchall()
-    playername = []
-    for player in result:
-        playername.append(player[0])
-    with open(f'./data/TenHouPlugin/scb{nowtime}.log', 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        for line in lines:
-            line = line.strip()
-            datas = line.split('|')
-            startTime = datas[0].replace('－ ', '')
-            duration = datas[1].strip()
-            model = datas[2].strip()
-            players = datas[3].strip()
-            plname = re.sub(r"[(\d+\.\-)]", "", players)
-            plname = plname.split(' ')
-            players = players.split(' ')
-            for p in plname:
-                if p in playername:
-                    print(f"{datas}\n")
-                    cursor.execute(
-                        f"select * from paipu where player1 = '{players[0]}' and startTime = '{daytime} {startTime}'")
-                    record = cursor.fetchall()
-                    if len(record) > 0:
-                        print("该记录已存在")
+    if int(minute) <= 10:
+        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime)]
+    else:
+        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime), dict(nowtime=jpnowtime, daytime=jpdaytime)]
+
+    msglist = []
+    for usetime in timelist:
+        # response = requests.get(f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
+        #                         headers={'User-Agent': random.choice(user_agent_list)}, allow_redirects=True)
+        # open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(response.content)
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False), timeout=timeout,
+                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with session.get(url=f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
+                                   allow_redirects=True) as response:
+                filedata = await response.read()
+        open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(filedata)
+        un_gz(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
+        os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
+        cursor.execute("select playername from watchedplayer")
+        result = cursor.fetchall()
+        playername = []
+        for player in result:
+            playername.append(player[0])
+        with open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log', 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                datas = line.split('|')
+                startTime = datas[0].replace('－ ', '')
+                duration = datas[1].strip()
+                model = datas[2].replace('－', '').strip()
+                players = datas[3].strip()
+                plname = re.sub(r"[(\d+\.\-)]", "", players)
+                plname = plname.split(' ')
+                players = players.split(' ')
+                for p in plname:
+                    if p in playername:
+                        print(f"{datas}\n")
+                        cursor.execute(
+                            f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
+                        record = cursor.fetchall()
+                        if len(record) > 0:
+                            print("该记录已存在")
+                            break
+                        print(f"检测到{p}新的对局信息")
+                        # msg = "检测到新的对局信息:\n"
+                        msg = ""
+                        msg += f"{model}\n"
+                        msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
+                        order = get_matchorder(playerlist=players, playername=p)
+                        msg += f"{bordercast_temple[order]}\n\n".replace('%player%', p)
+                        for item in players:
+                            msg += f"{item}\n"
+                        if len(players) == 3:
+                            cursor.execute(
+                                f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
+                        else:
+                            cursor.execute(
+                                f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")''')
+                        cx.commit()
+                        msglist.append(dict(playername=p, msg=msg))
                         break
-                    print(f"检测到{p}新的对局信息")
-                    # msg = "检测到新的对局信息:\n"
-                    msg = ""
-                    msg += f"{model}\n"
-                    msg += f"{daytime} {startTime} , 对局时长: {duration}\n"
-                    order = get_matchorder(playerlist=players, playername=p)
-                    msg += f"{bordercast_temple[order]}\n\n".replace('%player%', p)
-                    msg += f"  {datas[3].strip()}"
-                    if len(players) == 3:
-                        cursor.execute(
-                            f'insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{daytime} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")')
-                    else:
-                        cursor.execute(
-                            f'insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{daytime} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")')
-                    cx.commit()
-                    msglist.append(dict(playername=p, msg=msg))
-                    break
-    os.remove(f'./data/TenHouPlugin/scb{nowtime}.log')
+        os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log')
+        print(msglist)
     cursor.close()
     cx.close()
-    print(msglist)
     return forwardmessage(msglist)
 
 
-def auto_get_th_matching():
+async def autoget_th_matching() -> list:
     gamingplayer = get_gaming_thplayers()
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     # cx = sqlite3.connect('./TenHou.sqlite')
@@ -119,9 +137,15 @@ def auto_get_th_matching():
     for player in result:
         watchedplayers.add(player[0])
 
-    response = requests.get('https://mjv.jp/0/wg/0.js', headers={'User-Agent': random.choice(user_agent_list)},
-                            allow_redirects=True)
-    text = response.text
+    # response = requests.get('https://mjv.jp/0/wg/0.js', headers={'User-Agent': random.choice(user_agent_list)},
+    #                         allow_redirects=True)
+    # text = response.text
+
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False), timeout=timeout,
+                                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
+        async with session.get(url='https://mjv.jp/0/wg/0.js', allow_redirects=True) as response:
+            text = await response.text()
+
     text = text[6:-4]
     text = text.replace('\r\n', '').replace('",', '";').replace('"', '').split(';')
     nowmatches = []
@@ -307,7 +331,8 @@ def matching2string(eligiblematch: dict) -> str:
     match = eligiblematch['match']
     # msg = f"{playername}正在{match['type']}乱杀，快来围观:\n"
     msg = f"{playername}正在天凤乱杀，快来围观:\n"
-    msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
+    msg += f"https://tenhou.net/3/?wg={match['url']}\n"
+    # msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
     for player in get_thmatch_player(match):
         msg += f'{player}  '
     return msg

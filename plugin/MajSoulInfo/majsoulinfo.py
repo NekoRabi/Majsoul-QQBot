@@ -2,6 +2,8 @@ import datetime
 import math
 import os.path
 import time
+
+import aiohttp
 from PIL import Image
 import requests
 import sqlite3
@@ -34,6 +36,20 @@ user_agent_list = [
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
 ]
 
+aiotimeout = aiohttp.ClientTimeout(total=60)
+
+
+async def asyrequest(url: str, proxy: str = None) -> str:
+    try:
+        async with aiohttp.ClientSession(timeout=aiotimeout,
+                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with session.get(url) as response:
+                return await response.text()
+    except Exception as e:
+        print(e)
+        print("异步请求超时")
+        return "查询超时"
+
 
 def getinfo(username: str):
     muti3 = False
@@ -47,11 +63,11 @@ def getinfo(username: str):
     try:
         xhr3 = s3.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
-            headers={'User-Agent': random.choice(user_agent_list)})
+            headers={'User-Agent': random.choice(user_agent_list)},timeout=10)
         pl3 = eval(xhr3.text)
         xhr4 = s4.get(
             f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
-            headers={'User-Agent': random.choice(user_agent_list)})
+            headers={'User-Agent': random.choice(user_agent_list)},timeout=10)
         pl4 = eval(xhr4.text)
         if len(pl3) > 0:
             if len(pl4) > 1:
@@ -410,12 +426,12 @@ def query(username: str) -> str:
     try:
         if userinfo['muti3']:
             print("查到多位同名三麻玩家")
-            prtmsg += f" \n\n查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
+            # prtmsg += f" \n\n查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
         user_p3_levelinfo = userinfo['pl3']
         user_p3_levelinfo = user_p3_levelinfo.get("level")
         p3_level = user_p3_levelinfo.get("id")
         p3_score = int(user_p3_levelinfo.get("score")) + \
-            int(user_p3_levelinfo.get("delta"))
+                   int(user_p3_levelinfo.get("delta"))
         prtmsg += levelswitch(p3_level, p3_score, "三麻")
     except AttributeError:
         print("查询不到三麻段位")
@@ -424,12 +440,12 @@ def query(username: str) -> str:
     try:
         if userinfo['muti4']:
             print("查到多位同名四麻玩家")
-            prtmsg += f" \n\n查到多位同名四麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
+            # prtmsg += f" \n\n查到多位同名四麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
         user_p4_levelinfo = userinfo['pl4']
         user_p4_levelinfo = user_p4_levelinfo.get("level")
         p4_level = user_p4_levelinfo.get("id")
         p4_score = int(user_p4_levelinfo.get("score")) + \
-            int(user_p4_levelinfo.get("delta"))
+                   int(user_p4_levelinfo.get("delta"))
         prtmsg += levelswitch(p4_level, p4_score, "四麻")
     except AttributeError:
         print("查询不到四麻段位")
@@ -633,11 +649,11 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
         if selecttype == "4":
             paipuresponse = session_paipu.get(
                 f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nextmontht}/{selectmontht}"
-                "?mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
+                "?limit=299&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
         else:
             paipuresponse = session_paipu.get(
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}"
-                "?mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
+                "?limit=299&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
         paipuresponse = eval(paipuresponse.text)
         paipumsg += f"总共进行了{len(paipuresponse)}场对局,共计"
         for players in paipuresponse:
@@ -688,9 +704,9 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
                 timeout=3,
                 headers=headers)
         inforesponse = eval(inforesponse.text.replace("null", "0.0"))
-        infomsg = f"该月立直率: {inforesponse['立直率'] * 100 :2.2f}%, 副露率: {inforesponse['副露率'] * 100 :2.2f}%," \
-                  f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%, 放铳率 : {inforesponse['放铳率'] * 100 :2.2f}%," \
-                  f" 默听率: {inforesponse['默听率'] * 100:2.2f}%\n平均打点 : {inforesponse['平均打点']}, 平均铳点 : {inforesponse['平均铳点']}"
+        infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\n 副露率: {inforesponse['副露率'] * 100 :2.2f}%\n" \
+                  f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}%\n" \
+                  f" 默听率: {inforesponse['默听率'] * 100 :2.2f}%\n 平均打点: {inforesponse['平均打点']}\n 平均铳点 : {inforesponse['平均铳点']}"
         msg += infomsg
     except requests.exceptions.ConnectionError as e:
         print(f"\n玩家详情查询超时:\t{e}\n")

@@ -12,6 +12,7 @@ botconfig:
   botname: '' # 机器人名字
   qq: 123456  # 机器人QQ
 commandpre: ''  # 指令前缀
+
 master: 0  # 机器人主人
 
 mutegrouplist:
