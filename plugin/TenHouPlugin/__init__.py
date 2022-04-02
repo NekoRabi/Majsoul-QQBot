@@ -1,7 +1,8 @@
 import os
 import sqlite3
 
-from plugin.TenHouPlugin.TenHou import auto_get_th_matching,addthwatch,autoget_th_match,removethwatch,getthwatch
+from plugin.TenHouPlugin.TenHou import asyautoget_th_matching, addthwatch, asyautoget_th_match, removethwatch, \
+    getthwatch, autoget_th_matching, autoget_th_match
 
 if not os.path.exists("./database/TenHouPlugin"):
     os.mkdir("./database/TenHouPlugin")

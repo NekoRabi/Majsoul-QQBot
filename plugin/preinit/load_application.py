@@ -10,7 +10,8 @@ def load_config() -> dict:
     try:
         with open(r'./config.yml') as f:
             config: dict = yaml.safe_load(f)
-            print(config)
+            for k, v in config.items():
+                print(k, v)
             admin = config['admin']
             whiteList = config['whitelist']
             settings = config['settings']
@@ -25,6 +26,8 @@ def load_config() -> dict:
             qhsettings = config['qhsettings']
             disnudgegroup = config['disnudgegroup']
             master = config['master']
+            if master == 0:
+                print('请输入机器人主人 ( master )')
         if len(welcomeinfo) == 0:
             print("入群欢迎文本不存在，该功能将关闭")
             config['settings']['autowelcome'] = False
@@ -36,13 +39,13 @@ def load_config() -> dict:
             yaml.dump(dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
                            welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
                            silencegroup=[0], norepeatgroup=[0], disnudgegroup=[0], commandpre="", searchfrequency=6,
-                           master=0,botconfig=dict(qq=123456, botname="", ),
+                           master=0, botconfig=dict(qq=123456, botname="", ),
                            repeatconfig=dict(
                                repeatQ=20, repeatmsg=1, interruptQ=0.5, interruptQQ=0.1),
                            adapter=dict(verify_key='NekoRabi',
                                         host='localhost', port=17280),
                            settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True, nudgereply=True, setu=False,
-                                         silence=False, norepeat=False),
+                                         silence=False, norepeat=False,asyreptile=False),
                            qhsettings=dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, disptgroup=[0])),
                       f, allow_unicode=True)
             print("默认文件生成完成，请重新启动。")

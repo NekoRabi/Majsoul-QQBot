@@ -58,20 +58,20 @@ if __name__ == '__main__':
         return
 
 
-    # 自动获取天凤对局
+    # 自动获取天凤对局 - 普通爬虫
     async def thautopaipu():
         print("开始查询天风结算信息")
-        # msglist = autoget_th_match()
-        # print(f'正在进行的对局有{msglist}')
-        # for msgobj in msglist:
-        #     for group in msgobj['groups']:
-        #         await bot.send_group_message(group, msgobj['msg'])
+        msglist = autoget_th_match()
+        print(f'正在进行的对局有{msglist}')
+        for msgobj in msglist:
+            for group in msgobj['groups']:
+                await bot.send_group_message(group, msgobj['msg'])
 
-        # print(f'正在进行的对局有{results}')
-        # for group in results['groups']:
-        #     await bot.send_group_message(group, results['msg'])
 
-        tasks = [asyncio.ensure_future(autoget_th_match())]
+    # 自动获取天凤对局 - 异步爬虫
+    async def asythautopaipu():
+        print("开始查询天风结算信息")
+        tasks = [asyncio.ensure_future(asyautoget_th_match())]
         loop = asyncio.get_event_loop()
         tasks = asyncio.gather(*tasks)
         loop.run_until_complete(tasks)
@@ -86,15 +86,14 @@ if __name__ == '__main__':
 
 
     # 自动广播天凤对局开始信息
-    async def thbroadcastmatch():
+    async def asythbroadcastmatch():
         print("开始查询天风对局信息")
         # msglist = auto_get_th_matching()
         # for msgobj in msglist:
         #     for group in msgobj['groups']:
         #         await bot.send_group_message(group, msgobj['msg'])
 
-        tasks = [asyncio.ensure_future(autoget_th_matching())]
-        loop = asyncio.get_event_loop()
+        tasks = [asyncio.ensure_future(asyautoget_th_matching())]
         loop = asyncio.get_event_loop()
         tasks = asyncio.gather(*tasks)
         loop.run_until_complete(tasks)
@@ -108,12 +107,37 @@ if __name__ == '__main__':
         return
 
 
+    async def thbroadcastmatch():
+        print("开始查询天风对局信息")
+        msglist = autoget_th_matching()
+        for msgobj in msglist:
+            for group in msgobj['groups']:
+                await bot.send_group_message(group, msgobj['msg'])
+        return
+
+    # 获取天凤的相关信息
+    async def auto_th():
+        tasks = [asyncio.ensure_future(asyautoget_th_matching()), asyncio.ensure_future(asyautoget_th_match())]
+        loop = asyncio.get_event_loop()
+        tasks = asyncio.gather(*tasks)
+        loop.run_until_complete(tasks)
+
+        for results in tasks.result():
+            if len(results) > 0:
+                for msgobj in results:
+                    for group in msgobj['groups']:
+                        await bot.send_group_message(group, msgobj['msg'])
+        return
+
+
     def get_groupsender_permission(event: GroupMessage):
         return event.sender.permission
 
 
     def is_havingadmin(event: GroupMessage):
-        if event.sender.permission == "MEMBER":
+        if event.sender.id in admin:
+            return True
+        elif event.sender.permission == "MEMBER":
             return False
         return True
 
@@ -244,7 +268,7 @@ if __name__ == '__main__':
         if m:
             return await bot.send(event, MessageChain([
                 Plain(" 指令帮助 ()内为可选项,[]为必选项,{}为可用参数:\n"
-                      " qhpt / 雀魂分数 [玩家名] :查询该玩家的段位分\n"
+                      " qhpt / 雀魂分数 [玩家名] (3/4) (序号):查询该玩家的段位分\n"
                       " qhsl / 雀魂十连 ({限时/常驻}) :来一次模拟雀魂十连\n"
                       " qhadd / 雀魂添加关注 [玩家名] :将一个玩家添加至雀魂自动查询，有新对局记录时会广播\n"
                       " qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
@@ -273,7 +297,7 @@ if __name__ == '__main__':
             if m:
                 command = m.group(1)
                 group = event.group.id
-                if command == 'pt':
+                if command == 'qhpt':
                     if not group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].append(group)
                         with open(r'./config.yml', 'w') as file:
@@ -290,7 +314,7 @@ if __name__ == '__main__':
             if m:
                 command = m.group(1)
                 group = event.group.id
-                if command == 'pt':
+                if command == 'qhpt':
                     if group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].remove(group)
                         with open(r'./config.yml', 'w') as file:
@@ -304,10 +328,16 @@ if __name__ == '__main__':
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(qhpt|雀魂分数)\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhpt|雀魂分数)\s*([\w、,\.，\'\"!]+)\s*(3|4)?\s*([0-9]+)?\s*$', msg.strip())
         if m:
             if qhsettings['qhpt'] and not event.group.id in qhsettings['disptgroup']:
-                await bot.send(event, query(m.group(2)))
+                if m.group(3):
+                    if m.group(4):
+                        await bot.send(event, getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
+                    else:
+                        await bot.send(event, getcertaininfo(m.group(2), m.group(3)))
+                else:
+                    await bot.send(event, query(m.group(2)))
             return
 
 
@@ -315,7 +345,7 @@ if __name__ == '__main__':
     async def getsomepaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr'^{commandpre}雀魂最近对局\s*(\w+)\s*([0-9]+)*\s*([0-9]+)*\s*$', msg.strip())
+            fr'^{commandpre}雀魂最近对局\s*(\w+)\s*(3|4)*\s*([0-9]+)?\s*$', msg.strip())
 
         if m:
             playername = m.group(1)
@@ -385,6 +415,10 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*(\w+)\s*$', msg.strip())
         if m:
+            # if is_havingadmin(event):
+            #     await bot.send(event, addwatch(m.group(2), event.group.id))
+            # else:
+            #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
             await bot.send(event, addwatch(m.group(2), event.group.id))
 
 
@@ -417,8 +451,12 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(qhdel|雀魂删除关注)\s*(\w+)\s*$', msg.strip())
         if m:
-            await bot.send(event,
-                           removewatch(playername=m.group(2), groupid=event.group.id))
+            # if is_havingadmin(event):
+            #     await bot.send(event,
+            #                    removewatch(playername=m.group(2), groupid=event.group.id))
+            # else:
+            #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+            await bot.send(event, addwatch(m.group(2), event.group.id))
 
 
     # 来一发雀魂十连
@@ -496,19 +534,25 @@ if __name__ == '__main__':
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thadd|天凤添加关注)\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thadd|天凤添加关注)\s*([\w、,，\'\\\.!]+)\s*$', msg.strip())
         if m:
-            await bot.send(event, addthwatch(m.group(2), event.group.id))
+            if is_havingadmin(event):
+                await bot.send(event, addthwatch(m.group(2), event.group.id))
+            else:
+                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
 
     @bot.on(GroupMessage)
     async def deltenhouwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thdel|天凤删除关注)\s*(\w+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thdel|天凤删除关注)\s*([\w、,，\'\\\.!]+)\s*$', msg.strip())
         if m:
-            await bot.send(event,
-                           removethwatch(playername=m.group(2), groupid=event.group.id))
+            if is_havingadmin(event):
+                await bot.send(event,
+                               removethwatch(playername=m.group(2), groupid=event.group.id))
+            else:
+                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
 
     @bot.on(GroupMessage)
@@ -970,8 +1014,11 @@ if __name__ == '__main__':
             print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
             try:
                 await autopaipu()
-                await thautopaipu()
-                await thbroadcastmatch()
+                if settings['asyreptile']:
+                    await auto_th()
+                else:
+                    await thautopaipu()
+                    await thbroadcastmatch()
             except sqlite3.OperationalError as e:
                 logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                 logging.warning(f'{e}')

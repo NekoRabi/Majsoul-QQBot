@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import math
 import os.path
@@ -36,22 +37,79 @@ user_agent_list = [
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
 ]
 
-aiotimeout = aiohttp.ClientTimeout(total=60)
+aiotimeout = aiohttp.ClientTimeout(total=20)
 
 
 async def asyrequest(url: str, proxy: str = None) -> str:
     try:
-        async with aiohttp.ClientSession(timeout=aiotimeout,
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=aiotimeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            async with session.get(url) as response:
-                return await response.text()
+            async with session.get(url=url, allow_redirects=True) as response:
+                text = await response.text()
+                return text
     except Exception as e:
         print(e)
         print("异步请求超时")
         return "查询超时"
 
 
-def getinfo(username: str):
+def getcertaininfo(username: str, selecttype: str = "", selectindex: int = 0):
+    s = requests.Session()
+    s.mount('http://', HTTPAdapter(max_retries=3))
+    s.mount('https://', HTTPAdapter(max_retries=3))
+
+    try:
+        if selecttype == "3":
+            url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
+            typename = "三麻"
+        else:
+            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20"
+            typename = "四麻"
+        xhr = s.get(url=url,
+                headers={'User-Agent': random.choice(user_agent_list)}, timeout=10)
+        playerinfo = eval(xhr.text)
+        # tasks = [asyncio.ensure_future(asyrequest(url=url))]
+        # loop = asyncio.get_event_loop()
+        # tasks = asyncio.gather(*tasks)
+        # loop.run_until_complete(tasks)
+        # for results in tasks.result():
+        #     if len(results) > 0:
+        #         xhr = eval(results)
+        #         playerinfo = xhr
+        if len(playerinfo) == 0:
+            return "不存在该玩家"
+        elif len(playerinfo) < selectindex:
+            return f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo) - 1}"
+        else:
+            playerinfo = playerinfo[selectindex]
+            if type(playerinfo) == dict:
+                playerid = playerinfo['id']
+                playername = playerinfo['nickname']
+                prtmsg = f"玩家名: {playername}"
+                levelinfo = playerinfo.get("level")
+                level = levelinfo.get("id")
+                score = int(levelinfo.get("score")) + \
+                        int(levelinfo.get("delta"))
+                prtmsg += levelswitch(level, score, typename)
+                cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+                cursor = cx.cursor()
+                cursor.execute(f"select * from qhplayer where playername = '{username}'")
+                if cursor.fetchall() == 0:
+                    cursor.execute("insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
+                else:
+                    cursor.execute(f"update qhplayer set playerid = {playerid} where playername = '{username}'")
+                cx.commit()
+                cx.close()
+                return prtmsg
+    except requests.exceptions.ConnectionError as e:
+        print(f"查询玩家信息时连接超时\t {e}")
+        return "查询玩家信息时连接超时"
+    except requests.exceptions.ReadTimeout as e:
+        print(f"读取超时\t {e}")
+        return "读取超时"
+
+
+def getinfo(username: str, selecttype: str = "", selectindex: int = 0):
     muti3 = False
     muti4 = False
     s3 = requests.Session()
@@ -63,11 +121,11 @@ def getinfo(username: str):
     try:
         xhr3 = s3.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
-            headers={'User-Agent': random.choice(user_agent_list)},timeout=10)
+            headers={'User-Agent': random.choice(user_agent_list)}, timeout=10)
         pl3 = eval(xhr3.text)
         xhr4 = s4.get(
             f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
-            headers={'User-Agent': random.choice(user_agent_list)},timeout=10)
+            headers={'User-Agent': random.choice(user_agent_list)}, timeout=10)
         pl4 = eval(xhr4.text)
         if len(pl3) > 0:
             if len(pl4) > 1:
@@ -119,16 +177,11 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     try:
         if selecttype == "4":
-            xhr = s.get(
-                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode"
-                f"=16.12.9.15.11.8",
-                timeout=3,
-                headers=headers)
+            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8"
         else:
-            xhr = s.get(
-                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode"
-                f"=21.22.23.24.25.26",
-                timeout=3,
+            url= f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26"
+        xhr = s.get(url,
+                timeout=5,
                 headers=headers)
     except requests.exceptions.ConnectionError as e:
         print(f"查询发生了错误:\t{e}\n")
@@ -189,17 +242,11 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
     s.mount('https://', HTTPAdapter(max_retries=3))
     try:
         if type == '3':
-            xhr = s.get(
-                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
-                f"?limit={counts}&mode=21,22,23,24,25,26&descending=true",
-                headers=headers, timeout=3)
-            content = eval(xhr.text)
+            url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=21,22,23,24,25,26&descending=true"
         else:
-            xhr = s.get(
-                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-                f"?limit={counts}&mode=8,9,11,12,15,16&descending=true",
-                headers=headers, timeout=3)
-            content = eval(xhr.text)
+            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=8,9,11,12,15,16&descending=true"
+        xhr = s.get(url=url,headers=headers, timeout=3)
+        content = eval(xhr.text)
         if len(content) == 0:
             return "未查询到对局信息"
         for item in content:
@@ -237,7 +284,7 @@ def getpaipu(playerid: str) -> dict:
     '''四麻查询'''
     try:
         xhr4 = s.get(
-            f"https://ak-data-1.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
+            f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
             "?limit=1&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
         content['p4'] = eval(xhr4.text)
         # print(f'四麻对局信息:{eval(xhr.text)}')
@@ -400,7 +447,7 @@ def mergeimg(imgurls: list) -> Image:
 """查询雀魂用户信息"""
 
 
-def query(username: str) -> str:
+def query(username: str, selecttype: str = "", selectindex: int = 0) -> str:
     userinfo = getinfo(username)
     if userinfo['error']:
         return "查询超时"
@@ -410,7 +457,6 @@ def query(username: str) -> str:
         pass
     else:
         return "该用户不存在"
-    # cx = sqlite3.connect("./database/majsoul.sqlite")
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cx.commit()
@@ -433,6 +479,7 @@ def query(username: str) -> str:
         p3_score = int(user_p3_levelinfo.get("score")) + \
                    int(user_p3_levelinfo.get("delta"))
         prtmsg += levelswitch(p3_level, p3_score, "三麻")
+
     except AttributeError:
         print("查询不到三麻段位")
         prtmsg += "\n未查询到三麻段位。"
@@ -649,11 +696,11 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
         if selecttype == "4":
             paipuresponse = session_paipu.get(
                 f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nextmontht}/{selectmontht}"
-                "?limit=299&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
+                "?limit=399&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
         else:
             paipuresponse = session_paipu.get(
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}"
-                "?limit=299&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
+                "?limit=399&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
         paipuresponse = eval(paipuresponse.text)
         paipumsg += f"总共进行了{len(paipuresponse)}场对局,共计"
         for players in paipuresponse:
