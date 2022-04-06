@@ -178,9 +178,10 @@ if __name__ == '__main__':
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}asytest\s*$", msg.strip())
+                fr"^{commandpre}freshqh\s*$", msg.strip())
             if m:
-                print("异步测试")
+                print("牌谱刷新中")
+                await bot.send(event,"牌谱刷新中")
                 await asyqh_autopaipu()
 
 
@@ -310,7 +311,7 @@ if __name__ == '__main__':
                       " qhadd / 雀魂添加关注 [玩家名] :将一个玩家添加至雀魂自动查询，有新对局记录时会广播\n"
                       " qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
                       " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从雀魂自动查询中移除，不再自动广播对局记录\n"
-                      " qhpaipu / 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
+                      " qhpaipu / 雀魂最近对局 [玩家名] [{3/4}] ({1-10}) :查询一个玩家最近n场3/4人对局记录\n"
                       " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
                       " qhyb / 雀魂月报 [玩家名] [{3/4}] [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报"
                       " thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n"

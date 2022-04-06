@@ -44,3 +44,7 @@ alarmclockgroup: # 设置闹钟群聊
 数据库错误:缺少表xxx
 
 请用`sqlite`打开相应插件的数据库文件，检查是否有这张表
+
+# ERROR  [WebSocket] WebSocket通道意外关闭。code: 1006，reason:
+
+websocket通道异常关闭，当前版本来说，一般是由异步爬虫引起的，可能一天会掉线一次，暂不清楚如何解决。
