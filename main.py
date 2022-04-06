@@ -1,5 +1,7 @@
-import logging, asyncio, nest_asyncio, re
+import logging
+import asyncio, nest_asyncio, re
 
+import mirai.models
 import websockets.exceptions
 
 from plugin import *
@@ -11,20 +13,13 @@ from mirai.models import MemberJoinEvent, NudgeEvent
 
 if __name__ == '__main__':
 
-    rootlogger = logging.getLogger()
-    logging.basicConfig(level=logging.DEBUG  # 设置日志输出格式
-                        , filename="./log/log.log"  # log日志输出的文件位置和文件名
-                        , filemode="a"  # 文件的写入格式，w为重新写入文件，默认是追加
-                        ,
-                        format="%(asctime)s - %(name)s - %(levelname)-9s - %(filename)-8s : %(lineno)s line - %(message)s"
-                        # 日志输出的格式
-                        # -8表示占位符，让输出左对齐，输出长度都为8位
-                        , datefmt="%Y-%m-%d %H:%M:%S"  # 时间输出的格式
-                        )
-
     nest_asyncio.apply()
     create_folders()
     config = load_config()
+    replydata = load_replydata()
+
+    rootLogger = create_logger(config['loglevel'])
+    qqlogger = getQQlogger()
 
     black_list = dict(user=[], group=[])
     black_list['user'] = config['blacklist']
@@ -34,7 +29,6 @@ if __name__ == '__main__':
     master = config['master']
     settings = config['settings']
     botname = config['botconfig']['botname']
-    replydata = load_replydata()
     commandpre = config['commandpre']
     alarmclockgroup = config['alarmclockgroup']
     silencegroup = config['silencegroup']
@@ -47,9 +41,10 @@ if __name__ == '__main__':
         admin.append(master)
     print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
 
+    replydata = ditc_shuffle(replydata)
 
     # 自动获取雀魂牌谱
-    async def autopaipu():
+    async def qh_autopaipu():
         result = autoQueryPaipu()
         logging.info(result)
         for info in result:
@@ -57,9 +52,18 @@ if __name__ == '__main__':
                 await bot.send_group_message(group, info['text'])
         return
 
+    async def asyqh_autopaipu():
+        result = asygetqhpaipu()
+        print("查询新的雀魂对局信息有:")
+        print(result)
+        for msgobj in result:
+            for group in msgobj['groups']:
+                await bot.send_group_message(group, msgobj['msg'])
+        return
+
 
     # 自动获取天凤对局 - 普通爬虫
-    async def thautopaipu():
+    async def th_autopaipu():
         print("开始查询天风结算信息")
         msglist = autoget_th_match()
         print(f'正在进行的对局有{msglist}')
@@ -69,14 +73,13 @@ if __name__ == '__main__':
 
 
     # 自动获取天凤对局 - 异步爬虫
-    async def asythautopaipu():
+    async def asyth_autopaipu():
         print("开始查询天风结算信息")
         tasks = [asyncio.ensure_future(asyautoget_th_match())]
         loop = asyncio.get_event_loop()
         tasks = asyncio.gather(*tasks)
         loop.run_until_complete(tasks)
         for results in tasks.result():
-            # print(task, type(task))
             if len(results) > 0:
                 print(f'正在进行的对局有{results}')
                 for msgobj in results:
@@ -86,12 +89,8 @@ if __name__ == '__main__':
 
 
     # 自动广播天凤对局开始信息
-    async def asythbroadcastmatch():
+    async def asyth_broadcastmatch():
         print("开始查询天风对局信息")
-        # msglist = auto_get_th_matching()
-        # for msgobj in msglist:
-        #     for group in msgobj['groups']:
-        #         await bot.send_group_message(group, msgobj['msg'])
 
         tasks = [asyncio.ensure_future(asyautoget_th_matching())]
         loop = asyncio.get_event_loop()
@@ -107,7 +106,7 @@ if __name__ == '__main__':
         return
 
 
-    async def thbroadcastmatch():
+    async def th_broadcastmatch():
         print("开始查询天风对局信息")
         msglist = autoget_th_matching()
         for msgobj in msglist:
@@ -116,7 +115,8 @@ if __name__ == '__main__':
         return
 
     # 获取天凤的相关信息
-    async def auto_th():
+    async def asyth_auto():
+        print("开始查询天凤相关信息")
         tasks = [asyncio.ensure_future(asyautoget_th_matching()), asyncio.ensure_future(asyautoget_th_match())]
         loop = asyncio.get_event_loop()
         tasks = asyncio.gather(*tasks)
@@ -141,6 +141,15 @@ if __name__ == '__main__':
             return False
         return True
 
+    # 聊天记录存储
+    @bot.on(MessageEvent)
+    def addEventLog(event:MessageEvent):
+        if event.type == 'GroupMessage':
+            # infodict = dict(type=event.type,senderid=event.sender.id,sendername=event.sender.get_name(),groupname=event.group.name,groupid=event.group.id,message=event.message_chain)
+            # qqlogger.info(infodict)
+            qqlogger.info(event)
+        else:
+            qqlogger.info(event)
 
     # 欢迎
 
@@ -164,6 +173,16 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
+    @bot.on(FriendMessage)
+    async def asyspidertest(event:FriendMessage):
+        if event.sender.id == master:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(
+                fr"^{commandpre}asytest\s*$", msg.strip())
+            if m:
+                print("异步测试")
+                await asyqh_autopaipu()
+
 
     @bot.on(FriendMessage)
     async def addadmin(event: FriendMessage):
@@ -172,12 +191,14 @@ if __name__ == '__main__':
             m = re.match(
                 fr"^{commandpre}addadmin\s*(\d+)\s*$", msg.strip())
             if m:
-                if m.group(1) in admin:
-                    admin.append(m.group(1))
+                if not m.group(1) in admin:
+                    admin.append(int(m.group(1)))
 
                     with open(r'./config.yml', 'w') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 添加为机器人管理员")))
+                else:
+                    return await bot.send(event, MessageChain(Plain(f" {m.group(1)}已经是管理员了")))
         return
 
 
@@ -188,12 +209,13 @@ if __name__ == '__main__':
             m = re.match(
                 fr"^{commandpre}deladmin\s*(\d+)\s*$", msg.strip())
             if m:
-                if not m.group(1) in admin:
-                    admin.remove(m.group(1))
-
+                if m.group(1) in admin:
+                    admin.remove(int(m.group(1)))
                     with open(r'./config.yml', 'w') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 从机器人管理员中移出")))
+                else:
+                    return await bot.send(event, MessageChain(Plain(f" {m.group(1)}不是管理员了")))
         return
 
 
@@ -202,13 +224,28 @@ if __name__ == '__main__':
         if str(event.message_chain) == '你好':
             return bot.send(event, 'Hello, World!')
 
-
+    '''获取日志'''
+    @bot.on(FriendMessage)
+    async def on_friend_message(event: FriendMessage):
+        if event.sender.id in admin:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(
+                fr"^{commandpre}getlog::\s*(\d+)\s*(\w+)\s*$", msg.strip())
+            if m:
+                if m.group(1):
+                    if m.group(2):
+                        return
+                    else:
+                        return
+                else:
+                    return
+            return
     # PING
 
     @bot.on(FriendMessage)
     async def ping(event: FriendMessage):
         if event.message_chain.has("ping"):
-            print("ping了一下")
+            rootLogger.info("ping了一下")
             await bot.send(event, "pong!")
         return
 
@@ -273,7 +310,7 @@ if __name__ == '__main__':
                       " qhadd / 雀魂添加关注 [玩家名] :将一个玩家添加至雀魂自动查询，有新对局记录时会广播\n"
                       " qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
                       " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从雀魂自动查询中移除，不再自动广播对局记录\n"
-                      " 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
+                      " qhpaipu / 雀魂最近对局 [玩家名] [{3/4}] ({1-5}) :查询一个玩家最近n场3/4人对局记录\n"
                       " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
                       " qhyb / 雀魂月报 [玩家名] [{3/4}] [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报"
                       " thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n"
@@ -302,7 +339,7 @@ if __name__ == '__main__':
                         qhsettings['disptgroup'].append(group)
                         with open(r'./config.yml', 'w') as file:
                             yaml.dump(config, file, allow_unicode=True)
-                        # return await bot.send(event,f'查分功能禁用成功')
+                            return await bot.send(event,f'查分功能禁用成功')
 
 
     @bot.on(GroupMessage)
@@ -319,7 +356,7 @@ if __name__ == '__main__':
                         qhsettings['disptgroup'].remove(group)
                         with open(r'./config.yml', 'w') as file:
                             yaml.dump(config, file, allow_unicode=True)
-                            # return await bot.send(event, f'查分功能启用成功')
+                            return await bot.send(event, f'查分功能启用成功')
 
 
     # 查分
@@ -345,17 +382,17 @@ if __name__ == '__main__':
     async def getsomepaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr'^{commandpre}雀魂最近对局\s*(\w+)\s*(3|4)*\s*([0-9]+)?\s*$', msg.strip())
+            fr'^{commandpre}(qhpaipu|雀魂最近对局)\s*(\w+)\s*(3|4)*\s*([0-9]+)?\s*$', msg.strip())
 
         if m:
-            playername = m.group(1)
-            searchtype = m.group(2)
+            playername = m.group(2)
+            searchtype = m.group(3)
             if searchtype:
                 if searchtype.strip() not in ['3', '4']:
                     await bot.send(event, '牌局参数有误，请输入 3 或 4')
                     return
-                if m.group(3):
-                    searchnumber = int(m.group(3))
+                if m.group(4):
+                    searchnumber = int(m.group(4))
                     if 0 < searchnumber < 11:
                         await bot.send(event, getsomeqhpaipu(playername=playername.strip(),
                                                              type=searchtype,
@@ -1013,12 +1050,13 @@ if __name__ == '__main__':
         if settings['autogetpaipu']:
             print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
             try:
-                await autopaipu()
                 if settings['asyreptile']:
-                    await auto_th()
+                    await asyqh_autopaipu()
+                    await asyth_auto()
                 else:
-                    await thautopaipu()
-                    await thbroadcastmatch()
+                    await qh_autopaipu()
+                    await th_autopaipu()
+                    await th_broadcastmatch()
             except sqlite3.OperationalError as e:
                 logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                 logging.warning(f'{e}')
@@ -1026,6 +1064,7 @@ if __name__ == '__main__':
             except websockets.exceptions.ConnectionClosedError as e:
                 logging.error(f'websockets发生错误{e}')
                 logging.exception(e)
+                exit(0)
             print(f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
 
 

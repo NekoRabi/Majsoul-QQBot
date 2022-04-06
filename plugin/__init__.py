@@ -7,6 +7,7 @@ from plugin.preinit import *
 from plugin.Setu import *
 from plugin.Remake import *
 from plugin.TenHouPlugin import *
+from plugin.utils import *
 import os
 
 def create_folders():

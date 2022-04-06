@@ -326,9 +326,7 @@ async def asyautoget_th_matching() -> list:
                 tempmatch = dict(playername=player_t, match=match)
                 tempmatch = dict(playername=player_t, msg=matching2string(tempmatch))
                 eligible_Matches.append(tempmatch)
-    print(eligible_Matches)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    # cx = sqlite3.connect('./TenHou.sqlite')
     cursor = cx.cursor()
     print(gamingplayer)
     for item in gamingplayer:
@@ -341,7 +339,6 @@ async def asyautoget_th_matching() -> list:
     cursor.close()
     cx.close()
     msglist = forwardmessage(eligible_Matches)
-    # print(msglist)
     return msglist
 
 
@@ -350,7 +347,6 @@ async def asyautoget_th_matching() -> list:
 def forwardmessage(msglist: list) -> list:
     messageChainList = []
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    # cx = sqlite3.connect('./TenHou.sqlite')
     cursor = cx.cursor()
     for item in msglist:
         groupids = []
@@ -495,6 +491,3 @@ def get_gaming_thplayers() -> list:
     cursor.close()
     cx.commit()
     return gamingplayer
-
-# addthwatch('soao',123)
-# auto_get_th_matching()
