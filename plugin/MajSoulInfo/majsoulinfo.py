@@ -3,6 +3,7 @@ import datetime
 import math
 import os.path
 import time
+import logging
 
 import aiohttp
 from PIL import Image
@@ -13,7 +14,7 @@ import random
 import yaml
 from requests.adapters import HTTPAdapter
 
-asytimeout = aiohttp.ClientTimeout(total=20)
+asytimeout = aiohttp.ClientTimeout(total=60)
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
@@ -36,21 +37,6 @@ user_agent_list = [
 ]
 
 aiotimeout = aiohttp.ClientTimeout(total=20)
-
-
-async def asyrequest(url: str, proxy: str = None) -> str:
-    try:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=aiotimeout,
-                                         headers={'User-Agent': random.choice(user_agent_list),
-                                                  "Connection": "close"}) as session:
-            async with session.get(url=url, allow_redirects=True) as response:
-                text = await response.text()
-                return text
-    except Exception as e:
-        print(e)
-        print("异步请求超时")
-        return "查询超时"
-
 
 def getcertaininfo(username: str, selecttype: str = "", selectindex: int = 0):
     s = requests.Session()
@@ -310,64 +296,52 @@ def getpaipu(playerid: str) -> dict:
 
 async def paipu_pl3(playeridlist, nowtime):
     contentlist = []
-    for playerid in playeridlist:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False), timeout=asytimeout,
-                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            async with session.get(
-                    f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
-                    "?limit=1&mode=21,22,23,24,25,26&descending=true") as response:
-                text: list = eval(await response.text())
-                if len(text) > 0:
-                    contentlist.append(dict(playerid=playerid, content=text[0]))
-                else:
-                    contentlist.append(dict(playerid=playerid, content=text))
+    if len(playeridlist)>=25:
+        timeout = aiohttp.ClientTimeout(total=15)
+    else:
+        timeout = asytimeout
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=timeout,
+                                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
+        for playerid in playeridlist:
+            try:
+                async with session.get(
+                        f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
+                        "?limit=1&mode=21,22,23,24,25,26&descending=true") as response:
+                    text: list = eval(await response.text())
+                    if len(text) > 0:
+                        contentlist.append(dict(playerid=playerid, content=text[0]))
+                    else:
+                        contentlist.append(dict(playerid=playerid, content=text))
+            except asyncio.TimeoutError as e:
+                logging.getLogger().exception(e)
+            except Exception as e:
+                logging.getLogger().exception(e)
     return contentlist
 
 
 # 返回一个 list，内容为 [{groupid:groupid,msg:msg}]
 async def paipu_pl4(playeridlist, nowtime) -> list:
     contentlist = []
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=asytimeout,
+    if len(playeridlist)>=25:
+        timeout = aiohttp.ClientTimeout(total=15)
+    else:
+        timeout = asytimeout
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         for playerid in playeridlist:
-            async with session.get(
-                    f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-                    "?limit=1&mode=8,9,11,12,15,16&descending=true") as response:
-                text: list = eval(await response.text())
-                if len(text) > 0:
-                    contentlist.append(dict(playerid=playerid, content=text[0]))
-                else:
-                    contentlist.append(dict(playerid=playerid, content={}))
-    '''
-    
-    cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
-    cursor = cx.cursor()
-    idindex = 0
-
-    for item in content:
-        paipuInfo=""
-        paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
-        startTime = time.strftime(
-            '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
-        endTime = time.strftime('%Y-%m-%d %H:%M:%S',
-                                time.localtime(item["endTime"]))
-        players = item['players']
-        try:
-            cursor.execute(
-                "insert into paipu(uuid,watchid,startTime,endTime,player1,player2,player3,player4) values(?,?,?,?,?,?,?,?)",
-                (item['uuid'], playeridlist[idindex], startTime, endTime, f"{players[0]['nickname']}:{players[0]['score']}",
-                 f"{players[1]['nickname']}:{players[1]['score']}", f"{players[2]['nickname']}:{players[2]['score']}",
-                 f"{players[3]['nickname']}:{players[3]['score']}"))
-            cx.commit()
-            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
-            paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            for info in players:
-                paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
-        except sqlite3.IntegrityError:
-            # print(f"存在uuid={item['uuid']}的记录")
-            pass
-        idindex += 1
-    '''
+            try:
+                async with session.get(
+                        f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
+                        "?limit=1&mode=8,9,11,12,15,16&descending=true") as response:
+                    text: list = eval(await response.text())
+                    if len(text) > 0:
+                        contentlist.append(dict(playerid=playerid, content=text[0]))
+                    else:
+                        contentlist.append(dict(playerid=playerid, content={}))
+            except asyncio.TimeoutError as e:
+                logging.getLogger().exception(e)
+            except Exception as e:
+                logging.getLogger().exception(e)
 
     return contentlist
 
@@ -379,6 +353,8 @@ def asygetqhpaipu():
     cursor = cx.cursor()
     cursor.execute(f"select playerid from watchedplayer")
     res = cursor.fetchall()
+    cursor.close()
+    cx.close()
     playeridlist = []
     for item in res:
         playeridlist.append(item[0])
@@ -465,7 +441,7 @@ def levelswitch(level, score, type):
         maxscore = levellist[stage_level][score_level]
 
     # 升段
-    if score > maxscore:
+    if score >= maxscore:
         score_level += 1
         if stage_level < 4:
             if score_level > 2:
@@ -480,7 +456,7 @@ def levelswitch(level, score, type):
         score = maxscore // 2
 
     # 掉段
-    if score < 0:
+    if score <= 0:
         score_level -= 1
         if score_level < 0:
             score_level = 2
@@ -947,9 +923,9 @@ def msganalysis(infos: list) -> list:
     cursor = cx.cursor()
     for item in infos:
         msgitem = item['content']
-        if len(msgitem) ==0:
+        if len(msgitem) == 0:
             continue
-        paipuInfo=""
+        paipuInfo = ""
         paipuurl = f'https://game.maj-soul.com/1/?paipu={msgitem["uuid"]}'
         startTime = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.localtime(msgitem["startTime"]))
@@ -967,16 +943,18 @@ def msganalysis(infos: list) -> list:
                      f"Null"))
             else:
                 cursor.execute(
-                "insert into paipu(uuid,watchid,startTime,endTime,player1,player2,player3,player4) values(?,?,?,?,?,?,?,?)",
-                (msgitem['uuid'], item['playerid'], startTime, endTime, f"{players[0]['nickname']}:{players[0]['score']}",
-                 f"{players[1]['nickname']}:{players[1]['score']}", f"{players[2]['nickname']}:{players[2]['score']}",
-                 f"{players[3]['nickname']}:{players[3]['score']}"))
+                    "insert into paipu(uuid,watchid,startTime,endTime,player1,player2,player3,player4) values(?,?,?,?,?,?,?,?)",
+                    (msgitem['uuid'], item['playerid'], startTime, endTime,
+                     f"{players[0]['nickname']}:{players[0]['score']}",
+                     f"{players[1]['nickname']}:{players[1]['score']}",
+                     f"{players[2]['nickname']}:{players[2]['score']}",
+                     f"{players[3]['nickname']}:{players[3]['score']}"))
             cx.commit()
             paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for player in players:
                 paipuInfo += f"{player['nickname']}:{player['score']} ({player['gradingScore']})\n"
-            content.append(dict(playerid=item['playerid'],msg=paipuInfo))
+            content.append(dict(playerid=item['playerid'], msg=paipuInfo))
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
             pass

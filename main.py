@@ -7,6 +7,7 @@ import websockets.exceptions
 from plugin import *
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+
 from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image, MessageEvent
 from mirai.models import MemberJoinEvent, NudgeEvent
@@ -43,6 +44,7 @@ if __name__ == '__main__':
 
     replydata = ditc_shuffle(replydata)
 
+
     # 自动获取雀魂牌谱
     async def qh_autopaipu():
         result = autoQueryPaipu()
@@ -51,6 +53,7 @@ if __name__ == '__main__':
             for group in info['groups']:
                 await bot.send_group_message(group, info['text'])
         return
+
 
     async def asyqh_autopaipu():
         result = asygetqhpaipu()
@@ -114,6 +117,7 @@ if __name__ == '__main__':
                 await bot.send_group_message(group, msgobj['msg'])
         return
 
+
     # 获取天凤的相关信息
     async def asyth_auto():
         print("开始查询天凤相关信息")
@@ -141,15 +145,17 @@ if __name__ == '__main__':
             return False
         return True
 
+
     # 聊天记录存储
     @bot.on(MessageEvent)
-    def addEventLog(event:MessageEvent):
+    def addEventLog(event: MessageEvent):
         if event.type == 'GroupMessage':
             # infodict = dict(type=event.type,senderid=event.sender.id,sendername=event.sender.get_name(),groupname=event.group.name,groupid=event.group.id,message=event.message_chain)
             # qqlogger.info(infodict)
             qqlogger.info(event)
         else:
             qqlogger.info(event)
+
 
     # 欢迎
 
@@ -173,15 +179,16 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
+
     @bot.on(FriendMessage)
-    async def asyspidertest(event:FriendMessage):
+    async def asyspidertest(event: FriendMessage):
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
                 fr"^{commandpre}freshqh\s*$", msg.strip())
             if m:
                 print("牌谱刷新中")
-                await bot.send(event,"牌谱刷新中")
+                await bot.send(event, "牌谱刷新中")
                 await asyqh_autopaipu()
 
 
@@ -225,13 +232,16 @@ if __name__ == '__main__':
         if str(event.message_chain) == '你好':
             return bot.send(event, 'Hello, World!')
 
+
     '''获取日志'''
+
+
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
         if event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}getlog::\s*(\d+)\s*(\w+)\s*$", msg.strip())
+                fr"^{commandpre}log\s*(\w+)?\s*(\d+)\s*$", msg.strip())
             if m:
                 if m.group(1):
                     if m.group(2):
@@ -241,6 +251,8 @@ if __name__ == '__main__':
                 else:
                     return
             return
+
+
     # PING
 
     @bot.on(FriendMessage)
@@ -312,7 +324,7 @@ if __name__ == '__main__':
                       " qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
                       " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从雀魂自动查询中移除，不再自动广播对局记录\n"
                       " qhpaipu / 雀魂最近对局 [玩家名] [{3/4}] ({1-10}) :查询一个玩家最近n场3/4人对局记录\n"
-                      " qhinfo / 雀魂玩家详情 [玩家名] [{3/4}] :查询一个玩家的详细数据\n"
+                      " qhinfo / 雀魂玩家详情 [玩家名] {3/4} ({基本/立直/血统/all}):查询一个玩家的详细数据\n"
                       " qhyb / 雀魂月报 [玩家名] [{3/4}] [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报"
                       " thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n"
                       " thdel / 天凤删除关注 [玩家名] :将一个玩家从天凤自动查询中移除，不再自动广播对局记录\n"
@@ -340,7 +352,7 @@ if __name__ == '__main__':
                         qhsettings['disptgroup'].append(group)
                         with open(r'./config.yml', 'w') as file:
                             yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event,f'查分功能禁用成功')
+                            return await bot.send(event, f'查分功能禁用成功')
 
 
     @bot.on(GroupMessage)
@@ -494,7 +506,7 @@ if __name__ == '__main__':
             #                    removewatch(playername=m.group(2), groupid=event.group.id))
             # else:
             #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
-            await bot.send(event, addwatch(m.group(2), event.group.id))
+            await bot.send(event, removewatch(m.group(2), event.group.id))
 
 
     # 来一发雀魂十连
@@ -946,14 +958,37 @@ if __name__ == '__main__':
             #     await petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
+    @bot.on(MessageEvent)
+    async def imgoperate(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr'^{commandpre}bw\s*([\u4e00-\u9fa5\w%&,;:=?!\s$\x22，。？！\d]+)\s*$', msg.strip())
+        if m and event.message_chain.has(Image):
+            try:
+                img= event.message_chain.get_first(Image)
+                imgname = img.image_id
+                await img.download(filename=f'./images/tempimg/{imgname}')
+                makebwimg(imgname,m.group(1))
+                await bot.send(event,MessageChain([Image(path=f'./images/tempimg/{imgname}')]))
+                deletesource(imgname)
+            except Exception as e:
+                print(e)
+                rootLogger.exception(e)
 
     @bot.on(MessageEvent)
     async def getremakeimg(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(重开|remake)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(重开|remake)\s*(\d+)?\s*(\w+)?\s*$', msg.strip())
         if m:
             senderid = event.sender.id
-            create_remakeimg(senderid)
+            if m.group(2):
+                basic_score = int(m.group(2))
+            else:
+                basic_score = 30
+            if m.group(3):
+                worlddifficulty = m.group(3)
+            else:
+                worlddifficulty = None
+            create_remakeimg(senderid, basic_score=basic_score, worlddifficulty=worlddifficulty)
             await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
         return
 
@@ -1052,12 +1087,12 @@ if __name__ == '__main__':
             print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
             try:
                 if settings['asyreptile']:
-                    await asyqh_autopaipu()
                     await asyth_auto()
+                    await asyqh_autopaipu()
                 else:
-                    await qh_autopaipu()
                     await th_autopaipu()
                     await th_broadcastmatch()
+                    await qh_autopaipu()
             except sqlite3.OperationalError as e:
                 logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                 logging.warning(f'{e}')
