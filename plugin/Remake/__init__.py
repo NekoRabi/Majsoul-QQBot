@@ -1,4 +1,4 @@
-from plugin.Remake.remake import  *
+from plugin.Remake.remake import create_remakeimg
 import os
 
 if not os.path.exists("./images/Remake"):
