@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import gzip
 import datetime
@@ -253,7 +254,6 @@ def autoget_th_matching() -> list:
                 eligible_Matches.append(tempmatch)
     print(eligible_Matches)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    # cx = sqlite3.connect('./TenHou.sqlite')
     cursor = cx.cursor()
     print(gamingplayer)
     for item in gamingplayer:
@@ -266,7 +266,6 @@ def autoget_th_matching() -> list:
     cursor.close()
     cx.close()
     msglist = forwardmessage(eligible_Matches)
-    # print(msglist)
     return msglist
 
 
@@ -274,17 +273,12 @@ def autoget_th_matching() -> list:
 async def asyautoget_th_matching() -> list:
     gamingplayer = get_gaming_thplayers()
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    # cx = sqlite3.connect('./TenHou.sqlite')
     cursor = cx.cursor()
     cursor.execute("select playername from watchedplayer")
     result = cursor.fetchall()
     watchedplayers = set()
     for player in result:
         watchedplayers.add(player[0])
-
-    # response = requests.get('https://mjv.jp/0/wg/0.js', headers={'User-Agent': random.choice(user_agent_list)},
-    #                         allow_redirects=True)
-    # text = response.text
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False), timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -341,6 +335,18 @@ async def asyautoget_th_matching() -> list:
     msglist = forwardmessage(eligible_Matches)
     return msglist
 
+def asygetTH():
+    tasks = [
+        asyncio.ensure_future(asyautoget_th_match()),
+        asyncio.ensure_future(asyautoget_th_matching())
+    ]
+    loop = asyncio.get_event_loop()
+    tasks = asyncio.gather(*tasks)
+    loop.run_until_complete(tasks)
+    content = []
+    for results in tasks.result():
+        content.extend(results)
+    return content
 
 # 转发消息，封装为 向 groupid 群聊 发送 msg 的格式
 #  {playername,msg} -> {groupids,msg,playername}
@@ -362,7 +368,6 @@ def forwardmessage(msglist: list) -> list:
 # 添加关注
 def addthwatch(playername: str, groupid: int):
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    # cx = sqlite3.connect('./TenHou.sqlite')
     cursor = cx.cursor()
 
     cursor.execute(f'select * from watchedplayer where playername = "{playername}"')
@@ -482,7 +487,6 @@ def matching2string(eligiblematch: dict) -> str:
 def get_gaming_thplayers() -> list:
     gamingplayer = []
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    # cx = sqlite3.connect('./TenHou.sqlite')
 
     cursor = cx.cursor()
     cursor.execute(f"select * from isgaming")

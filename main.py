@@ -1,7 +1,5 @@
-import logging
 import asyncio, nest_asyncio, re
-
-import mirai.models
+import random
 import websockets.exceptions
 
 from plugin import *
@@ -64,6 +62,14 @@ if __name__ == '__main__':
                 await bot.send_group_message(group, msgobj['msg'])
         return
 
+    async def asyth_all():
+        result = asygetTH()
+        print("开始查询天凤信息")
+        print(result)
+        for msgobj in result:
+            for group in msgobj['groups']:
+                await bot.send_group_message(group, msgobj['msg'])
+        return
 
     # 自动获取天凤对局 - 普通爬虫
     async def th_autopaipu():
@@ -144,6 +150,17 @@ if __name__ == '__main__':
         elif event.sender.permission == "MEMBER":
             return False
         return True
+
+
+    def getreply(reply: list = None, text: str = None, rndimg=False) -> MessageChain:
+        msgchain = []
+        if reply:
+            msgchain.append(Plain(random.choice(reply)))
+        if text:
+            msgchain.append(Plain(text))
+        if rndimg:
+            msgchain.append(Image(path=f"./data/reply/img/{random.choice(replydata['img'])}"))
+        return MessageChain(msgchain)
 
 
     # 聊天记录存储
@@ -904,24 +921,24 @@ if __name__ == '__main__':
                     return
                 if botname in event.message_chain:
                     if senderid in black_list['user']:
-                        return await bot.send(event, random.choice(replydata['blackuser']))
+                        return await bot.send(event, getreply(reply=replydata['blackuser']))
                     msg = msg.replace(f"{botname}", "", 1)
                     if settings['r18talk']:
                         if senderid in admin:
                             for k, v in replydata['r18'].items():
                                 if k in msg:
-                                    return await bot.send(event, random.choice(v))
-                            return await bot.send(event, random.choice(replydata['mismatch']['admin']))
+                                    return await bot.send(event, getreply(reply=v, rndimg=True))
+                            return await bot.send(event, getreply(reply=replydata['mismatch']['admin'], rndimg=True))
                         else:
                             for k, v in replydata['common'].items():
                                 if k in msg:
-                                    return await bot.send(event, random.choice(v))
-                            return await bot.send(event, random.choice(replydata['mismatch']['common']))
+                                    return await bot.send(event, getreply(reply=v, rndimg=True))
+                            return await bot.send(event, getreply(reply=replydata['mismatch']['common'], rndimg=True))
                     else:
                         for k, v in replydata['common'].items():
                             if k in msg:
-                                return await bot.send(event, random.choice(v))
-                        return await bot.send(event, random.choice(replydata['mismatch']['common']))
+                                return await bot.send(event, getreply(reply=v, rndimg=True))
+                        return await bot.send(event, getreply(reply=replydata['mismatch']['common'], rndimg=True))
 
 
     # 亲亲
@@ -935,7 +952,7 @@ if __name__ == '__main__':
                 operator_id = event.sender.id
                 target_id = event.message_chain.get_first(At).target
                 if operator_id == target_id:
-                    return await bot.send(event, MessageChain([Plain("请不要自交~")]))
+                    return await bot.send(event, getreply(text="请不要自交", rndimg=True))
                 else:
                     await kiss(operator_id=operator_id, target_id=target_id)
                     await bot.send(event, MessageChain(
@@ -958,21 +975,23 @@ if __name__ == '__main__':
             #     await petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
+
     @bot.on(MessageEvent)
     async def imgoperate(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}bw\s*([\u4e00-\u9fa5\w%&,;:=?!\s$\x22，。？！\d]+)\s*$', msg.strip())
         if m and event.message_chain.has(Image):
             try:
-                img= event.message_chain.get_first(Image)
+                img = event.message_chain.get_first(Image)
                 imgname = img.image_id
                 await img.download(filename=f'./images/tempimg/{imgname}')
-                makebwimg(imgname,m.group(1))
-                await bot.send(event,MessageChain([Image(path=f'./images/tempimg/{imgname}')]))
+                makebwimg(imgname, m.group(1))
+                await bot.send(event, MessageChain([Image(path=f'./images/tempimg/{imgname}')]))
                 deletesource(imgname)
             except Exception as e:
                 print(e)
                 rootLogger.exception(e)
+
 
     @bot.on(MessageEvent)
     async def getremakeimg(event: MessageEvent):
@@ -1001,7 +1020,7 @@ if __name__ == '__main__':
         m = re.match(fr'^{commandpre}\s*签到\s*$', msg.strip())
         if m:
             signmsg = siginin(event.sender.id)
-            return await bot.send(event, MessageChain([Plain(signmsg)]))
+            return await bot.send(event, getreply(text=signmsg, rndimg=True))
 
 
     # 查询积分
@@ -1013,7 +1032,7 @@ if __name__ == '__main__':
         if m:
             scoremsg = getscore(
                 userid=event.sender.id)
-            return await bot.send(event, MessageChain([Plain(scoremsg)]))
+            return await bot.send(event, getreply(text=scoremsg, rndimg=True))
 
 
     # 戳一戳 出发摸头
@@ -1071,7 +1090,7 @@ if __name__ == '__main__':
 
     # 雀魂对局记录轮询器
 
-    @scheduler.scheduled_job(CronTrigger(hour='*', minute=f'0/{config["searchfrequency"]}'))
+    @scheduler.scheduled_job(CronTrigger(hour='*', minute=f'*'))
     async def paiputimer():
         minute_now = datetime.datetime.now().minute
         hour_now = datetime.datetime.now().hour
@@ -1080,28 +1099,30 @@ if __name__ == '__main__':
             if 7 < hour_now < 23:
                 for groupid in alarmclockgroup:
                     if groupid != 0 and type(groupid) == int:
-                        await bot.send_group_message(groupid, f"准点报时: {datetime.datetime.now().hour}:00")
+                        await bot.send_group_message(groupid, getreply(text=f"准点报时: {datetime.datetime.now().hour}:00",rndimg=True))
                         if hour_now == 22:
-                            await bot.send_group_message(groupid, f"晚上10点了，大家可以休息了")
-        if settings['autogetpaipu']:
-            print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
-            try:
-                if settings['asyreptile']:
-                    await asyth_auto()
-                    await asyqh_autopaipu()
-                else:
-                    await th_autopaipu()
-                    await th_broadcastmatch()
-                    await qh_autopaipu()
-            except sqlite3.OperationalError as e:
-                logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
-                logging.warning(f'{e}')
-                settings['autogetpaipu'] = False
-            except websockets.exceptions.ConnectionClosedError as e:
-                logging.error(f'websockets发生错误{e}')
-                logging.exception(e)
-                exit(0)
-            print(f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
+                            await bot.send_group_message(groupid, getreply(text="晚上10点了，大家可以休息了",rndimg=True))
+        if minute_now % config["searchfrequency"] == 0:
+            if settings['autogetpaipu']:
+                print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
+                try:
+                    if settings['asyreptile']:
+                        # await asyth_auto()
+                        await asyth_all()
+                        await asyqh_autopaipu()
+                    else:
+                        await th_autopaipu()
+                        await th_broadcastmatch()
+                        await qh_autopaipu()
+                except sqlite3.OperationalError as e:
+                    logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
+                    logging.warning(f'{e}')
+                    settings['autogetpaipu'] = False
+                except websockets.exceptions.ConnectionClosedError as e:
+                    logging.error(f'websockets发生错误{e}')
+                    logging.exception(e)
+                    exit(0)
+                print(f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
 
 
     bot.run(port=17580)
