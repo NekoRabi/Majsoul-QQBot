@@ -48,3 +48,6 @@ alarmclockgroup: # 设置闹钟群聊
 # ERROR  [WebSocket] WebSocket通道意外关闭。code: 1006，reason:
 
 websocket通道异常关闭，当前版本来说，一般是由异步爬虫引起的，可能一天会掉线一次，暂不清楚如何解决。
+
+# config乱码
+utf-8格式文件以gbk保存 或者反过来了，重写一次配置文件 
