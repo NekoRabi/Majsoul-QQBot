@@ -62,5 +62,5 @@ def getsetu(tag: str="") -> dict:
     response = response.text
     response = eval(response.replace("false","False"))
     imginfo: dict = response['data'][0]
-    imginfo['url'] = imginfo['urls']['original']
+    imginfo['url'] = imginfo['urls']['original'].replace("cat","re")
     return imginfo

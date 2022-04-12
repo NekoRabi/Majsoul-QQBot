@@ -1,14 +1,14 @@
-import asyncio, nest_asyncio, re
-import random
+import nest_asyncio
+import re
 import websockets.exceptions
 
 from plugin import *
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-
 from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image, MessageEvent
 from mirai.models import MemberJoinEvent, NudgeEvent
+
 
 if __name__ == '__main__':
 
@@ -62,6 +62,7 @@ if __name__ == '__main__':
                 await bot.send_group_message(group, msgobj['msg'])
         return
 
+
     async def asyth_all():
         result = asygetTH()
         print("开始查询天凤信息")
@@ -70,6 +71,7 @@ if __name__ == '__main__':
             for group in msgobj['groups']:
                 await bot.send_group_message(group, msgobj['msg'])
         return
+
 
     # 自动获取天凤对局 - 普通爬虫
     async def th_autopaipu():
@@ -158,6 +160,8 @@ if __name__ == '__main__':
             msgchain.append(Plain(random.choice(reply)))
         if text:
             msgchain.append(Plain(text))
+        if reply or text:
+            msgchain.append(Plain(random.choice(replydata['suffix'])))
         if rndimg:
             msgchain.append(Image(path=f"./data/reply/img/{random.choice(replydata['img'])}"))
         return MessageChain(msgchain)
@@ -167,7 +171,8 @@ if __name__ == '__main__':
     @bot.on(MessageEvent)
     def addEventLog(event: MessageEvent):
         if event.type == 'GroupMessage':
-            # infodict = dict(type=event.type,senderid=event.sender.id,sendername=event.sender.get_name(),groupname=event.group.name,groupid=event.group.id,message=event.message_chain)
+            # infodict = dict(type=event.type,senderid=event.sender.id,sendername=event.sender.get_name(),
+            # groupname=event.group.name,groupid=event.group.id,message=event.message_chain)
             # qqlogger.info(infodict)
             qqlogger.info(event)
         else:
@@ -639,7 +644,7 @@ if __name__ == '__main__':
     @bot.on(GroupMessage)
     async def duideduide(event: GroupMessage):
         if not settings['silence']:
-            if not event.group.id in silencegroup:
+            if event.group.id not in silencegroup:
                 if len(event.message_chain[Plain]) == 1:
                     msg = str(event.message_chain[Plain][0]).strip()
                     # if msg in ['正确的', '错误的', '辩证的', '对的对的', '啊对对对',"理性的","中肯的",'客观的','整体的','全面的']:
@@ -729,7 +734,7 @@ if __name__ == '__main__':
             m = re.match(fr'^{commandpre}silence\s*(\w+)\s*$', msg.strip())
             if m:
                 if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
-                    if not event.group.id in silencegroup:
+                    if event.group.id not in silencegroup:
                         silencegroup.append(event.group.id)
                         with open(r'./config.yml', 'w') as file:
                             yaml.dump(config, file, allow_unicode=True)
@@ -751,7 +756,7 @@ if __name__ == '__main__':
             if m:
                 if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                     print(f'已将{event.group.id}的复读关闭')
-                    if not event.group.id in norepeatgroup:
+                    if event.group.id not in norepeatgroup:
                         norepeatgroup.append(event.group.id)
                         with open(r'./config.yml', 'w') as file:
                             yaml.dump(config, file, allow_unicode=True)
@@ -831,8 +836,8 @@ if __name__ == '__main__':
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
         if not (settings['silence'] or settings['norepeat']):
-            if not event.group.id in silencegroup:
-                if not event.group.id in norepeatgroup:
+            if event.group.id not in silencegroup:
+                if event.group.id not in norepeatgroup:
                     count = random.random() * 100
                     msg = event.message_chain[Plain]
                     senderid = event.sender.id
@@ -874,7 +879,7 @@ if __name__ == '__main__':
     # 哔哩哔哩解析
     async def bili_resolve(event: GroupMessage):
         if not settings['silence']:
-            if not event.group.id in silencegroup:
+            if event.group.id not in silencegroup:
                 global last_bvid
                 text = str(event.message_chain.as_mirai_code)
                 text = text.replace('\\n', '').replace('\\', '')
@@ -914,8 +919,12 @@ if __name__ == '__main__':
     @bot.on(GroupMessage)
     async def diyreply(event: GroupMessage):
         if not settings['silence']:
-            if not event.group.id in silencegroup:
+            if event.group.id not in silencegroup:
                 msg = "".join(map(str, event.message_chain[Plain]))
+                m = re.match(fr'^{commandpre}([\w\d]+)鸡打\s*\.', msg.strip())
+                if m:
+                    if '呆' not in m.group(1):
+                        return await bot.send(event,f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
                 senderid = event.sender.id
                 if botname == "":
                     return
@@ -1099,9 +1108,10 @@ if __name__ == '__main__':
             if 7 < hour_now < 23:
                 for groupid in alarmclockgroup:
                     if groupid != 0 and type(groupid) == int:
-                        await bot.send_group_message(groupid, getreply(text=f"准点报时: {datetime.datetime.now().hour}:00",rndimg=True))
+                        await bot.send_group_message(groupid, getreply(text=f"准点报时: {datetime.datetime.now().hour}:00",
+                                                                       rndimg=True))
                         if hour_now == 22:
-                            await bot.send_group_message(groupid, getreply(text="晚上10点了，大家可以休息了",rndimg=True))
+                            await bot.send_group_message(groupid, getreply(text="晚上10点了，大家可以休息了", rndimg=True))
         if minute_now % config["searchfrequency"] == 0:
             if settings['autogetpaipu']:
                 print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")

@@ -54,38 +54,48 @@ def load_config() -> dict:
 
 
 def load_replydata() -> dict:
-    if os.path.exists(r"./data/commonreply.json"):
-        with open(r"./data/commonreply.json", 'r', encoding="utf-8") as commonreply:
+    if os.path.exists(r"./data/reply/commonreply.json"):
+        with open(r"./data/reply/commonreply.json", 'r', encoding="utf-8") as commonreply:
             replydata['common'] = json.load(commonreply)
     else:
         print("回复文本不存在")
         replydata['common'] = {"你好": ["你好"]}
 
-    if os.path.exists(r"./data/hyperreply.json"):
-        with open(r"./data/hyperreply.json", 'r', encoding="utf-8") as r18reply:
+    if os.path.exists(r"./data/reply/hyperreply.json"):
+        with open(r"./data/reply/hyperreply.json", 'r', encoding="utf-8") as r18reply:
             replydata['r18'] = json.load(r18reply)
     else:
         print("r18回复文本不存在")
         replydata['r18'] = {"你好": ["爱你"]}
 
-    if os.path.exists(r"./data/black_user_reply.yml"):
-        with open(r"./data/black_user_reply.yml", encoding="utf-8") as blackreply:
+    if os.path.exists(r"./data/reply/black_user_reply.yml"):
+        with open(r"./data/reply/black_user_reply.yml", encoding="utf-8") as blackreply:
             replydata['blackuser'] = yaml.safe_load(blackreply)
     else:
         print("黑名单回复文本不存在")
         replydata['blackuser'] = {"你好": ["不好"]}
 
-    if os.path.exists(r"./data/nudgedata.yml"):
-        with open(r'./data/nudgedata.yml', encoding="utf-8") as nudegfile:
+    if os.path.exists(r"./data/reply/nudgedata.yml"):
+        with open(r'./data/reply/nudgedata.yml', encoding="utf-8") as nudegfile:
             replydata['nudgedate'] = yaml.safe_load(nudegfile)
     else:
         print("摸头文本不存在")
         replydata['nudgedate'] = ["摸摸"]
 
-    if os.path.exists(r"./data/mismatch.yml"):
-        with open(r'./data/mismatch.yml', encoding="utf-8") as mismatch:
+    if os.path.exists(r"./data/reply/mismatch.yml"):
+        with open(r'./data/reply/mismatch.yml', encoding="utf-8") as mismatch:
             replydata['mismatch'] = yaml.safe_load(mismatch)
     else:
         print("摸头文本不存在")
         replydata['mismatch'] = dict(admin=["主人有事吗?"], common=['你在叫我吗?'])
+
+    if os.path.exists(r"./data/reply/img"):
+        imgpathlist_dir = os.listdir(r"./data/reply/img")
+        imgpath = []
+        for imgname in imgpathlist_dir:
+            imgpath.append(imgname)
+        replydata['img'] = imgpath
+    else:
+        replydata['img']=[]
+    replydata['suffix']=['喵~','喵?','喵喵~']
     return replydata

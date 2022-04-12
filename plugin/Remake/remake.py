@@ -69,7 +69,7 @@ def addfont(img: IMG, senderid):
         font='./plugin/Remake/font/MiSans-Bold.ttf', size=60)
 
     draw.text((10, 10), text=f'No.{senderid}', font=h4font, fill=(0, 0, 0))
-    draw.text((370, 10), text='重生档案', font=titlefont, fill=(0, 0, 0))
+    draw.text((300, 10), text='重生档案', font=titlefont, fill=(0, 0, 0))
 
     draw.text((10, 80), text='基础能力', font=h1font, fill=(0, 0, 0))
     draw.text((190, 100), text='(力量/魔力/智力/体质/魅力/运气)', font=h4font, fill=(0, 0, 0))
