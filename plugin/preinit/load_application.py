@@ -1,6 +1,7 @@
 import yaml
 import os
 import json
+from utils.text_to_img import whitebgk_blacktext
 
 config = {}
 replydata = {}
@@ -26,7 +27,7 @@ def load_config() -> dict:
             qhsettings = config['qhsettings']
             disnudgegroup = config['disnudgegroup']
             loglevel = config['loglevel']
-            replydata['replyimgpath']=config['replyimgpath']
+            replydata['replyimgpath'] = config['replyimgpath']
             master = config['master']
             if master == 0:
                 print('请输入机器人主人 ( master )')
@@ -97,6 +98,28 @@ def load_replydata() -> dict:
             imgpath.append(imgname)
         replydata['img'] = imgpath
     else:
-        replydata['img']=[]
-    replydata['suffix']=['']
+        replydata['img'] = []
+    replydata['suffix'] = ['']
     return replydata
+
+
+def create_helpimg():
+    helptext = "指令帮助 ()内为可选项,[]为必选项,{}为可用参数,<>为类型:\n" \
+               "qhpt / 雀魂分数 [玩家名] (3/4) (序号):查询该玩家的段位分\n" \
+               "qhsl / 雀魂十连 ({限时/常驻}) :来一次模拟雀魂十连\n" \
+               "qhadd / 雀魂添加关注 [玩家名] :将一个玩家添加至雀魂自动查询，有新对局记录时会广播\n" \
+               "qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n" \
+               "qhdel / 雀魂删除关注 [玩家名] :将一个玩家从雀魂自动查询中移除，不再自动广播对局记录\n" \
+               "qhpaipu / 雀魂最近对局 [玩家名] [{3/4}] ({1-10}) :查询一个玩家最近n场3/4人对局记录\n" \
+               "qhinfo / 雀魂玩家详情 [玩家名] {3/4} ({基本/立直/血统/all}):查询一个玩家的详细数据\n" \
+               "qhyb / 雀魂月报 [玩家名] [{3/4}] [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报\n" \
+               "thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n" \
+               "thdel / 天凤删除关注 [玩家名] :将一个玩家从天凤自动查询中移除，不再自动广播对局记录\n" \
+               "举牌 [<文本>] :将文本写在举牌小人上发出来，最多40字\n" \
+               "亲/亲亲 @用户 : 两人互亲\n" \
+               "摸/摸摸/摸头 @用户 : 摸某人头\n" \
+               "重开 / remake : 异世界转生\n" \
+               "bw [<文本>] [<图片>] : 返回一张黑白处理后的图片，底部有一行文字" \
+               "签到 : 顾名思义，就是签到\n" \
+               "项目地址 : 获取项目链接\n"
+    whitebgk_blacktext(path='help.png', textline=helptext)
