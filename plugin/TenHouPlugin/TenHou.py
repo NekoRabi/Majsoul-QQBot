@@ -24,10 +24,17 @@ user_agent_list = [
 ]
 
 bordercast_temple = {
-    1: " %player% 轻松拿下一位,实在太强啦",
-    2: " %player% 悄悄拿下二位,稳稳上分",
-    3: " %player% 精准避四，避开重大损失",
-    4: " %player% 被安排了一个四位,库鲁西~",
+    4: {
+        1: " %player% 轻松拿下一位,实在太强啦",
+        2: " %player% 悄悄拿下二位,稳稳上分",
+        3: " %player% 精准避四，避开重大损失",
+        4: " %player% 被安排了一个四位,库鲁西~"
+    },
+    3: {
+        1: " %player% 轻松拿下一位,实在太强啦",
+        2: " %player% 悄悄拿二,默默上分",
+        3: " %player% 忍痛吃三，太苦了"
+    }
 }
 
 timeout = aiohttp.ClientTimeout(total=330)
@@ -102,7 +109,10 @@ def autoget_th_match() -> list:
                         msg += f"{model}\n"
                         msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
                         order = get_matchorder(playerlist=players, playername=p)
-                        msg += f"{bordercast_temple[order]}\n\n".replace('%player%', p)
+                        if len(players) == 4:
+                            msg += f"{bordercast_temple[4][order]}\n\n".replace('%player%', p)
+                        else:
+                            msg += f"{bordercast_temple[3][order]}\n\n".replace('%player%', p)
                         for item in players:
                             msg += f"{item}\n"
                         if len(players) == 3:
@@ -183,7 +193,10 @@ async def asyautoget_th_match() -> list:
                         msg += f"{model}\n"
                         msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
                         order = get_matchorder(playerlist=players, playername=p)
-                        msg += f"{bordercast_temple[order]}\n\n".replace('%player%', p)
+                        if len(players) == 4:
+                            msg += f"{bordercast_temple[4][order]}\n\n".replace('%player%', p)
+                        else:
+                            msg += f"{bordercast_temple[3][order]}\n\n".replace('%player%', p)
                         for item in players:
                             msg += f"{item}\n"
                         if len(players) == 3:
@@ -335,6 +348,7 @@ async def asyautoget_th_matching() -> list:
     msglist = forwardmessage(eligible_Matches)
     return msglist
 
+
 def asygetTH():
     tasks = [
         asyncio.ensure_future(asyautoget_th_match()),
@@ -347,6 +361,7 @@ def asygetTH():
     for results in tasks.result():
         content.extend(results)
     return content
+
 
 # 转发消息，封装为 向 groupid 群聊 发送 msg 的格式
 #  {playername,msg} -> {groupids,msg,playername}

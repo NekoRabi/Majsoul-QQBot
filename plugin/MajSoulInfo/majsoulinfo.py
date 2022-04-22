@@ -176,9 +176,7 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
     text = xhr.text.replace("null", "0.0")
     content: dict = eval(text)
     msg = f" 以下是玩家 {playername} 的数据:\n"
-    # print(content)
     for (k, v) in content.items():
-        # print("key:", k, "value", v)
         if type(v) not in [list, dict]:
             if str(k) in ["id", "count"]:
                 continue
@@ -918,6 +916,9 @@ def forwardmessage(msglist: list) -> list:
 
 
 def msganalysis(infos: list) -> list:
+    def getScore(e):
+        return e['score']
+
     content = []
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
@@ -931,7 +932,8 @@ def msganalysis(infos: list) -> list:
             '%Y-%m-%d %H:%M:%S', time.localtime(msgitem["startTime"]))
         endTime = time.strftime('%Y-%m-%d %H:%M:%S',
                                 time.localtime(msgitem["endTime"]))
-        players = msgitem['players']
+        players:list = msgitem['players']
+        players.sort(key=getScore,reverse=True)
         try:
             if len(players) == 3:
                 cursor.execute(

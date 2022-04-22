@@ -26,6 +26,7 @@ def load_config() -> dict:
             qhsettings = config['qhsettings']
             disnudgegroup = config['disnudgegroup']
             loglevel = config['loglevel']
+            replydata['replyimgpath']=config['replyimgpath']
             master = config['master']
             if master == 0:
                 print('请输入机器人主人 ( master )')
@@ -89,13 +90,13 @@ def load_replydata() -> dict:
         print("摸头文本不存在")
         replydata['mismatch'] = dict(admin=["主人有事吗?"], common=['你在叫我吗?'])
 
-    if os.path.exists(r"./data/reply/img"):
-        imgpathlist_dir = os.listdir(r"./data/reply/img")
+    if os.path.exists(fr"./data/reply/img/{replydata['replyimgpath']}"):
+        imgpathlist_dir = os.listdir(fr"./data/reply/img/{replydata['replyimgpath']}")
         imgpath = []
         for imgname in imgpathlist_dir:
             imgpath.append(imgname)
         replydata['img'] = imgpath
     else:
         replydata['img']=[]
-    replydata['suffix']=['喵~','喵?','喵喵~']
+    replydata['suffix']=['']
     return replydata

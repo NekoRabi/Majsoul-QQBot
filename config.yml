@@ -56,9 +56,25 @@ qhsettings: # 是否启用
   qhinfo: true
   qhsl: true
   qhyb: true
+  qhpaipu: true
   disptgroup: # 在某群禁用 qhpt
     - 0
+  disinfogroup:
+    - 0
+  disslgroup:
+    - 0
+  disybgroup:
+    - 0
+  disautoquerygroup:
+    - 0
+  dispaipugroup:
+    - 0
 
+
+# 色图群聊
+setugroups:
+  - 0
+  
 # 在某群禁用 摸头事件
 disnudgegroup:
  - 0
