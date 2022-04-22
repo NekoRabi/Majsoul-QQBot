@@ -7,9 +7,10 @@ from plugin.preinit import *
 from plugin.Setu import *
 from plugin.Remake import *
 from plugin.TenHouPlugin import *
-from plugin.utils import *
+from utils import *
 from plugin.ImgOperation import *
 import os
+
 
 def create_folders():
     if not os.path.exists("./database"):
