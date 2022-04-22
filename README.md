@@ -78,7 +78,7 @@
 ### config.yml
  ``` 注意, '冒号' (:) 后必须有空格 ```
  ```
-### 请注意 ， 冒号(:)和横线(-)  后面必须要有用空格
+### 请注意 ， 冒号(:)和横线(-)  后面必须要有 '空格'
 
 adapter: # Mirai
   host: localhost
@@ -87,10 +87,10 @@ adapter: # Mirai
 
 loglevel: INFO # 日志等级
 
-admin: # 以下都是管理员
+admin: # 以下都是机器人的管理员
   - 1215791340
 
-alarmclockgroup: # 设置闹钟群聊
+alarmclockgroup: # 设置准点报时的群聊
   - 0
 
 blacklist: # 黑名单
@@ -100,13 +100,16 @@ botconfig:
   botname: '' # 机器人名字
   qq: 123456  # 机器人QQ
 
+mutegrouplist:
+  - 0
+
 commandpre: ''  # 指令前缀
 
 master: 0  # 机器人主人
 
-mutegrouplist:
-  - 0
-searchfrequency: 6 # 查询频率，建议为 6
+searchfrequency: 5 # 查询频率，建议为 6
+
+replyimgpath : 真寻 # 自动回复时，随机图片所在的文件夹
 
 settings: # 各项开关
   autogetpaipu: true  # 自动获取雀魂牌谱
@@ -133,13 +136,28 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 whitelist:
 - 0   # 白名单
 
+# 色图群聊
+setugroups:
+  - 0
+
 # 雀魂指令控制
 qhsettings: # 是否启用
   qhpt: true
   qhinfo: true
   qhsl: true
   qhyb: true
-  disptgroup: # 在某群禁用 qhpt
+  qhpaipu: true
+  disptgroup:   # 在某群禁用 qhpt
+    - 0
+  disinfogroup: # 在某群禁用 qhinfo
+    - 0
+  disslgroup:   # 在某群禁用 qhsl
+    - 0
+  disybgroup:   # 在某群禁用 qhyb
+    - 0
+  disautoquerygroup:
+    - 0
+  dispaipugroup:  # 在某群禁用 qhpaipu
     - 0
 
 # 在某群禁用 摸头事件
@@ -240,12 +258,14 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
  # 存在的问题
  1. ~~查询玩家信息的时候仍然会卡死，可能是由于超时。~~（已解决）
- 2. 自动抓取牌谱时存在较长时间的无响应
+ 2. 自动抓取牌谱时存在较长时间的无响应 (在setting中 启用异步爬虫以解决此问题)
  3. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  解决办法: 将config.yml用GBK编码打开并保存 
- 4. 涩图请求超时
+ 4. 涩图请求超时(也许解决了)
 
  # 开发计划
+
+  [ ] 数据库重新设计
 
   [ ] 增加何切支持
   
@@ -273,8 +293,6 @@ QQ:1215791340 验证消息： 可爱的拉克丝
 [Mirai](https://github.com/mamoe/mirai) : 提供 QQ Android 协议支持的高效率机器人库 
 
 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) : 提供SDK
-
-[Saya_plugins_collection](https://github.com/SAGIRI-kawaii/saya_plugins_collection) : 移植功能
 
 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ： 回复语录提供
 
