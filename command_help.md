@@ -27,7 +27,7 @@ getinfo
 ```
 log (level) (num)
 ```
-获取最近 `num` 条的等级为 `level` 的日志 (未完成，下个版本完善)
+获取最近 `num` 条的等级为 `level` 的日志 (未完成，想到再去完善)
 <hr>
 
 ## 系统命令(管理员权限)
@@ -146,9 +146,9 @@ qhyb / 雀魂月报 [玩家名] {3/4} [YYYY-m]
 
 
 ```
-disable/enable qhpt
+disable/enable qhpt/qhsl/qhyb ......
 ```
-禁用 / 启用 该群指令 `qhpt` 的使用
+禁用 / 启用 该群指令 `qhpt/qhsl/qhyb` 等等指令的使用
 
 ```
 freshqh
@@ -241,10 +241,10 @@ bw [文字] [图片]
 获取当前积分
 
 ```
-[A]鸡打.
+[谁]鸡打.
 ```
 
-发送一段内容主体为A的文字 (
+发送一段内容主体为A的文字 **( 不要漏掉 '点' `.`)**
 
 
 <details>
@@ -254,6 +254,4 @@ bw [文字] [图片]
 setu/涩图/色图 (tag)
 </code></pre>
 从<a href="https://api.lolicon.app/#/setu">网站</a>请求一份(指定tag的)色图
-
-获取色图链接后从i.pixiv.cat获取色图，很有可能超时而发不出来,可能以后再改
 </details>
