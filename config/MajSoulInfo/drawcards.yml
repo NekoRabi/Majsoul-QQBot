@@ -226,7 +226,32 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-仿生喵.jpg
-    length: 45
+    - index: 45
+      name: 立直棒-恋之反省
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-恋之反省.jpg
+    - index: 46
+      name: 桌布-恋之见证
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-恋之见证.jpg
+    - index: 47
+      name: 牌背-恋之背影
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-恋之背影.jpg
+    - index: 48
+      name: 和牌-恋之降临
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-恋之降临.jpg
+    - index: 49
+      name: 立直-恋之箭矢
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-恋之箭矢.jpg
+    length: 50
   gift:
     item:
     - index: 0
@@ -477,12 +502,36 @@ lottery:
       rare: 4
       type: person
       url: ./Images/person/雏桃.png
-    length: 25
+    - index: 25
+      name: 白银御行
+      rare: 4
+      type: person
+      url: ./Images/person/白银御行.png
+    - index: 26
+      name: 早坂爱
+      rare: 4
+      type: person
+      url: ./Images/person/早坂爱.png
+    - index: 27
+      name: 四宫辉夜
+      rare: 4
+      type: person
+      url: ./Images/person/四宫辉夜.png
+    - index: 28
+      name: 白银圭
+      rare: 4
+      type: person
+      url: ./Images/person/白银圭.png
+    length: 29
 up:
   decoration:
-  - 立直-虚拟导航
-  - 立直棒-仿生喵
-  - 和牌-核心裂变
+  - 桌布-恋之见证
+  - 立直-恋之箭矢
+  - 牌背-恋之背影
+  - 和牌-恋之降临
+  - 立直棒-恋之反省
   person:
-  - 五十岚阳菜
-  - 福姬
+  - 白银圭
+  - 白银御行
+  - 早坂爱
+  - 四宫辉夜

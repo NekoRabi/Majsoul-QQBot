@@ -15,6 +15,7 @@ if __name__ == '__main__':
     create_folders()
     config = load_config()
     replydata = load_replydata()
+    create_helpimg()
 
     rootLogger = create_logger(config['loglevel'])
     qqlogger = getQQlogger()
@@ -311,12 +312,12 @@ if __name__ == '__main__':
                     return await bot.send(event, MessageChain([At(target), Plain(f" {m.group(1)}")]))
 
 
-    @bot.on(MessageEvent)
+    @bot.on(GroupMessage)
     async def setu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
         m1 = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
-        m2 = re.match(fr"^{commandpre}来张(r18)?\s*(的)?\s*(色图|涩图)\s*$",msg.strip())
+        m2 = re.match(fr"^{commandpre}来张(r18)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
         if m1:
             if random.random() * 100 < 10:
                 print(f"发出对{event.sender.id}的少冲提醒")
@@ -340,24 +341,7 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}(help|帮助)\s*$', msg.strip())
         if m:
-            return await bot.send(event, MessageChain([
-                Plain(" 指令帮助 ()内为可选项,[]为必选项,{}为可用参数:\n"
-                      " qhpt / 雀魂分数 [玩家名] (3/4) (序号):查询该玩家的段位分\n"
-                      " qhsl / 雀魂十连 ({限时/常驻}) :来一次模拟雀魂十连\n"
-                      " qhadd / 雀魂添加关注 [玩家名] :将一个玩家添加至雀魂自动查询，有新对局记录时会广播\n"
-                      " qhgetwatch / 雀魂获取本群关注 :获取本群所有的雀魂关注的玩家\n"
-                      " qhdel / 雀魂删除关注 [玩家名] :将一个玩家从雀魂自动查询中移除，不再自动广播对局记录\n"
-                      " qhpaipu / 雀魂最近对局 [玩家名] [{3/4}] ({1-10}) :查询一个玩家最近n场3/4人对局记录\n"
-                      " qhinfo / 雀魂玩家详情 [玩家名] {3/4} ({基本/立直/血统/all}):查询一个玩家的详细数据\n"
-                      " qhyb / 雀魂月报 [玩家名] [{3/4}] [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报"
-                      " thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n"
-                      " thdel / 天凤删除关注 [玩家名] :将一个玩家从天凤自动查询中移除，不再自动广播对局记录\n"
-                      " 举牌 [内容] :将内容写在举牌小人上发出来\n"
-                      " 亲/亲亲 @用户 : 两人互亲\n"
-                      " 摸/摸摸/摸头 @用户 : 摸某人头\n"
-                      " 重开 / remake : 异世界转生\n"
-                      " 项目地址 : 获取项目链接")
-            ]))
+            return await bot.send(event, Image(path="./images/help.png"))
 
 
     # 禁用功能
@@ -557,6 +541,7 @@ if __name__ == '__main__':
                 #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
                 await bot.send(event, addwatch(m.group(2), event.group.id))
 
+
     # 删除某群雀魂关注
 
     @bot.on(GroupMessage)
@@ -584,7 +569,7 @@ if __name__ == '__main__':
         if m:
             if qhsettings['qhsl'] and event.group.id not in qhsettings['disslgroup']:
                 if m.group(2):
-                    if m.group(2) == '限时':
+                    if m.group(2) in ['限时', 'up', 'UP']:
                         result = drawcards(userid=event.sender.id, up=True)
                         if result['error']:
                             return await bot.send(event,
@@ -599,7 +584,7 @@ if __name__ == '__main__':
                         #     At(event.sender.id),
                         #     Plain(result['resultsmsg'])
                         # ]))
-                    elif m.group(2) == '常驻':
+                    elif m.group(2) in ['常驻', 'common', 'normal']:
                         result = drawcards(userid=event.sender.id, up=False)
                         if result['error']:
                             return await bot.send(event,
