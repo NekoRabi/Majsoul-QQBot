@@ -9,8 +9,8 @@ import pytz
 import re
 import sqlite3
 import os
-
 import requests
+import plugin.TenHouPlugin.ptcalculation
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -38,6 +38,13 @@ bordercast_temple = {
 }
 
 timeout = aiohttp.ClientTimeout(total=330)
+
+def th_rank(playername:str):
+    # IPython2 测试代码
+
+    # 导入 webdriver
+    from selenium import webdriver
+
 
 
 # 解压gz
@@ -510,3 +517,8 @@ def get_gaming_thplayers() -> list:
     cursor.close()
     cx.commit()
     return gamingplayer
+
+def getthpt(playername:str)->str:
+
+    ptmsg = plugin.TenHouPlugin.ptcalculation.ptcalculation(playername)
+    return ptmsg

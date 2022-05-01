@@ -355,7 +355,7 @@ if __name__ == '__main__':
             if m:
                 command = m.group(1)
                 group = event.group.id
-                if command in ['qhpt', '雀魂分数']:
+                if command in ['qhpt', '雀魂分数','雀魂pt']:
                     if group not in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].append(group)
                         with open(r'./config.yml', 'w') as file:
@@ -396,7 +396,7 @@ if __name__ == '__main__':
             if m:
                 command = m.group(1)
                 group = event.group.id
-                if command in ['qhpt', '雀魂分数']:
+                if command in ['qhpt', '雀魂分数','雀魂pt']:
                     if group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].remove(group)
                         with open(r'./config.yml', 'w') as file:
@@ -434,7 +434,7 @@ if __name__ == '__main__':
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(qhpt|雀魂分数)\s*([\w_、,\.，\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$', msg.strip())
         if m:
             if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
                 if m.group(3):
@@ -633,6 +633,14 @@ if __name__ == '__main__':
 
     '''天凤相关'''
 
+
+    @bot.on(GroupMessage)
+    async def addtenhouwatch(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        # 匹配指令
+        m = re.match(fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、,，\'\\\.!]+)\s*$', msg.strip())
+        if m:
+            await bot.send(event,getthpt(m.group(2)))
 
     @bot.on(GroupMessage)
     async def addtenhouwatch(event: GroupMessage):

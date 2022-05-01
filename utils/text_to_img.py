@@ -1,26 +1,34 @@
-from collections import Iterable
+from typing import Iterable
 
 from PIL import Image, ImageDraw, ImageFont
 
 
-def whitebgk_blacktext(path: str, textline: str = None, textiterable: Iterable = None, fontsize: int = 20, bold: bool = False):
-    texts = textline.split('\n')
+def whitebgk_blacktext(path: str,text: Iterable = None, fontsize: int = 20,
+                       bold: bool = False):
     textlength = 0
-    for text in texts:
-        text = text.strip()
-        if len(text) > textlength:
-            textlength = len(text)
+    texts = []
     if bold:
         font = ImageFont.truetype(
             font='./data/fonts/MiSans-Bold.ttf', size=fontsize)
     else:
         font = ImageFont.truetype(
             font='./data/fonts/MiSans-Light.ttf', size=fontsize)
-    bgimg = Image.new('RGB', (textlength * fontsize + 40, len(texts) * (fontsize + 5) + 40), (255, 255, 255))
+    if type(text) == str:
+        texts = text.split('\n')
+    elif type(text) == dict:
+        for k, v in text.items():
+            texts.append(f'{k}:{v}'.strip())
+    elif type(text) in [list, set, tuple]:
+        for item in text:
+            texts.append(f'{item}'.strip())
+    for t in texts:
+        if len(t.strip()) > textlength:
+            textlength = len(t)
+
+    bgimg = Image.new('RGB', ((textlength + 2) * fontsize, (len(texts) + 2) * (fontsize + 5)), (255, 255, 255))
     textdraw = ImageDraw.Draw(bgimg)
     for i in range(len(texts)):
-        textdraw.text((20, i * (fontsize + 5) + 20), text=f'{texts[i].strip()}',
-                      font=font,
-                      fill=(0, 0, 0))
+        textdraw.text((fontsize, i * (fontsize + 5) + fontsize), text=f'{texts[i].strip()}',
+                      font=font, fill=(0, 0, 0))
     bgimg.save(f'./images/{path}')
     return
