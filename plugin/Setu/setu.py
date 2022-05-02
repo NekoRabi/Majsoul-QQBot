@@ -37,7 +37,7 @@ def getsetuinfo(requiretarget: dict) -> dict:
         keyword_transform(k, v)
 
 
-def getsetu(tag: str="") -> dict:
+def getsetu(tag: str = "") -> dict:
     user_agent_list = [
         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
@@ -51,16 +51,21 @@ def getsetu(tag: str="") -> dict:
     s = requests.Session()
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
-    if tag == "":
-        response = s.get(
-            f"https://api.lolicon.app/setu/v2",
-            headers={'User-Agent': random.choice(user_agent_list)})
-    else:
+    if tag:
         response = s.get(
             f"https://api.lolicon.app/setu/v2?tag={tag}",
             headers={'User-Agent': random.choice(user_agent_list)})
+    else:
+        response = s.get(
+            f"https://api.lolicon.app/setu/v2",
+            headers={'User-Agent': random.choice(user_agent_list)})
     response = response.text
-    response = eval(response.replace("false","False"))
-    imginfo: dict = response['data'][0]
-    imginfo['url'] = imginfo['urls']['original'].replace("cat","re")
+    response = eval(response.replace("false", "False"))
+    print(response)
+    if len(response['data']) == 0:
+        imginfo = dict(notFound=True)
+    else:
+        imginfo: dict = response['data'][0]
+        imginfo['notFound'] = False
+        imginfo['url'] = imginfo['urls']['original'].replace("cat",  "re")
     return imginfo

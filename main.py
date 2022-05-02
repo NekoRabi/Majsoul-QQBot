@@ -313,18 +313,67 @@ if __name__ == '__main__':
 
 
     @bot.on(GroupMessage)
+    async def enablesetu(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr'^{commandpre}(open|enable|开启)\s*(涩图|色图|setu)\s*$', msg.strip())
+        if m:
+            if is_havingadmin(event):
+                groupid = event.group.id
+                if groupid in config['setugroups']:
+                    await bot.send(event, getreply(text="本群已开启色图",rndimg=True))
+                else:
+                    config['setugroups'].append(groupid)
+                    with open(r'./config.yml', 'w') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+                    await bot.send(event, getreply(text="色图开启成功", rndimg=True))
+
+    @bot.on(GroupMessage)
+    async def disablesetu(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+
+        m = re.match(fr'^{commandpre}(close|disable|关闭)\s*(涩图|色图|setu)\s*$', msg.strip())
+        if m:
+            if is_havingadmin(event):
+                groupid = event.group.id
+                if groupid in config['setugroups']:
+                    config['setugroups'].remove(groupid)
+                    with open(r'./config.yml', 'w') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+                    await bot.send(event, getreply(text="色图已关闭",rndimg=True))
+                else:
+                    await bot.send(event, getreply(text="本群色图已关闭", rndimg=True))
+
+    @bot.on(GroupMessage)
     async def setu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
         m1 = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
-        m2 = re.match(fr"^{commandpre}来张(r18)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
+        m2 = re.match(fr"^{commandpre}来张(\w+)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
         if m1:
             if random.random() * 100 < 10:
                 print(f"发出对{event.sender.id}的少冲提醒")
-                await bot.send(event, [At(event.sender.id), " 能不能少冲点啊"])
+                await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             else:
-                if settings['setu'] and event.group.id in settings['setugroups']:
-                    imginfo = getsetu(m1.group(2).strip())
+                if settings['setu'] and event.group.id in config['setugroups']:
+                    imginfo = getsetu(m1.group(2))
+                    if imginfo['notFound']:
+                        await bot.send(event, getreply(text="没找到该图片呢"))
+                        return
+                    try:
+                        await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
+                    except Exception as e:
+                        print(f"色图请求失败:{e}")
+                        await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
+        elif m2:
+            if random.random() * 100 < 10:
+                print(f"发出对{event.sender.id}的少冲提醒")
+                await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
+            else:
+                if settings['setu'] and event.group.id in config['setugroups']:
+                    imginfo = getsetu(m2.group(1))
+                    if imginfo['notFound']:
+                        await bot.send(event, getreply(text="没找到该图片呢"))
+                        return
                     try:
                         await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
                     except Exception as e:
@@ -480,7 +529,7 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
 
         m = re.match(
-            fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*([\w_、,\.，\'\"!]+)\s*(\w+)*\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
+            fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*([\w_、,\.，\'\"!]+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
         if m:
             if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
