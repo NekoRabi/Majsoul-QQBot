@@ -93,8 +93,8 @@ def autoget_th_match() -> list:
                 plname = re.sub(r"[(\d+\.\-)]", "", players)
                 plname = plname.split(' ')
                 players = players.split(' ')
-                for p in plname:
-                    if p in playername:
+                for p in playername:
+                    if p in plname:
                         print(f"{datas}\n")
                         cursor.execute(
                             f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
