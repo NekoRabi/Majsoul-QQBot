@@ -156,7 +156,7 @@ if __name__ == '__main__':
         return True
 
 
-    def getreply(reply: list = None, text: str = None, rndimg=False) -> MessageChain:
+    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None) -> MessageChain:
         msgchain = []
         if reply:
             msgchain.append(Plain(random.choice(reply)))
@@ -167,6 +167,9 @@ if __name__ == '__main__':
         if rndimg:
             msgchain.append(
                 Image(path=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
+        if imgpath:
+            msgchain.append(
+                Image(path=f"{imgpath}"))
         return MessageChain(msgchain)
 
 
@@ -320,12 +323,13 @@ if __name__ == '__main__':
             if is_havingadmin(event):
                 groupid = event.group.id
                 if groupid in config['setugroups']:
-                    await bot.send(event, getreply(text="本群已开启色图",rndimg=True))
+                    await bot.send(event, getreply(text="本群已开启色图", rndimg=True))
                 else:
                     config['setugroups'].append(groupid)
                     with open(r'./config.yml', 'w') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     await bot.send(event, getreply(text="色图开启成功", rndimg=True))
+
 
     @bot.on(GroupMessage)
     async def disablesetu(event: GroupMessage):
@@ -339,16 +343,17 @@ if __name__ == '__main__':
                     config['setugroups'].remove(groupid)
                     with open(r'./config.yml', 'w') as file:
                         yaml.dump(config, file, allow_unicode=True)
-                    await bot.send(event, getreply(text="色图已关闭",rndimg=True))
+                    await bot.send(event, getreply(text="色图已关闭", rndimg=True))
                 else:
                     await bot.send(event, getreply(text="本群色图已关闭", rndimg=True))
+
 
     @bot.on(GroupMessage)
     async def setu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
         m1 = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
-        m2 = re.match(fr"^{commandpre}来张(\w+)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
+        m2 = re.match(fr"^{commandpre}来(1|一)?(张|份)(\w+)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
         if m1:
             if random.random() * 100 < 10:
                 print(f"发出对{event.sender.id}的少冲提醒")
@@ -370,7 +375,7 @@ if __name__ == '__main__':
                 await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             else:
                 if settings['setu'] and event.group.id in config['setugroups']:
-                    imginfo = getsetu(m2.group(1))
+                    imginfo = getsetu(m2.group(3))
                     if imginfo['notFound']:
                         await bot.send(event, getreply(text="没找到该图片呢"))
                         return
@@ -404,7 +409,7 @@ if __name__ == '__main__':
             if m:
                 command = m.group(1)
                 group = event.group.id
-                if command in ['qhpt', '雀魂分数','雀魂pt']:
+                if command in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group not in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].append(group)
                         with open(r'./config.yml', 'w') as file:
@@ -445,7 +450,7 @@ if __name__ == '__main__':
             if m:
                 command = m.group(1)
                 group = event.group.id
-                if command in ['qhpt', '雀魂分数','雀魂pt']:
+                if command in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].remove(group)
                         with open(r'./config.yml', 'w') as file:
@@ -497,7 +502,7 @@ if __name__ == '__main__':
 
 
     @bot.on(GroupMessage)
-    async def getsomepaipu(event: GroupMessage):
+    async def getrecentqhpaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr'^{commandpre}(qhpaipu|雀魂最近对局)\s*([\w_、,\.，\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$', msg.strip())
@@ -506,22 +511,20 @@ if __name__ == '__main__':
                 playername = m.group(2)
                 searchtype = m.group(3)
                 if searchtype:
-                    if searchtype.strip() not in ['3', '4']:
+                    if searchtype not in ['3', '4']:
                         await bot.send(event, '牌局参数有误，请输入 3 或 4')
                         return
                     if m.group(4):
                         searchnumber = int(m.group(4))
                         if 0 < searchnumber < 11:
-                            await bot.send(event, getsomeqhpaipu(playername=playername.strip(),
-                                                                 type=searchtype,
-                                                                 counts=searchnumber))
+                            await bot.send(event,
+                                           getsomeqhpaipu(playername=playername, type=searchtype, counts=searchnumber))
                             return
                         else:
                             await bot.send(event, "牌局数量有误，最多支持10场牌局")
                             return
                     else:
-                        await bot.send(event, getsomepaipu(playername=playername.strip(),
-                                                           type=searchtype.strip()))
+                        await bot.send(event, getsomeqhpaipu(playername=playername, type=searchtype))
 
 
     @bot.on(GroupMessage)
@@ -542,9 +545,12 @@ if __name__ == '__main__':
                 else:
                     if model is None:
                         model = '基本'
-                    await bot.send(event, getplayerdetail(playername=playername,
-                                                          selecttype=selecttype,
-                                                          model=model))
+                    detail = getplayerdetail(playername=playername, selecttype=selecttype, model=model)
+                    if detail['error']:
+                        await bot.send(event, detail['msg'])
+                    else:
+                        await bot.send(event, Image(path=f'./images/MajsoulInfo/detail{playername}.png'))
+        return
 
 
     @bot.on(GroupMessage)
@@ -559,8 +565,11 @@ if __name__ == '__main__':
                 selecttype = m.group(3)
                 year = m.group(4)
                 month = m.group(5)
-                await bot.send(event, MessageChain([Plain(
-                    getmonthreport(playername=playername, selecttype=selecttype, year=year, month=month))]))
+                report = getmonthreport(playername=playername, selecttype=selecttype, year=year, month=month)
+                if report['error']:
+                    await bot.send(event, report['msg'])
+                else:
+                    await bot.send(event, MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
         return
 
 
@@ -618,13 +627,12 @@ if __name__ == '__main__':
         if m:
             if qhsettings['qhsl'] and event.group.id not in qhsettings['disslgroup']:
                 if m.group(2):
-                    if m.group(2) in ['限时', 'up', 'UP']:
+                    if m.group(2) in ['限时', '限定', 'up', 'UP']:
                         result = drawcards(userid=event.sender.id, up=True)
                         if result['error']:
                             return await bot.send(event,
                                                   MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
-                        mergeimgs(
-                            result.get('results'), event.sender.id)
+                        mergeimgs(result.get('results'), event.sender.id)
                         await bot.send(event, MessageChain([
                             At(event.sender.id),
                             Plain("\n 抽卡结果:\n"),
@@ -633,13 +641,12 @@ if __name__ == '__main__':
                         #     At(event.sender.id),
                         #     Plain(result['resultsmsg'])
                         # ]))
-                    elif m.group(2) in ['常驻', 'common', 'normal']:
+                    elif m.group(2) in ['常驻', '普通', 'common', 'normal']:
                         result = drawcards(userid=event.sender.id, up=False)
                         if result['error']:
                             return await bot.send(event,
                                                   MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
-                        mergeimgs(
-                            result.get('results'), event.sender.id)
+                        mergeimgs(result.get('results'), event.sender.id)
                         await bot.send(event, MessageChain([
                             At(event.sender.id),
                             Plain("\n 抽卡结果:\n"),
@@ -689,7 +696,8 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、,，\'\\\.!]+)\s*$', msg.strip())
         if m:
-            await bot.send(event,getthpt(m.group(2)))
+            await bot.send(event, getthpt(m.group(2)))
+
 
     @bot.on(GroupMessage)
     async def addtenhouwatch(event: GroupMessage):
@@ -1150,22 +1158,37 @@ if __name__ == '__main__':
                         if sender in admin:
                             await bot.send_group_message(event.subject.id,
                                                          MessageChain(
-                                                             [Plain(random.choice(replydata['nudgedate']['admin']))]))
+                                                             [Plain(random.choice(replydata['nudgedata']['admin']))]))
                             await petpet(target)
                             await bot.send_group_message(event.subject.id,
                                                          MessageChain(
                                                              Image(
                                                                  path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
                         else:
-                            await bot.send_group_message(event.subject.id,
-                                                         MessageChain(
-                                                             [Plain(random.choice(replydata['nudgedate']['other']))]))
+                            if random.random() < 0.2:
+                                if random.random() < 0.2:
+                                    await bot.send_group_message(event.subject.id,
+                                                                 getreply(
+                                                                     reply=replydata['nudgedata']['supernudgereply'],
+                                                                     rndimg=True))
+                                    for i in range(10):
+                                        await bot.send_nudge(subject=target, target=event.subject.id)
+                                    return
+                                else:
+                                    return await bot.send_group_message(event.subject.id,
+                                                                 getreply(reply=replydata['nudgedata']['nudgereply'],
+                                                                          rndimg=True))
+                            else:
+                                return await bot.send_group_message(event.subject.id,
+                                                             MessageChain(
+                                                                 [Plain(
+                                                                     random.choice(replydata['nudgedata']['other']))]))
                     else:
                         await petpet(target)
                         await bot.send_group_message(event.subject.id,
                                                      MessageChain(
                                                          Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
-
+        return
 
     # 群龙王
     # @bot.on(GroupEvent)

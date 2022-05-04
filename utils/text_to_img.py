@@ -14,13 +14,13 @@ def whitebgk_blacktext(path: str,text: Iterable = None, fontsize: int = 20,
         font = ImageFont.truetype(
             font='./data/fonts/MiSans-Light.ttf', size=fontsize)
     if type(text) == str:
-        texts = text.split('\n')
+        texts = text.replace('\t','   ').split('\n')
     elif type(text) == dict:
         for k, v in text.items():
-            texts.append(f'{k}:{v}'.strip())
+            texts.append(f'{k}:{v}'.replace('\t','   ').strip())
     elif type(text) in [list, set, tuple]:
         for item in text:
-            texts.append(f'{item}'.strip())
+            texts.append(f'{item}'.replace('\t','   ').strip())
     for t in texts:
         if len(t.strip()) > textlength:
             textlength = len(t)

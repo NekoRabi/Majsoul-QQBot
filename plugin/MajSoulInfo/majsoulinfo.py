@@ -14,11 +14,14 @@ import random
 import yaml
 from requests.adapters import HTTPAdapter
 
+from utils.text_to_img import whitebgk_blacktext
+from utils.asyrequestpackge import finish_all_asytasks
+
 asytimeout = aiohttp.ClientTimeout(total=60)
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
-infomodel = dict(基本=['胡牌率', '放铳率', '自摸率', '默胡率', '流局率', '流听率', '副露率', '立直率', '胡了巡数', '平均打点', '平均铳点', '平均顺位', '被飞率'],
+infomodel = dict(基本=['和牌率', '放铳率', '自摸率', '默听率', '流局率', '流听率', '副露率', '立直率', '和了巡数', '平均打点', '平均铳点', '平均顺位', '被飞率'],
                  立直=['立直率', '立直和了', '立直放铳A', '立直放铳B', '立直收支', '立直收入', '立直支出', '先制率', '追立率', '被追率', '立直巡目', '立直流局',
                      '一发率', '振听率', '立直多面', '立直好型'],
                  更多=['最大连庄', '里宝率', '被炸率', '平均被炸点数', '放铳时立直率', '放铳时副露率', '副露后放铳率', '副露后流局率', '副露后和牌率', '打点效率', '铳点损失',
@@ -36,7 +39,8 @@ user_agent_list = [
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
 ]
 
-aiotimeout = aiohttp.ClientTimeout(total=20)
+aiotimeout = aiohttp.ClientTimeout(total=10)
+
 
 def getcertaininfo(username: str, selecttype: str = "", selectindex: int = 0):
     s = requests.Session()
@@ -53,14 +57,6 @@ def getcertaininfo(username: str, selecttype: str = "", selectindex: int = 0):
         xhr = s.get(url=url,
                     headers={'User-Agent': random.choice(user_agent_list), "Connection": "close"}, timeout=10)
         playerinfo = eval(xhr.text)
-        # tasks = [asyncio.ensure_future(asyrequest(url=url))]
-        # loop = asyncio.get_event_loop()
-        # tasks = asyncio.gather(*tasks)
-        # loop.run_until_complete(tasks)
-        # for results in tasks.result():
-        #     if len(results) > 0:
-        #         xhr = eval(results)
-        #         playerinfo = xhr
         if len(playerinfo) == 0:
             return "不存在该玩家"
         elif len(playerinfo) < selectindex:
@@ -73,8 +69,7 @@ def getcertaininfo(username: str, selecttype: str = "", selectindex: int = 0):
                 prtmsg = f"玩家名: {playername}"
                 levelinfo = playerinfo.get("level")
                 level = levelinfo.get("id")
-                score = int(levelinfo.get("score")) + \
-                        int(levelinfo.get("delta"))
+                score = int(levelinfo.get("score")) + int(levelinfo.get("delta"))
                 prtmsg += levelswitch(level, score, typename)
                 cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
                 cursor = cx.cursor()
@@ -139,9 +134,9 @@ def getinfo(username: str, selecttype: str = "", selectindex: int = 0):
         return dict(error=True, muti3=muti3, muti4=muti4)
 
 
-def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, model='基本') -> str:
+def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, model='基本') -> dict:
     if not model in ['基本', '更多', '立直', '血统', 'all']:
-        return "参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'"
+        return dict(msg="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'", error=True)
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 
     cursor = cx.cursor()
@@ -152,16 +147,18 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
     s = requests.Session()
     if len(playerid) == 0:
         print("数据库中无此用户，请先查询该用户。")
-        return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
+        return dict(msg="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。", error=True)
     playerid = playerid[0][0]
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
     headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
     nowtime = time.time()
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
+    rule = "三麻"
     try:
         if selecttype == "4":
-            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8"
+            rule = "四麻"
+            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8 "
         else:
             url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26"
         xhr = s.get(url,
@@ -169,13 +166,13 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
                     headers=headers)
     except requests.exceptions.ConnectionError as e:
         print(f"查询发生了错误:\t{e}\n")
-        return "查询时发生错误,请稍后再试。\tConnectionError"
+        return dict(msg="查询时发生错误,请稍后再试。\tConnectionError", eror=True)
     except requests.exceptions.ReadTimeout as e:
         print(f'读取超时:\t{e}\n')
-        return "读取超时，请稍后再试。\tReadTimeOut"
+        return dict(msg="读取超时，请稍后再试。\tReadTimeOut", error=True)
     text = xhr.text.replace("null", "0.0")
     content: dict = eval(text)
-    msg = f" 以下是玩家 {playername} 的数据:\n"
+    msg = f" 以下是玩家 {playername} 的{rule}数据:\n"
     for (k, v) in content.items():
         if type(v) not in [list, dict]:
             if str(k) in ["id", "count"]:
@@ -197,15 +194,31 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
                         msg += f"{k:<12} : {v:2.2f}\n"
                 else:
                     msg += f"{k} : {v}\n"
-    return msg
+    whitebgk_blacktext(path=f"MajsoulInfo/detail{playername}.png", text=msg)
+    return dict(msg=msg, error=False)
 
 
 def getsomeqhpaipu(playername: str, type="4", counts=5):
     nowtime = time.time()
     ptupdate = 0
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
-    cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 
+    async def asyrequest(playerid, type, counts) -> list:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
+                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
+
+            if type == "4":
+                async with session.get(
+                        f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=8,9,11,12,15,16&descending=true") as response:
+                    text = await response.text()
+            else:
+                async with session.get(
+                        f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=21,22,23,24,25,26&descending=true") as response:
+                    text = await response.text()
+        text = eval(text.replace("false", "False"))
+        return text
+
+    cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(
         f"select playerid from qhplayer where playername = '{playername}'")
@@ -216,42 +229,61 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
         print("数据库中无此用户，请先查询该用户。")
         return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
     playerid = playerid[0][0]
-    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
     paipuInfo = f"最近{counts}场对局信息如下：\n"
-    s = requests.Session()
-    s.mount('http://', HTTPAdapter(max_retries=3))
-    s.mount('https://', HTTPAdapter(max_retries=3))
-    try:
-        if type == '3':
-            url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=21,22,23,24,25,26&descending=true"
-        else:
-            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=8,9,11,12,15,16&descending=true"
-        xhr = s.get(url=url, headers=headers, timeout=3)
-        content = eval(xhr.text)
-        if len(content) == 0:
-            return "未查询到对局信息"
-        for item in content:
-            paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
-            startTime = time.strftime(
-                '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
-            endTime = time.strftime('%Y-%m-%d %H:%M:%S',
-                                    time.localtime(item["endTime"]))
-            players = item['players']
-            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
-            paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            for player in players:
-                if player['nickname'].strip() == playername.strip():
-                    ptupdate += int(player['gradingScore'])
-                paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
-            paipuInfo += "\n"
-        paipuInfo += f"\n总PT变化 : {ptupdate}"
-        return paipuInfo
-    except requests.exceptions.ConnectionError as e:
-        print(f"查询发生了错误:\t{e}\n")
-        return "连接失败，请稍后重试 ConnectionError"
-    except requests.exceptions.ReadTimeout as e:
-        print(f'读取超时:\t{e}\n')
-        return "读取超时，请稍后重试 ReadTimeOut"
+    content = finish_all_asytasks([asyrequest(playerid=playerid, type=type, counts=counts)])[0]
+    for item in content:
+        paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
+        startTime = time.strftime(
+            '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
+        endTime = time.strftime('%Y-%m-%d %H:%M:%S',
+                                time.localtime(item["endTime"]))
+        players = item['players']
+        paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
+        paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
+        for player in players:
+            if player['nickname'].strip() == playername.strip():
+                ptupdate += int(player['gradingScore'])
+            paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
+        paipuInfo += "\n"
+    paipuInfo += f"\n总PT变化 : {ptupdate}"
+    return paipuInfo
+    # s = requests.Session()
+    # s.mount('http://', HTTPAdapter(max_retries=3))
+    # s.mount('https://', HTTPAdapter(max_retries=3))
+
+
+#    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
+# try:
+#     if type == '3':
+#         url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=21,22,23,24,25,26&descending=true"
+#     else:
+#         url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=8,9,11,12,15,16&descending=true"
+#     xhr = s.get(url=url, headers=headers, timeout=3)
+#     content = eval(xhr.text)
+#     if len(content) == 0:
+#         return "未查询到对局信息"
+#     for item in content:
+#         paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
+#         startTime = time.strftime(
+#             '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
+#         endTime = time.strftime('%Y-%m-%d %H:%M:%S',
+#                                 time.localtime(item["endTime"]))
+#         players = item['players']
+#         paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
+#         paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
+#         for player in players:
+#             if player['nickname'].strip() == playername.strip():
+#                 ptupdate += int(player['gradingScore'])
+#             paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
+#         paipuInfo += "\n"
+#     paipuInfo += f"\n总PT变化 : {ptupdate}"
+#     return paipuInfo
+# except requests.exceptions.ConnectionError as e:
+#     print(f"查询发生了错误:\t{e}\n")
+#     return "连接失败，请稍后重试 ConnectionError"
+# except requests.exceptions.ReadTimeout as e:
+#     print(f'读取超时:\t{e}\n')
+#     return "读取超时，请稍后重试 ReadTimeOut"
 
 
 def getpaipu(playerid: str) -> dict:
@@ -294,7 +326,7 @@ def getpaipu(playerid: str) -> dict:
 
 async def paipu_pl3(playeridlist, nowtime):
     contentlist = []
-    if len(playeridlist)>=25:
+    if len(playeridlist) >= 25:
         timeout = aiohttp.ClientTimeout(total=15)
     else:
         timeout = asytimeout
@@ -320,7 +352,7 @@ async def paipu_pl3(playeridlist, nowtime):
 # 返回一个 list，内容为 [{groupid:groupid,msg:msg}]
 async def paipu_pl4(playeridlist, nowtime) -> list:
     contentlist = []
-    if len(playeridlist)>=25:
+    if len(playeridlist) >= 25:
         timeout = aiohttp.ClientTimeout(total=15)
     else:
         timeout = asytimeout
@@ -595,7 +627,7 @@ def drawcards(userid: int, up=False) -> dict:
                   '2gift': 0, 'person': 0, 'decoration': 0}
     results = []
     resultsmsg = "\n您的抽卡结果依次为:\n"
-    with open(r'./config/MajSoulInfo/drawcards.yml', 'r') as f:
+    with open(r'./config/MajSoulInfo/drawcards.yml', 'r', encoding='gbk') as f:
 
         config = yaml.safe_load(f)
         lottery = config['lottery']
@@ -713,7 +745,7 @@ def addwatch(playername: str, groupid: int):
     return "添加成功"
 
 
-def getmonthreport(playername: str, selecttype: str, year: str, month: str):
+def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> dict:
     def getrank(playerinfo: dict):
         return playerinfo['score']
 
@@ -738,7 +770,7 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
     cx.close()
     if len(playerid) == 0:
         print("数据库中无此用户，请先查询该用户。")
-        return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
+        return dict(msg="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。", error=True)
     playerid = playerid[0][0]
     selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
     nextmontht = int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
@@ -759,7 +791,7 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}"
                 "?limit=399&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
         paipuresponse = eval(paipuresponse.text)
-        paipumsg += f"总共进行了{len(paipuresponse)}场对局,共计"
+        paipumsg += f"总共进行了{len(paipuresponse)}场对局\n共计"
         for players in paipuresponse:
             temp: list = players['players']
             temp.sort(key=getrank)
@@ -780,19 +812,19 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
         averagerank = (rankdict['1'] + rankdict['2'] * 2 +
                        rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
         if selecttype == "4":
-            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}"
+            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}\n"
         else:
-            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,平均顺位:{averagerank:1.2f}"
+            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,平均顺位:{averagerank:1.2f}\n"
         if rankdict['fly'] > 0:
-            paipumsg += f",其中被飞了{rankdict['fly']}次"
-        paipumsg += f"。PT总得失: {ptchange}\n"
+            paipumsg += f"其中被飞了{rankdict['fly']}次,"
+        paipumsg += f"PT总得失: {ptchange}\n\n"
         msg += paipumsg
     except requests.exceptions.ConnectionError as e:
         print(f"\n牌谱查询超时:\t{e}\n")
-        return "查询超时"
+        return dict(msg="查询超时,请再试一次", error=True)
     except requests.exceptions.ReadTimeout as e:
         print(f'\n牌谱读取超时:\t{e}\n')
-        return "查询超时"
+        return dict(msg="查询超时,请再试一次", error=True)
 
     try:
         if selecttype == "4":
@@ -808,17 +840,18 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str):
                 timeout=3,
                 headers=headers)
         inforesponse = eval(inforesponse.text.replace("null", "0.0"))
-        infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\n 副露率: {inforesponse['副露率'] * 100 :2.2f}%\n" \
-                  f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}%\n" \
-                  f" 默听率: {inforesponse['默听率'] * 100 :2.2f}%\n 平均打点: {inforesponse['平均打点']}\n 平均铳点 : {inforesponse['平均铳点']}"
+        infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\t 副露率: {inforesponse['副露率'] * 100 :2.2f}%\t " \
+                  f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}%\t " \
+                  f" 默听率: {inforesponse['默听率'] * 100 :2.2f}%\n 平均打点: {inforesponse['平均打点']}\t 平均铳点 : {inforesponse['平均铳点']}"
         msg += infomsg
     except requests.exceptions.ConnectionError as e:
         print(f"\n玩家详情查询超时:\t{e}\n")
-        return "查询超时"
+        return dict(msg="查询超时,请再试一次", error=True)
     except requests.exceptions.ReadTimeout as e:
         print(f'\n玩家详情读取超时:\t{e}\n')
-        return "查询超时"
-    return msg
+        return dict(msg="查询超时,请再试一次", error=True)
+    whitebgk_blacktext(path=f"MajsoulInfo/yb{playername}.png", text=msg)
+    return dict(msg=msg, error=False)
 
 
 def removewatch(playername: str, groupid: int) -> str:
@@ -932,8 +965,8 @@ def msganalysis(infos: list) -> list:
             '%Y-%m-%d %H:%M:%S', time.localtime(msgitem["startTime"]))
         endTime = time.strftime('%Y-%m-%d %H:%M:%S',
                                 time.localtime(msgitem["endTime"]))
-        players:list = msgitem['players']
-        players.sort(key=getScore,reverse=True)
+        players: list = msgitem['players']
+        players.sort(key=getScore, reverse=True)
         try:
             if len(players) == 3:
                 cursor.execute(
