@@ -1,10 +1,10 @@
 import random
 
 import aiohttp
-import os
-import asyncio
+import json
 
 from utils.asyrequestpackge import finish_all_asytasks
+
 '''
 r18	int	0	0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
 num	int	1	一次返回的结果数量，范围为1到100；在指定关键字或标签的情况下，结果数量可能会不足指定的数量
@@ -41,29 +41,45 @@ def keyword_transform(keywords: str, value):
         return tag
 
 
-async def getsetuinfo(tag: str) -> dict:
-    timeout = aiohttp.ClientTimeout(total=10)
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=timeout,
+async def getsetuinfo(description: str, num: int) -> dict:
+    tag = description
+    r18 = False
+    if tag:
+        tag = tag.replace('的', '')
+        if 'r18' in tag:
+            tag = tag.replace('r18', '').strip()
+            r18 = True
+        elif 'R18' in tag:
+            tag = tag.replace('R18', '').strip()
+            r18 = True
+    keyword = {}
+    url = f"https://api.lolicon.app/setu/v2?num={num}"
+    if tag and tag != '':
+        keyword['tag'] = tag
+    if r18:
+        keyword['r18'] = 1
+    if len(keyword) > 0:
+        for k, v in keyword.items():
+            url += f'&{k}={v}'
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5),
+                                     timeout=aiohttp.ClientTimeout(total=10),
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
-
-        if tag:
-            async with session.get(f"https://api.lolicon.app/setu/v2?tag={tag}") as response:
-                text = await response.text()
-        else:
-            async with session.get(f"https://api.lolicon.app/setu/v2") as response:
-                text = await response.text()
-    text = eval(text.replace("false", "False"))
+        async with session.get(f"{url}") as response:
+            text = await response.text()
+    print(text)
+    text = json.loads(text)
     return text
 
 
-def getsetu(tag: str = "",r18:bool=False) -> dict:
-    content = finish_all_asytasks([getsetuinfo(tag)])
+def getsetu(description, num=1) -> dict:
+    if not num:
+        num = 1
+    content = finish_all_asytasks([getsetuinfo(description, num)])
     response = content[0]
-    print(response)
     if len(response['data']) == 0:
         imginfo = dict(notFound=True)
     else:
         imginfo: dict = response['data'][0]
         imginfo['notFound'] = False
-        imginfo['url'] = imginfo['urls']['original'].replace("cat",  "re")
+        imginfo['url'] = imginfo['urls']['original'].replace("cat", "re")
     return imginfo

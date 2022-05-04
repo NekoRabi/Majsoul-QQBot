@@ -352,8 +352,8 @@ if __name__ == '__main__':
     async def setu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m1 = re.match(fr'^{commandpre}(色图|涩图|setu)\s*(\w+)?\s*$', msg.strip())
-        m2 = re.match(fr"^{commandpre}来(1|一)?(张|份)(\w+)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
+        m1 = re.match(fr'^{commandpre}(色图|涩图|setu)\s*([\w\d]+)?\s*$', msg.strip())
+        m2 = re.match(fr"^{commandpre}来(\d)*(张|份)([\w\d]+)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
         if m1:
             if random.random() * 100 < 10:
                 print(f"发出对{event.sender.id}的少冲提醒")
@@ -375,7 +375,7 @@ if __name__ == '__main__':
                 await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             else:
                 if settings['setu'] and event.group.id in config['setugroups']:
-                    imginfo = getsetu(m2.group(3))
+                    imginfo = getsetu(m2.group(3),m2.group(2))
                     if imginfo['notFound']:
                         await bot.send(event, getreply(text="没找到该图片呢"))
                         return
@@ -1148,13 +1148,15 @@ if __name__ == '__main__':
     async def Nudgepetpet(event: NudgeEvent):
 
         # await bot.send(event,NudgeEvent(from_id=bot.qq,target=event.from_id))
+        sender = event.from_id
 
+        if sender == bot.qq:
+            return
         if (not settings['silence']) or settings['nudgereply']:
             if event.subject.kind == 'Group':
                 if not (event.subject.id in silencegroup or event.subject.id in disnudgegroup):
                     target = event.target
                     if target == bot.qq:
-                        sender = event.from_id
                         if sender in admin:
                             await bot.send_group_message(event.subject.id,
                                                          MessageChain(
@@ -1172,23 +1174,27 @@ if __name__ == '__main__':
                                                                      reply=replydata['nudgedata']['supernudgereply'],
                                                                      rndimg=True))
                                     for i in range(10):
-                                        await bot.send_nudge(subject=target, target=event.subject.id)
+                                        await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
                                     return
                                 else:
+                                    await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
                                     return await bot.send_group_message(event.subject.id,
-                                                                 getreply(reply=replydata['nudgedata']['nudgereply'],
-                                                                          rndimg=True))
+                                                                        getreply(
+                                                                            reply=replydata['nudgedata']['nudgereply'],
+                                                                            rndimg=True))
                             else:
                                 return await bot.send_group_message(event.subject.id,
-                                                             MessageChain(
-                                                                 [Plain(
-                                                                     random.choice(replydata['nudgedata']['other']))]))
+                                                                    MessageChain(
+                                                                        [Plain(
+                                                                            random.choice(
+                                                                                replydata['nudgedata']['other']))]))
                     else:
                         await petpet(target)
                         await bot.send_group_message(event.subject.id,
                                                      MessageChain(
                                                          Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
         return
+
 
     # 群龙王
     # @bot.on(GroupEvent)

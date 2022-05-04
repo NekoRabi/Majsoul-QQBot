@@ -39,14 +39,6 @@ bordercast_temple = {
 
 timeout = aiohttp.ClientTimeout(total=330)
 
-def th_rank(playername:str):
-    # IPython2 测试代码
-
-    # 导入 webdriver
-    from selenium import webdriver
-
-
-
 # 解压gz
 def un_gz(file_name):
     """ungz zip file"""
@@ -185,8 +177,8 @@ async def asyautoget_th_match() -> list:
                 plname = re.sub(r"[(\d+\.\-)]", "", players)
                 plname = plname.split(' ')
                 players = players.split(' ')
-                for p in plname:
-                    if p in playername:
+                for p in playername:
+                    if p in plname:
                         print(f"{datas}\n")
                         cursor.execute(
                             f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
