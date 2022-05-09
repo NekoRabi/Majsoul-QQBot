@@ -1,6 +1,5 @@
 # Majsoul-QQBot
-一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱
-、玩家详情、模拟十连、入群欢迎 和 制作图片等功能，现在还能监控群友打天凤。
+一个基于YiriMirai的QQ机器人，有查询雀魂玩家信息、播报牌谱、玩家详情、模拟十连、入群欢迎 和 制作图片等功能，现在还能监控群友打天凤。
 
  [指令帮助](./command_help.md)
 
@@ -58,13 +57,11 @@
 
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
-我也提供了自己的Mirai，可以直接使用
-
 # 环境
 
 我自己电脑是Python 3.8   Java 15， 服务器是 Python 3.9   Java 17.
 
-已知Python 3.10 跑不起来，如已安装，请降级安装python 3.9
+已知Python 3.10 可能有问题跑不起来，如已安装并报错，请降级安装python 3.8-9 *以后会去解决3.10的问题*
 
 # 关于风控
 
@@ -85,20 +82,18 @@ adapter: # Mirai
   port: 17280
   verify_key: NekoRabi
 
-loglevel: INFO # 日志等级
+botconfig:
+  botname: '' # 机器人名字
+  qq: 123456  # 机器人QQ
 
-admin: # 以下都是机器人的管理员
+admin: # 以下都是管理员
   - 1215791340
 
-alarmclockgroup: # 设置准点报时的群聊
+alarmclockgroup: # 设置闹钟群聊
   - 0
 
 blacklist: # 黑名单
   - 0
-
-botconfig:
-  botname: '' # 机器人名字
-  qq: 123456  # 机器人QQ
 
 mutegrouplist:
   - 0
@@ -107,38 +102,48 @@ commandpre: ''  # 指令前缀
 
 master: 0  # 机器人主人
 
-searchfrequency: 5 # 查询频率，建议为 6
+searchfrequency: 6 # 查询频率，建议为 6
 
-replyimgpath : 真寻 # 自动回复时，随机图片所在的文件夹
+replyimgpath : 真寻 # 表情包路径
+
+loglevel: INFO # 日志等级
+
+# 在某群禁用 摸头事件
+disnudgegroup:
+  - 0
+
+# 在某群关闭自动回复
+norepeatgroup:
+  - 0
+
+silencegroup:
+  - 0     # 设置单群沉默
+
+welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
+  - 欢迎%ps%加入%gn%
+
+whitelist:
+  - 0   # 白名单
+
+# 开启色图的群聊
+setugroups:
+  - 0
 
 settings: # 各项开关
   autogetpaipu: true  # 自动获取雀魂牌谱
   autowelcome: true   # 自动欢迎新人
   nudgereply: true    # 是否启用摸头事件
   r18talk: true       # 开启管理员词库
-  asyreptile: true    # 是否使用异步爬虫，机器人响应更快，但不稳定
   setu: false         # 色图
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
+  help: True
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
   repeatQ: 20         # 复读问号 的概率
   repeatmsg: 1        # 复读的概率
   interruptQ: 0.5     # 用 ? 打断发言的概率
   interruptQQ: 0.1    # 用 ? 或多个??打断发言的概率
-
-silencegroup:
-- 0     # 设置单群沉默
-
-welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
-- 欢迎%ps%加入%gn%
-
-whitelist:
-- 0   # 白名单
-
-# 色图群聊
-setugroups:
-  - 0
 
 # 雀魂指令控制
 qhsettings: # 是否启用
@@ -147,7 +152,7 @@ qhsettings: # 是否启用
   qhsl: true
   qhyb: true
   qhpaipu: true
-  disptgroup:   # 在某群禁用 qhpt
+  disptgroup: # 在某群禁用 qhpt
     - 0
   disinfogroup: # 在某群禁用 qhinfo
     - 0
@@ -155,18 +160,11 @@ qhsettings: # 是否启用
     - 0
   disybgroup:   # 在某群禁用 qhyb
     - 0
-  disautoquerygroup:
+  disautoquerygroup: 
     - 0
   dispaipugroup:  # 在某群禁用 qhpaipu
     - 0
 
-# 在某群禁用 摸头事件
-disnudgegroup:
- - 0
-
-# 在某群关闭自动回复
-norepeatgroup:
-  - 0
 
 
  ```
@@ -250,26 +248,22 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  # 功能
 
  - 雀魂相关功能，如模拟抽卡，查询玩家信息，定时播报玩家最近战绩
- - 天凤对局播报
+ - 天凤对局播报，段位查询
  - 入群欢迎
  - 摸头、互亲、举牌、~~色图~~等图片相关功能
  - 强交互性，提供自定义回复
  - 以后会有更多
 
  # 存在的问题
- 1. ~~查询玩家信息的时候仍然会卡死，可能是由于超时。~~（已解决）
- 2. 自动抓取牌谱时存在较长时间的无响应 (在setting中 启用异步爬虫以解决此问题)
- 3. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
+ 1. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  解决办法: 将config.yml用GBK编码打开并保存 
- 4. 涩图请求超时(也许解决了)
+ 2. 涩图请求超时(也许解决了)
 
  # 开发计划
 
   [ ] 数据库重新设计
 
   [ ] 增加何切支持
-  
-  [ ] 更多更多的功能
 
   [?] 将所有功能都写进配置文件，提供高度自定义
 

@@ -3,7 +3,9 @@ adapter: # Mirai
   port: 17280
   verify_key: NekoRabi
 
-loglevel: INFO # 日志等级
+botconfig:
+  botname: '' # 机器人名字
+  qq: 123456  # 机器人QQ
 
 admin: # 以下都是管理员
   - 1215791340
@@ -14,41 +16,55 @@ alarmclockgroup: # 设置闹钟群聊
 blacklist: # 黑名单
   - 0
 
-botconfig:
-  botname: '' # 机器人名字
-  qq: 123456  # 机器人QQ
+mutegrouplist:
+  - 0
 
 commandpre: ''  # 指令前缀
 
 master: 0  # 机器人主人
 
-mutegrouplist:
-  - 0
 searchfrequency: 6 # 查询频率，建议为 6
+
+replyimgpath : 真寻 # 表情包路径
+
+loglevel: INFO # 日志等级
+
+# 在某群禁用 摸头事件
+disnudgegroup:
+  - 0
+
+# 在某群关闭自动回复
+norepeatgroup:
+  - 0
+
+silencegroup:
+  - 0     # 设置单群沉默
+
+welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
+  - 欢迎%ps%加入%gn%
+
+whitelist:
+  - 0   # 白名单
+
+# 开启色图的群聊
+setugroups:
+  - 0
+
 settings: # 各项开关
   autogetpaipu: true  # 自动获取雀魂牌谱
   autowelcome: true   # 自动欢迎新人
   nudgereply: true    # 是否启用摸头事件
   r18talk: true       # 开启管理员词库
-  asyreptile: true    # 是否启用异步爬虫，机器人响应更快，但不稳定
   setu: false         # 色图
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
+  help: True
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
   repeatQ: 20         # 复读问号 的概率
   repeatmsg: 1        # 复读的概率
   interruptQ: 0.5     # 用 ? 打断发言的概率
-  interruptQQ: 0.1    # 用 ¿ 或多个??打断发言的概率
-
-silencegroup:
-- 0     # 设置单群沉默
-
-welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
-- 欢迎%ps%加入%gn%
-
-whitelist:
-- 0   # 白名单
+  interruptQQ: 0.1    # 用 ? 或多个??打断发言的概率
 
 # 雀魂指令控制
 qhsettings: # 是否启用
@@ -59,26 +75,13 @@ qhsettings: # 是否启用
   qhpaipu: true
   disptgroup: # 在某群禁用 qhpt
     - 0
-  disinfogroup:
+  disinfogroup: # 在某群禁用 qhinfo
     - 0
-  disslgroup:
+  disslgroup:   # 在某群禁用 qhsl
     - 0
-  disybgroup:
+  disybgroup:   # 在某群禁用 qhyb
     - 0
-  disautoquerygroup:
+  disautoquerygroup: 
     - 0
-  dispaipugroup:
+  dispaipugroup:  # 在某群禁用 qhpaipu
     - 0
-
-
-# 色图群聊
-setugroups:
-  - 0
-  
-# 在某群禁用 摸头事件
-disnudgegroup:
- - 0
-
-# 在某群关闭自动回复
-norepeatgroup:
-  - 0
