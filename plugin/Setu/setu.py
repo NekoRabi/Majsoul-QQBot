@@ -1,5 +1,5 @@
 import random
-
+import yaml
 import aiohttp
 import json
 
@@ -29,16 +29,6 @@ user_agent_list = [
     "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
 ]
-
-
-def keyword_transform(keywords: str, value):
-    if keywords in ["r18", "num", "uid", "keyword", "size"]:
-        return f"{keywords}={value}"
-    elif keywords == "tag":
-        tag = ""
-        for v in value:
-            tag += f"{value}"
-        return tag
 
 
 async def getsetuinfo(description: str, num: int) -> dict:
@@ -71,15 +61,42 @@ async def getsetuinfo(description: str, num: int) -> dict:
     return text
 
 
-def getsetu(description, num=1) -> dict:
-    if not num:
-        num = 1
-    content = finish_all_asytasks([getsetuinfo(description, num)])
-    response = content[0]
-    if len(response['data']) == 0:
-        imginfo = dict(notFound=True)
-    else:
-        imginfo: dict = response['data'][0]
-        imginfo['notFound'] = False
-        imginfo['url'] = imginfo['urls']['original'].replace("cat", "re")
-    return imginfo
+class setufinder:
+
+    def __init__(self,botname):
+        with open(r'./config/Setu/config.yml') as f:
+            config = yaml.safe_load(f)
+            self.r18setting = config['r18setting']
+            self.r18groups = config['r18groups']
+            self.allowsearchself = config['allowsearchself']
+            self.botname = botname
+
+    def keyword_transform(self, keywords: str, value):
+        if keywords in ["r18", "num", "uid", "keyword", "size"]:
+            return f"{keywords}={value}"
+        elif keywords == "tag":
+            tag = ""
+            for v in value:
+                tag += f"{value}"
+            return tag
+
+    def getsetu(self, description, groupid, num=1) -> dict:
+        if not num:
+            num = 1
+        if description:
+            if 'r18' in description or 'R18' in description:
+                if groupid not in self.r18groups:
+                    imginfo = dict(FoundError=True,ErrorMsg="本群未开启R18")
+                    return imginfo
+            if self.botname in description and not self.allowsearchself:
+                return dict(FoundError=True,ErrorMsg="不许搜咱的图")
+
+        content = finish_all_asytasks([getsetuinfo(description, num)])
+        response = content[0]
+        if len(response['data']) == 0:
+            imginfo = dict(FoundError=True,ErrorMsg="没找到这样的图片呢")
+        else:
+            imginfo: dict = response['data'][0]
+            imginfo['FoundError'] = False
+            imginfo['url'] = imginfo['urls']['original'].replace("cat", "re")
+        return imginfo
