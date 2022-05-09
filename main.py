@@ -1,8 +1,11 @@
+import logging
+
 import nest_asyncio
 import re
 import websockets.exceptions
 
 from plugin import *
+from utils.bufferpool import *
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
@@ -16,7 +19,7 @@ if __name__ == '__main__':
     config = load_config()
     replydata = load_replydata()
     create_helpimg()
-
+    cmdbuffer = commandcache()
     rootLogger = create_logger(config['loglevel'])
     qqlogger = getQQlogger()
 
@@ -35,25 +38,14 @@ if __name__ == '__main__':
     norepeatgroup = config['norepeatgroup']
     qhsettings = config['qhsettings']
     disnudgegroup = config['disnudgegroup']
-
+    stfinder = setufinder(botname)
     bot = create_bot(config)
+
+
 
     if master not in admin:
         admin.append(master)
     print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
-
-    replydata = ditc_shuffle(replydata)
-
-
-    # 自动获取雀魂牌谱
-    async def qh_autopaipu():
-        result = autoQueryPaipu()
-        logging.info(result)
-        for info in result:
-            for group in info['groups']:
-                await bot.send_group_message(group, info['text'])
-        return
-
 
     async def asyqh_autopaipu():
         result = asygetqhpaipu()
@@ -75,75 +67,6 @@ if __name__ == '__main__':
         return
 
 
-    # 自动获取天凤对局 - 普通爬虫
-    async def th_autopaipu():
-        print("开始查询天风结算信息")
-        msglist = autoget_th_match()
-        print(f'正在进行的对局有{msglist}')
-        for msgobj in msglist:
-            for group in msgobj['groups']:
-                await bot.send_group_message(group, msgobj['msg'])
-
-
-    # 自动获取天凤对局 - 异步爬虫
-    async def asyth_autopaipu():
-        print("开始查询天风结算信息")
-        tasks = [asyncio.ensure_future(asyautoget_th_match())]
-        loop = asyncio.get_event_loop()
-        tasks = asyncio.gather(*tasks)
-        loop.run_until_complete(tasks)
-        for results in tasks.result():
-            if len(results) > 0:
-                print(f'正在进行的对局有{results}')
-                for msgobj in results:
-                    for group in msgobj['groups']:
-                        await bot.send_group_message(group, msgobj['msg'])
-        return
-
-
-    # 自动广播天凤对局开始信息
-    async def asyth_broadcastmatch():
-        print("开始查询天风对局信息")
-
-        tasks = [asyncio.ensure_future(asyautoget_th_matching())]
-        loop = asyncio.get_event_loop()
-        tasks = asyncio.gather(*tasks)
-        loop.run_until_complete(tasks)
-
-        for results in tasks.result():
-            if len(results) > 0:
-                print(f'结算信息有:{results}')
-                for msgobj in results:
-                    for group in msgobj['groups']:
-                        await bot.send_group_message(group, msgobj['msg'])
-        return
-
-
-    async def th_broadcastmatch():
-        print("开始查询天风对局信息")
-        msglist = autoget_th_matching()
-        for msgobj in msglist:
-            for group in msgobj['groups']:
-                await bot.send_group_message(group, msgobj['msg'])
-        return
-
-
-    # 获取天凤的相关信息
-    async def asyth_auto():
-        print("开始查询天凤相关信息")
-        tasks = [asyncio.ensure_future(asyautoget_th_matching()), asyncio.ensure_future(asyautoget_th_match())]
-        loop = asyncio.get_event_loop()
-        tasks = asyncio.gather(*tasks)
-        loop.run_until_complete(tasks)
-
-        for results in tasks.result():
-            if len(results) > 0:
-                for msgobj in results:
-                    for group in msgobj['groups']:
-                        await bot.send_group_message(group, msgobj['msg'])
-        return
-
-
     def get_groupsender_permission(event: GroupMessage):
         return event.sender.permission
 
@@ -156,8 +79,11 @@ if __name__ == '__main__':
         return True
 
 
-    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None) -> MessageChain:
+    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None,at:int=None) -> MessageChain:
         msgchain = []
+        if at:
+            msgchain.append(At(at))
+            msgchain.append(" ")
         if reply:
             msgchain.append(Plain(random.choice(reply)))
         if text:
@@ -360,11 +286,12 @@ if __name__ == '__main__':
                 await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             else:
                 if settings['setu'] and event.group.id in config['setugroups']:
-                    imginfo = getsetu(m1.group(2))
-                    if imginfo['notFound']:
-                        await bot.send(event, getreply(text="没找到该图片呢"))
-                        return
+                    if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
+                        return bot.send(event, getreply(text="你冲的频率太频繁了,休息一下吧", rndimg=True, at=event.sender.id))
                     try:
+                        imginfo = stfinder.getsetu(m1.group(2),groupid=event.group.id)
+                        if imginfo['FoundError']:
+                            return await bot.send(event, getreply(text=imginfo['ErrorMsg']))
                         await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
                     except Exception as e:
                         print(f"色图请求失败:{e}")
@@ -375,11 +302,13 @@ if __name__ == '__main__':
                 await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             else:
                 if settings['setu'] and event.group.id in config['setugroups']:
-                    imginfo = getsetu(m2.group(3),m2.group(2))
-                    if imginfo['notFound']:
-                        await bot.send(event, getreply(text="没找到该图片呢"))
-                        return
+                    if not cmdbuffer.updategroupcache(groupcommand(event.group.id,event.sender.id,'setu')):
+                        return bot.send(event,getreply(text="你冲的频率太频繁了,休息一下吧",rndimg=True,at=event.sender.id))
+
                     try:
+                        imginfo = stfinder.getsetu(m2.group(3), event.group.id, m2.group(1))
+                        if imginfo['FoundError']:
+                            return await bot.send(event, getreply(text=imginfo['ErrorMsg']))
                         await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
                     except Exception as e:
                         print(f"色图请求失败:{e}")
@@ -394,7 +323,7 @@ if __name__ == '__main__':
     async def getmajsoulhelp(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}(help|帮助)\s*$', msg.strip())
-        if m:
+        if m and settings['help']:
             return await bot.send(event, Image(path="./images/help.png"))
 
 
@@ -491,13 +420,20 @@ if __name__ == '__main__':
         m = re.match(fr'^{commandpre}(qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$', msg.strip())
         if m:
             if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
+
+                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhpt')):
+                    return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 if m.group(3):
                     if m.group(4):
                         await bot.send(event, getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
                     else:
                         await bot.send(event, getcertaininfo(m.group(2), m.group(3)))
                 else:
-                    await bot.send(event, query(m.group(2)))
+                    result = query(m.group(2))
+                    if result['error']:
+                        await bot.send(event,result['msg'])
+                    else:
+                        await bot.send(event, Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
             return
 
 
@@ -508,6 +444,9 @@ if __name__ == '__main__':
             fr'^{commandpre}(qhpaipu|雀魂最近对局)\s*([\w_、,\.，\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$', msg.strip())
         if m:
             if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
+
+                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhpaipu')):
+                    return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 playername = m.group(2)
                 searchtype = m.group(3)
                 if searchtype:
@@ -536,6 +475,8 @@ if __name__ == '__main__':
         if m:
             if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
+                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhinfo')):
+                    return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 playername = m.group(2)
                 selecttype = m.group(3)
                 model = m.group(4)
@@ -558,9 +499,11 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
 
         m = re.match(
-            fr'^{commandpre}(qhyb|雀魂月报)\s*([\w_、,\.，\'\"!]+)\s*(3|4)\s*([0-9]{{1,4}})\-([0-9]{{1,2}})\s*$', msg.strip())
+            fr'^{commandpre}(qhyb|雀魂月报)\s*([\w_、,\.，\'\"!]+)\s*([34])?\s*([0-9]{{4}})?[-]?([0-9]{{1,2}})?\s*$', msg.strip())
         if m:
             if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
+                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhyb')):
+                    return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 playername = m.group(2)
                 selecttype = m.group(3)
                 year = m.group(4)
@@ -694,8 +637,11 @@ if __name__ == '__main__':
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、,，\'\\\.!]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、,，\'\\\.!！！]+)\s*$', msg.strip())
         if m:
+
+            if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'thpt')):
+                return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             await bot.send(event, getthpt(m.group(2)))
 
 
@@ -703,7 +649,7 @@ if __name__ == '__main__':
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thadd|天凤添加关注)\s*([\w_、,，\'\\\.!]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thadd|天凤添加关注)\s*([\w_、,，\'\\\.!！！]+)\s*$', msg.strip())
         if m:
             if is_havingadmin(event):
                 await bot.send(event, addthwatch(m.group(2), event.group.id))
@@ -715,7 +661,7 @@ if __name__ == '__main__':
     async def deltenhouwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thdel|天凤删除关注)\s*([\w_、,，\'\\\.!]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thdel|天凤删除关注)\s*([\w_、,，\'\\\.!！！]+)\s*$', msg.strip())
         if m:
             if is_havingadmin(event):
                 await bot.send(event,
@@ -775,6 +721,7 @@ if __name__ == '__main__':
         m = re.match(
             fr'''^{commandpre}举牌\s*([\u4e00-\u9fa5\w_%&',;:=?!^.$\x22，。？！]+)\s*$''', msg.strip())
         if m:
+
             if len(m.group(1)) > 40:
                 await bot.send(event, "最多支持做40个字的举牌哦~")
             imgoutput(event.sender.id, (m.group(1)))
@@ -1023,6 +970,11 @@ if __name__ == '__main__':
                     if '呆' not in m.group(1):
                         return await bot.send(event,
                                               f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
+                m1 = re.match(fr'^{commandpre}我超(\w+)\s*\.', msg.strip())
+                if m1:
+                    if '呆' not in m1.group(1):
+                        return await bot.send(event,f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
+
                 senderid = event.sender.id
                 if botname == "":
                     return
@@ -1100,11 +1052,14 @@ if __name__ == '__main__':
                 rootLogger.exception(e)
 
 
-    @bot.on(MessageEvent)
-    async def getremakeimg(event: MessageEvent):
+    @bot.on(GroupMessage)
+    async def getremakeimg(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}(重开|remake)\s*(\d+)?\s*(\w+)?\s*$', msg.strip())
         if m:
+
+            if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'remake')):
+                return bot.send(event, getreply(text="打断一下,想点好的,重开也太频繁了", rndimg=True, at=event.sender.id))
             senderid = event.sender.id
             if m.group(2):
                 basic_score = int(m.group(2))
@@ -1132,8 +1087,8 @@ if __name__ == '__main__':
 
     # 查询积分
 
-    @bot.on(GroupMessage)
-    async def getuserscore(event: GroupMessage):
+    @bot.on(MessageEvent)
+    async def getuserscore(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}\s*获取当前积分\s*$', msg.strip())
         if m:
@@ -1243,14 +1198,8 @@ if __name__ == '__main__':
             if settings['autogetpaipu']:
                 print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
                 try:
-                    if settings['asyreptile']:
-                        # await asyth_auto()
-                        await asyth_all()
-                        await asyqh_autopaipu()
-                    else:
-                        await th_autopaipu()
-                        await th_broadcastmatch()
-                        await qh_autopaipu()
+                    await asyth_all()
+                    await asyqh_autopaipu()
                 except sqlite3.OperationalError as e:
                     logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                     logging.warning(f'{e}')
@@ -1259,6 +1208,9 @@ if __name__ == '__main__':
                     logging.error(f'websockets发生错误{e}')
                     logging.exception(e)
                     exit(0)
+                except Exception as e:
+                    logging.error(f'发生未知错误{e}')
+                    logging.exception(e)
                 print(f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
 
 
