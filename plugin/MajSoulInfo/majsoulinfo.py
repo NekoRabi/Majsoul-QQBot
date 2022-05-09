@@ -6,15 +6,14 @@ import time
 import logging
 
 import aiohttp
-from PIL import Image
 import requests
 import sqlite3
 import random
-
+import json
 import yaml
 from requests.adapters import HTTPAdapter
-
-from utils.text_to_img import whitebgk_blacktext
+from PIL import Image
+from utils.text_to_img import text_to_image
 from utils.asyrequestpackge import finish_all_asytasks
 
 asytimeout = aiohttp.ClientTimeout(total=60)
@@ -42,7 +41,25 @@ user_agent_list = [
 aiotimeout = aiohttp.ClientTimeout(total=10)
 
 
-def getcertaininfo(username: str, selecttype: str = "", selectindex: int = 0):
+async def asysearchplayer(username, type = "3"):
+    if type == "3":
+        url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
+    else:
+        url = f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20"
+
+    try:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
+                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            if type == "4":
+                async with session.get(url) as response:
+                    text = await response.text()
+                    return dict(msg=json.loads(text), error=False)
+    except asyncio.exceptions.TimeoutError as e:
+        print(f"雀魂段位查询超时,{e}")
+        return dict(msg="查询超时，请再试一次", error=True)
+
+
+def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = 0):
     s = requests.Session()
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
@@ -99,6 +116,7 @@ def getinfo(username: str, selecttype: str = "", selectindex: int = 0):
     s4 = requests.Session()
     s4.mount('https://', HTTPAdapter(max_retries=3))
     s4.mount('https://', HTTPAdapter(max_retries=3))
+
     try:
         xhr3 = s3.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
@@ -194,7 +212,7 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
                         msg += f"{k:<12} : {v:2.2f}\n"
                 else:
                     msg += f"{k} : {v}\n"
-    whitebgk_blacktext(path=f"MajsoulInfo/detail{playername}.png", text=msg)
+    text_to_image(path=f"MajsoulInfo/detail{playername}.png", text=msg)
     return dict(msg=msg, error=False)
 
 
@@ -203,7 +221,7 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
     ptupdate = 0
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
 
-    async def asyrequest(playerid, type, counts) -> list:
+    async def asyrecordsrequest(playerid, type, counts) -> list:
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
 
@@ -230,7 +248,7 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
         return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
     playerid = playerid[0][0]
     paipuInfo = f"最近{counts}场对局信息如下：\n"
-    content = finish_all_asytasks([asyrequest(playerid=playerid, type=type, counts=counts)])[0]
+    content = finish_all_asytasks([asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
     for item in content:
         paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
         startTime = time.strftime(
@@ -295,6 +313,12 @@ def getpaipu(playerid: str) -> dict:
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
     '''四麻查询'''
+    # async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=asytimeout,
+    #                                  headers={'User-Agent': random.choice(user_agent_list)}) as session:
+    #     async with session.get(
+    #             f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
+    #         "?limit=1&mode=8,9,11,12,15,16&descending=true") as response:
+    #         content['p4'] = eval(await response.text())
     try:
         xhr4 = s.get(
             f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
@@ -330,7 +354,7 @@ async def paipu_pl3(playeridlist, nowtime):
         timeout = aiohttp.ClientTimeout(total=15)
     else:
         timeout = asytimeout
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=timeout,
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         for playerid in playeridlist:
             try:
@@ -356,7 +380,7 @@ async def paipu_pl4(playeridlist, nowtime) -> list:
         timeout = aiohttp.ClientTimeout(total=15)
     else:
         timeout = asytimeout
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False, limit=5), timeout=timeout,
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         for playerid in playeridlist:
             try:
@@ -536,16 +560,16 @@ def mergeimg(imgurls: list) -> Image:
 """查询雀魂用户信息"""
 
 
-def query(username: str, selecttype: str = "", selectindex: int = 0) -> str:
+def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
     userinfo = getinfo(username)
     if userinfo['error']:
-        return "查询超时"
+        return dict(msg="查询超时", error=True)
     prtmsg = "用户名:\t" + username
     playerid = userinfo['playerid']
     if playerid:
         pass
     else:
-        return "该用户不存在"
+        return dict(msg="该用户不存在", error=True)
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cx.commit()
@@ -560,8 +584,8 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> str:
     """三麻"""
     try:
         if userinfo['muti3']:
-            print("查到多位同名三麻玩家")
-            # prtmsg += f" \n\n查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
+            print("查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+            prtmsg += f"\n\n查到多位同名三麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
         user_p3_levelinfo = userinfo['pl3']
         user_p3_levelinfo = user_p3_levelinfo.get("level")
         p3_level = user_p3_levelinfo.get("id")
@@ -575,8 +599,8 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> str:
     """四麻"""
     try:
         if userinfo['muti4']:
-            print("查到多位同名四麻玩家")
-            # prtmsg += f" \n\n查到多位同名四麻玩家，将输出第一个，请确认是否是匹配的用户\n\n"
+            print("查到多位同名四麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+            prtmsg += f"\n\n查到多位同名四麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
         user_p4_levelinfo = userinfo['pl4']
         user_p4_levelinfo = user_p4_levelinfo.get("level")
         p4_level = user_p4_levelinfo.get("id")
@@ -586,7 +610,9 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> str:
     except AttributeError:
         print("查询不到四麻段位")
         prtmsg += "\n未查询到四麻段位。"
-    return prtmsg
+
+    text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
+    return dict(msg=prtmsg, error=False)
 
 
 def drawcards(userid: int, up=False) -> dict:
@@ -594,7 +620,6 @@ def drawcards(userid: int, up=False) -> dict:
         os.mkdir('./images/MajsoulInfo')
 
     today = datetime.datetime.now().strftime("%Y-%m-%d")
-    # cx = sqlite3.connect("./database/majsoul.sqlite")
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(
@@ -705,7 +730,6 @@ def drawcards(userid: int, up=False) -> dict:
 
 def addwatch(playername: str, groupid: int):
     print(f'groupid= {groupid},playername= {playername}')
-    # cx = sqlite3.connect("./database/majsoul.sqlite")
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cx.commit()
@@ -751,6 +775,10 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
 
     ptchange = 0
     msg = ""
+    if not selecttype:
+        selecttype = "4"
+    if not year or not month:
+        year, month = time.strftime("%Y-%m", time.localtime()).split('-')
     rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
     paipumsg = f"玩家{playername}在{year}年{month}月"
     selectmonth = f"{year}-{month}"
@@ -759,7 +787,6 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
         nextmonth = f"{int(year) + 1}-1"
     else:
         nextmonth = f"{year}-{int(month) + 1}"
-    # cx = sqlite3.connect('./database/majsoul.sqlite')
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 
     cursor = cx.cursor()
@@ -785,12 +812,14 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
         if selecttype == "4":
             paipuresponse = session_paipu.get(
                 f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nextmontht}/{selectmontht}"
-                "?limit=399&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
+                "?limit=599&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
         else:
             paipuresponse = session_paipu.get(
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}"
-                "?limit=399&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
+                "?limit=599&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
         paipuresponse = eval(paipuresponse.text)
+        if len(paipuresponse) == 0:
+            return dict(msg='该玩家这个月似乎没有进行过该类型的对局呢', error=True)
         paipumsg += f"总共进行了{len(paipuresponse)}场对局\n共计"
         for players in paipuresponse:
             temp: list = players['players']
@@ -850,7 +879,7 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
     except requests.exceptions.ReadTimeout as e:
         print(f'\n玩家详情读取超时:\t{e}\n')
         return dict(msg="查询超时,请再试一次", error=True)
-    whitebgk_blacktext(path=f"MajsoulInfo/yb{playername}.png", text=msg)
+    text_to_image(path=f"MajsoulInfo/yb{playername}.png", text=msg)
     return dict(msg=msg, error=False)
 
 
@@ -888,33 +917,6 @@ def getallwatcher(groupid: int) -> str:
         watcher.append(player[1])
         msg += str(player[1]) + ", "
     return msg
-
-
-def autoQueryPaipu() -> list:
-    cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
-    cursor = cx.cursor()
-    cursor.execute(f"select playerid,playername from watchedplayer")
-    players = cursor.fetchall()
-    watchedplayer = []
-    msglist = []
-    for player in players:
-        watchedplayer.append(player[0])
-    for playerid in watchedplayer:
-        paipu = getpaipu(playerid)
-        msgs = jiexi(paipu=paipu, playerid=playerid)
-        if len(msgs) == 0:
-            continue
-        for msg in msgs:
-            if msg['hasNewPaipu']:
-                print(msg['paipuInfo'])
-                cursor.execute(
-                    f"select groupid from group2player where playerid = {playerid}")
-                grouplist = cursor.fetchall()
-                groups = []
-                for groupid in grouplist:
-                    groups.append(groupid[0])
-                msglist.append(dict(text=msg['paipuInfo'], groups=groups))
-    return msglist
 
 
 def forwardmessage(msglist: list) -> list:

@@ -9,8 +9,8 @@ import pytz
 import re
 import sqlite3
 import os
-import requests
-import plugin.TenHouPlugin.ptcalculation
+from plugin.TenHouPlugin.ptcalculation import ptcalculation
+from utils.asyrequestpackge import finish_all_asytasks
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -39,6 +39,7 @@ bordercast_temple = {
 
 timeout = aiohttp.ClientTimeout(total=330)
 
+
 # 解压gz
 def un_gz(file_name):
     """ungz zip file"""
@@ -50,84 +51,6 @@ def un_gz(file_name):
     # gzip对象用read()打开后，写入open()建立的文件里。
     g_file.close()
     # 关闭gzip对象
-
-
-# 自动抓取天风结算 - 普通爬虫
-def autoget_th_match() -> list:
-    jptz = pytz.timezone('Asia/Tokyo')
-    zhtz = pytz.timezone('Asia/Shanghai')
-    minute = datetime.datetime.now(tz=zhtz).strftime("%M")
-    zhnowtime = datetime.datetime.now(tz=zhtz).strftime("%Y%m%d%H")
-    jpnowtime = datetime.datetime.now(tz=jptz).strftime("%Y%m%d%H")
-    zhdaytime = datetime.datetime.now(tz=zhtz).strftime("%Y-%m-%d")
-    jpdaytime = datetime.datetime.now(tz=jptz).strftime("%Y-%m-%d")
-
-    cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    cursor = cx.cursor()
-    if int(minute) <= 10:
-        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime)]
-    else:
-        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime), dict(nowtime=jpnowtime, daytime=jpdaytime)]
-
-    msglist = []
-    for usetime in timelist:
-        response = requests.get(f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
-                                headers={'User-Agent': random.choice(user_agent_list)}, allow_redirects=True)
-        open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(response.content)
-        un_gz(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
-        os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
-        cursor.execute("select playername from watchedplayer")
-        result = cursor.fetchall()
-        playername = []
-        for player in result:
-            playername.append(player[0])
-        with open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log', 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            for line in lines:
-                line = line.strip()
-                datas = line.split('|')
-                startTime = datas[0].replace('－ ', '')
-                duration = datas[1].strip()
-                model = datas[2].replace('－', '').strip()
-                players = datas[3].strip()
-                plname = re.sub(r"[(\d+\.\-)]", "", players)
-                plname = plname.split(' ')
-                players = players.split(' ')
-                for p in playername:
-                    if p in plname:
-                        print(f"{datas}\n")
-                        cursor.execute(
-                            f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
-                        record = cursor.fetchall()
-                        if len(record) > 0:
-                            print("该记录已存在")
-                            break
-                        print(f"检测到{p}新的对局信息")
-                        # msg = "检测到新的对局信息:\n"
-                        msg = ""
-                        msg += f"{model}\n"
-                        msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
-                        order = get_matchorder(playerlist=players, playername=p)
-                        if len(players) == 4:
-                            msg += f"{bordercast_temple[4][order]}\n\n".replace('%player%', p)
-                        else:
-                            msg += f"{bordercast_temple[3][order]}\n\n".replace('%player%', p)
-                        for item in players:
-                            msg += f"{item}\n"
-                        if len(players) == 3:
-                            cursor.execute(
-                                f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
-                        else:
-                            cursor.execute(
-                                f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")''')
-                        cx.commit()
-                        msglist.append(dict(playername=p, msg=msg))
-                        break
-        os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log')
-        print(msglist)
-    cursor.close()
-    cx.close()
-    return forwardmessage(msglist)
 
 
 # 自动抓取天风结算 - 异步爬虫
@@ -149,9 +72,6 @@ async def asyautoget_th_match() -> list:
 
     msglist = []
     for usetime in timelist:
-        # response = requests.get(f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
-        #                         headers={'User-Agent': random.choice(user_agent_list)}, allow_redirects=True)
-        # open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(response.content)
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False), timeout=timeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
             async with session.get(url=f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
@@ -212,73 +132,6 @@ async def asyautoget_th_match() -> list:
     cursor.close()
     cx.close()
     return forwardmessage(msglist)
-
-
-# 自动抓取天风对局 - 普通爬虫
-def autoget_th_matching() -> list:
-    gamingplayer = get_gaming_thplayers()
-    cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    cursor = cx.cursor()
-    cursor.execute("select playername from watchedplayer")
-    result = cursor.fetchall()
-    watchedplayers = set()
-    for player in result:
-        watchedplayers.add(player[0])
-
-    response = requests.get('https://mjv.jp/0/wg/0.js', headers={'User-Agent': random.choice(user_agent_list)},
-                            allow_redirects=True)
-    text = response.text
-
-    text = text[6:-4]
-    text = text.replace('\r\n', '').replace('",', '";').replace('"', '').split(';')
-    nowmatches = []
-    for infos in text:
-        info = infos.split(',')
-        duijuurl = info[0]
-        type = info[1]
-        time = info[2]
-        numberX = info[3]
-        players = []
-        for i in range(4, len(info), 3):
-            dstr = base64.b64decode(info[i]).decode('utf-8')
-            info[i] = dstr
-            player = dict(playername=info[i], playerlevel=info[i + 1], playerrank=info[i + 2])
-            players.append(player)
-        duiju = dict(url=duijuurl, type=type, time=time, numberX=numberX, players=players)
-        nowmatches.append(duiju)
-
-    eligible_Matches = []
-    for match in nowmatches:
-        matchplayer = get_thmatch_player(match)
-        player_t = ishaving_player_in_list(player_list=matchplayer, target_list=watchedplayers)
-        if player_t:
-            for gameplayer in gamingplayer:
-                if player_t == gameplayer['playername'] and gameplayer['url'] == match['url']:
-                    # tempmatch = dict(playername=player_t, match=match)
-                    # tempmatch = dict(playername=player_t, msg=matching2string(tempmatch))
-                    # eligible_Matches.append(tempmatch)
-                    gameplayer['isgaming'] = 1
-                    break
-            else:
-                gamingplayer.append(dict(playername=player_t, url=match['url'], isgaming=2))
-                tempmatch = dict(playername=player_t, match=match)
-                tempmatch = dict(playername=player_t, msg=matching2string(tempmatch))
-                eligible_Matches.append(tempmatch)
-    print(eligible_Matches)
-    cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    cursor = cx.cursor()
-    print(gamingplayer)
-    for item in gamingplayer:
-        if item['isgaming'] == 2:
-            cursor.execute(f'''insert into isgaming(playername,url) values ("{item['playername']}","{item['url']}")''')
-        elif item['isgaming'] == 0:
-            cursor.execute(
-                f'''delete from isgaming where playername = '{item["playername"]}' and url = "{item['url']}" ''')
-    cx.commit()
-    cursor.close()
-    cx.close()
-    msglist = forwardmessage(eligible_Matches)
-    return msglist
 
 
 # 自动抓取天风对局 - 异步爬虫
@@ -349,17 +202,7 @@ async def asyautoget_th_matching() -> list:
 
 
 def asygetTH():
-    tasks = [
-        asyncio.ensure_future(asyautoget_th_match()),
-        asyncio.ensure_future(asyautoget_th_matching())
-    ]
-    loop = asyncio.get_event_loop()
-    tasks = asyncio.gather(*tasks)
-    loop.run_until_complete(tasks)
-    content = []
-    for results in tasks.result():
-        content.extend(results)
-    return content
+    return finish_all_asytasks([asyautoget_th_match(), asyautoget_th_matching()])
 
 
 # 转发消息，封装为 向 groupid 群聊 发送 msg 的格式
@@ -510,7 +353,7 @@ def get_gaming_thplayers() -> list:
     cx.commit()
     return gamingplayer
 
-def getthpt(playername:str)->str:
 
-    ptmsg = plugin.TenHouPlugin.ptcalculation.ptcalculation(playername)
+def getthpt(playername: str) -> str:
+    ptmsg = ptcalculation(playername)
     return ptmsg
