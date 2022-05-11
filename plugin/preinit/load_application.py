@@ -9,7 +9,7 @@ replydata = {}
 
 def load_config() -> dict:
     try:
-        with open(r'./config.yml') as f:
+        with open(r'./config/config.yml') as f:
             config = yaml.safe_load(f)
             for k, v in config.items():
                 print(k, v)
