@@ -20,12 +20,10 @@ if __name__ == '__main__':
     replydata = load_replydata()
     create_helpimg()
     cmdbuffer = commandcache()
-    rootLogger = create_logger(config['loglevel'])
     qqlogger = getQQlogger()
+    rootLogger = create_logger(config['loglevel'])
 
-    black_list = dict(user=[], group=[])
-    black_list['user'] = config['blacklist']
-    black_list['group'] = config['mutegrouplist']
+    black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
     whiteList = config['whitelist']
     admin: list = config['admin']
     master = config['master']
@@ -38,14 +36,13 @@ if __name__ == '__main__':
     norepeatgroup = config['norepeatgroup']
     qhsettings = config['qhsettings']
     disnudgegroup = config['disnudgegroup']
-    stfinder = setufinder(botname)
+    stfinder = SetuFinder(botname)
     bot = create_bot(config)
-
-
 
     if master not in admin:
         admin.append(master)
     print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
+
 
     async def asyqh_autopaipu():
         result = asygetqhpaipu()
@@ -79,7 +76,8 @@ if __name__ == '__main__':
         return True
 
 
-    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None,at:int=None) -> MessageChain:
+    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None,
+                 at: int = None) -> MessageChain:
         msgchain = []
         if at:
             msgchain.append(At(at))
@@ -97,6 +95,36 @@ if __name__ == '__main__':
             msgchain.append(
                 Image(path=f"{imgpath}"))
         return MessageChain(msgchain)
+
+    # 配置热重载
+
+
+    # @bot.on(MessageEvent)
+    # async def reloadconfig(event:MessageEvent):
+    #     if event.sender.id == master:
+    #         msg = "".join(map(str, event.message_chain[Plain]))
+    #         m = re.match(
+    #             fr"^{commandpre}reloadconfig\s*$", msg.strip())
+    #         if m:
+    #             global config,black_list,whiteList,admin,master,settings,botname,commandpre,alarmclockgroup,silencegroup,repeatconfig,norepeatgroup,qhsettings,disnudgegroup
+    #             config = load_config()
+    #
+    #             black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
+    #             whiteList = config['whitelist']
+    #             admin = config['admin']
+    #             master = config['master']
+    #             settings = config['settings']
+    #             botname = config['botconfig']['botname']
+    #             commandpre = config['commandpre']
+    #             alarmclockgroup = config['alarmclockgroup']
+    #             silencegroup = config['silencegroup']
+    #             repeatconfig = config['repeatconfig']
+    #             norepeatgroup = config['norepeatgroup']
+    #             qhsettings = config['qhsettings']
+    #             disnudgegroup = config['disnudgegroup']
+    #
+    #             return await bot.send(event,"配置热重载完成，可能会出现意料之外的错误，建议重新启动。")
+
 
 
     # 聊天记录存储
@@ -289,7 +317,7 @@ if __name__ == '__main__':
                     if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
                         return bot.send(event, getreply(text="你冲的频率太频繁了,休息一下吧", rndimg=True, at=event.sender.id))
                     try:
-                        imginfo = stfinder.getsetu(m1.group(2),groupid=event.group.id)
+                        imginfo = stfinder.getsetu(m1.group(2), groupid=event.group.id)
                         if imginfo['FoundError']:
                             return await bot.send(event, getreply(text=imginfo['ErrorMsg']))
                         await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
@@ -302,8 +330,8 @@ if __name__ == '__main__':
                 await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             else:
                 if settings['setu'] and event.group.id in config['setugroups']:
-                    if not cmdbuffer.updategroupcache(groupcommand(event.group.id,event.sender.id,'setu')):
-                        return bot.send(event,getreply(text="你冲的频率太频繁了,休息一下吧",rndimg=True,at=event.sender.id))
+                    if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
+                        return bot.send(event, getreply(text="你冲的频率太频繁了,休息一下吧", rndimg=True, at=event.sender.id))
 
                     try:
                         imginfo = stfinder.getsetu(m2.group(3), event.group.id, m2.group(1))
@@ -324,6 +352,8 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}(help|帮助)\s*$', msg.strip())
         if m and settings['help']:
+            # if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'help')):
+            #     return bot.send(event, getreply(text="帮助文档刚刚才发过哦~", rndimg=True, at=event.sender.id))
             return await bot.send(event, Image(path="./images/help.png"))
 
 
@@ -417,7 +447,7 @@ if __name__ == '__main__':
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，。\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$', msg.strip())
         if m:
             if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
 
@@ -431,7 +461,7 @@ if __name__ == '__main__':
                 else:
                     result = query(m.group(2))
                     if result['error']:
-                        await bot.send(event,result['msg'])
+                        await bot.send(event, result['msg'])
                     else:
                         await bot.send(event, Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
             return
@@ -441,7 +471,7 @@ if __name__ == '__main__':
     async def getrecentqhpaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr'^{commandpre}(qhpaipu|雀魂最近对局)\s*([\w_、,\.，\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$', msg.strip())
+            fr'^{commandpre}(qhpaipu|雀魂最近对局)\s*([\w_、,\.，。\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$', msg.strip())
         if m:
             if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
 
@@ -471,7 +501,7 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
 
         m = re.match(
-            fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*([\w_、,\.，\'\"!]+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
+            fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*([\w_、,\.，。\'\"!]+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
         if m:
             if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
@@ -499,7 +529,8 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
 
         m = re.match(
-            fr'^{commandpre}(qhyb|雀魂月报)\s*([\w_、,\.，\'\"!]+)\s*([34])?\s*([0-9]{{4}})?[-]?([0-9]{{1,2}})?\s*$', msg.strip())
+            fr'^{commandpre}(qhyb|雀魂月报)\s*([\w_、,\.，。\'\"!]+)\s*([34])?\s*([0-9]{{4}})?[-]?([0-9]{{1,2}})?\s*$',
+            msg.strip())
         if m:
             if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
                 if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhyb')):
@@ -533,7 +564,7 @@ if __name__ == '__main__':
     async def addmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*([\w_、,\.，\'\"!]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhadd|雀魂添加关注)\s*([\w_、,\.，。\'\"!]+)\s*$', msg.strip())
         if m:
             if event.group.id not in qhsettings['disautoquerygroup']:
                 # if is_havingadmin(event):
@@ -549,7 +580,7 @@ if __name__ == '__main__':
     async def delwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(qhdel|雀魂删除关注)\s*([\w_、,\.，\'\"!]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(qhdel|雀魂删除关注)\s*([\w_、,\.，。\'\"!]+)\s*$', msg.strip())
         if m:
             if event.group.id not in qhsettings['disautoquerygroup']:
                 # if is_havingadmin(event):
@@ -637,7 +668,7 @@ if __name__ == '__main__':
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、,，\'\\\.!！！]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、,。，\'\\\.!！]+)\s*$', msg.strip())
         if m:
 
             if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'thpt')):
@@ -649,7 +680,7 @@ if __name__ == '__main__':
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thadd|天凤添加关注)\s*([\w_、,，\'\\\.!！！]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thadd|天凤添加关注)\s*([\w_、,。，\'\\\.!！]+)\s*$', msg.strip())
         if m:
             if is_havingadmin(event):
                 await bot.send(event, addthwatch(m.group(2), event.group.id))
@@ -661,7 +692,7 @@ if __name__ == '__main__':
     async def deltenhouwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thdel|天凤删除关注)\s*([\w_、,，\'\\\.!！！]+)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}(thdel|天凤删除关注)\s*([\w_、,。，\'\\\.!！]+)\s*$', msg.strip())
         if m:
             if is_havingadmin(event):
                 await bot.send(event,
@@ -973,7 +1004,8 @@ if __name__ == '__main__':
                 m1 = re.match(fr'^{commandpre}我超(\w+)\s*\.', msg.strip())
                 if m1:
                     if '呆' not in m1.group(1):
-                        return await bot.send(event,f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
+                        return await bot.send(event,
+                                              f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
 
                 senderid = event.sender.id
                 if botname == "":

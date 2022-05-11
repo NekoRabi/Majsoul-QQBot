@@ -57,9 +57,13 @@
 
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
+提供docker，但需要自己build (我本地环境不知道为什么跑不了docker)，部署流程包内有说明
+
 # 环境
 
 我自己电脑是Python 3.8   Java 15， 服务器是 Python 3.9   Java 17.
+
+**建议使用 Python 3.9 和 Java 17**
 
 已知Python 3.10 可能有问题跑不起来，如已安装并报错，请降级安装python 3.8-9 *以后会去解决3.10的问题*
 
