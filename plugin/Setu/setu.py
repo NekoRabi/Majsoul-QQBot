@@ -61,9 +61,9 @@ async def getsetuinfo(description: str, num: int) -> dict:
     return text
 
 
-class setufinder:
+class SetuFinder:
 
-    def __init__(self,botname):
+    def __init__(self, botname):
         with open(r'./config/Setu/config.yml') as f:
             config = yaml.safe_load(f)
             self.r18setting = config['r18setting']
@@ -77,7 +77,7 @@ class setufinder:
         elif keywords == "tag":
             tag = ""
             for v in value:
-                tag += f"{value}"
+                tag += f"{v}"
             return tag
 
     def getsetu(self, description, groupid, num=1) -> dict:
@@ -86,15 +86,15 @@ class setufinder:
         if description:
             if 'r18' in description or 'R18' in description:
                 if groupid not in self.r18groups:
-                    imginfo = dict(FoundError=True,ErrorMsg="本群未开启R18")
+                    imginfo = dict(FoundError=True, ErrorMsg="本群未开启R18")
                     return imginfo
             if self.botname in description and not self.allowsearchself:
-                return dict(FoundError=True,ErrorMsg="不许搜咱的图")
+                return dict(FoundError=True, ErrorMsg="不许搜咱的图")
 
         content = finish_all_asytasks([getsetuinfo(description, num)])
         response = content[0]
         if len(response['data']) == 0:
-            imginfo = dict(FoundError=True,ErrorMsg="没找到这样的图片呢")
+            imginfo = dict(FoundError=True, ErrorMsg="没找到这样的图片呢")
         else:
             imginfo: dict = response['data'][0]
             imginfo['FoundError'] = False

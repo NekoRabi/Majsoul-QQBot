@@ -29,9 +29,14 @@ replyimgpath : 真寻 # 表情包路径
 
 loglevel: INFO # 日志等级
 
-# 在某群禁用 摸头事件
-disnudgegroup:
-  - 0
+# "戳一戳"配置文件
+nudgeconfig:
+  # 在某群禁用 摸头事件
+  disnudgegroup:
+    - 0
+  sendnudgechance: 1  # 被戳时 以 "戳一戳" 还击的概率
+  supersendnudgechance: 0.2 # 还击的"戳一戳"中，触发超级还击的概率
+  supernudgequantity: 10 # 单次超级还击的发送 "戳一戳" 的次数
 
 # 在某群关闭自动回复
 norepeatgroup:
@@ -46,7 +51,7 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 whitelist:
   - 0   # 白名单
 
-# 开启色图的群聊
+# 色图群聊
 setugroups:
   - 0
 
@@ -58,7 +63,7 @@ settings: # 各项开关
   setu: false         # 色图
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
-  help: True
+  help: true
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
   repeatQ: 20         # 复读问号 的概率
@@ -75,13 +80,13 @@ qhsettings: # 是否启用
   qhpaipu: true
   disptgroup: # 在某群禁用 qhpt
     - 0
-  disinfogroup: # 在某群禁用 qhinfo
+  disinfogroup:
     - 0
-  disslgroup:   # 在某群禁用 qhsl
+  disslgroup:
     - 0
-  disybgroup:   # 在某群禁用 qhyb
+  disybgroup:
     - 0
-  disautoquerygroup: 
+  disautoquerygroup:
     - 0
-  dispaipugroup:  # 在某群禁用 qhpaipu
+  dispaipugroup:
     - 0

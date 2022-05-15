@@ -35,7 +35,7 @@ if __name__ == '__main__':
     repeatconfig = config['repeatconfig']
     norepeatgroup = config['norepeatgroup']
     qhsettings = config['qhsettings']
-    disnudgegroup = config['disnudgegroup']
+    nudgeconfig = config['nudgeconfig']
     stfinder = SetuFinder(botname)
     bot = create_bot(config)
 
@@ -95,36 +95,6 @@ if __name__ == '__main__':
             msgchain.append(
                 Image(path=f"{imgpath}"))
         return MessageChain(msgchain)
-
-    # 配置热重载
-
-
-    # @bot.on(MessageEvent)
-    # async def reloadconfig(event:MessageEvent):
-    #     if event.sender.id == master:
-    #         msg = "".join(map(str, event.message_chain[Plain]))
-    #         m = re.match(
-    #             fr"^{commandpre}reloadconfig\s*$", msg.strip())
-    #         if m:
-    #             global config,black_list,whiteList,admin,master,settings,botname,commandpre,alarmclockgroup,silencegroup,repeatconfig,norepeatgroup,qhsettings,disnudgegroup
-    #             config = load_config()
-    #
-    #             black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
-    #             whiteList = config['whitelist']
-    #             admin = config['admin']
-    #             master = config['master']
-    #             settings = config['settings']
-    #             botname = config['botconfig']['botname']
-    #             commandpre = config['commandpre']
-    #             alarmclockgroup = config['alarmclockgroup']
-    #             silencegroup = config['silencegroup']
-    #             repeatconfig = config['repeatconfig']
-    #             norepeatgroup = config['norepeatgroup']
-    #             qhsettings = config['qhsettings']
-    #             disnudgegroup = config['disnudgegroup']
-    #
-    #             return await bot.send(event,"配置热重载完成，可能会出现意料之外的错误，建议重新启动。")
-
 
 
     # 聊天记录存储
@@ -1141,7 +1111,7 @@ if __name__ == '__main__':
             return
         if (not settings['silence']) or settings['nudgereply']:
             if event.subject.kind == 'Group':
-                if not (event.subject.id in silencegroup or event.subject.id in disnudgegroup):
+                if not (event.subject.id in silencegroup or event.subject.id in nudgeconfig['disnudgegroup']):
                     target = event.target
                     if target == bot.qq:
                         if sender in admin:
@@ -1154,13 +1124,13 @@ if __name__ == '__main__':
                                                              Image(
                                                                  path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
                         else:
-                            if random.random() < 0.2:
-                                if random.random() < 0.2:
+                            if random.random() < nudgeconfig['sendnudgechance']:
+                                if random.random() < nudgeconfig['supersendnudgechance']:
                                     await bot.send_group_message(event.subject.id,
                                                                  getreply(
                                                                      reply=replydata['nudgedata']['supernudgereply'],
                                                                      rndimg=True))
-                                    for i in range(10):
+                                    for i in range(nudgeconfig['supernudgequantity']):
                                         await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
                                     return
                                 else:

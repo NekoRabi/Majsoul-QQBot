@@ -40,30 +40,26 @@ user_agent_list = [
 
 aiotimeout = aiohttp.ClientTimeout(total=10)
 
+serverErrorHTML='<html><body><h1>503 Service Unavailable</h1>'
 
-async def asysearchplayer(username, type = "3"):
-    if type == "3":
-        url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
-    else:
-        url = f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20"
-
+async def asysearchqh(url, type="3"):
     try:
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            if type == "4":
-                async with session.get(url) as response:
-                    text = await response.text()
-                    return dict(msg=json.loads(text), error=False)
+            async with session.get(url) as response:
+                text = await response.text()
+                return dict(msg=json.loads(text), error=False)
     except asyncio.exceptions.TimeoutError as e:
-        print(f"雀魂段位查询超时,{e}")
+        print(f"查询超时,{e}")
         return dict(msg="查询超时，请再试一次", error=True)
 
 
-def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = 0):
+def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None):
     s = requests.Session()
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
-
+    if not selectindex:
+        selectindex = 0
     try:
         if selecttype == "3":
             url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
@@ -106,7 +102,7 @@ def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = 0):
         return "读取超时"
 
 
-def getinfo(username: str, selecttype: str = "", selectindex: int = 0):
+def getinfo(username: str, selecttype: str = "4", selectindex: int = 0):
     muti3 = False
     muti4 = False
     headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
@@ -122,6 +118,7 @@ def getinfo(username: str, selecttype: str = "", selectindex: int = 0):
             f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
             headers=headers, timeout=10)
         pl3 = eval(xhr3.text)
+
         xhr4 = s4.get(
             f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
             headers=headers, timeout=10)
@@ -153,7 +150,7 @@ def getinfo(username: str, selecttype: str = "", selectindex: int = 0):
 
 
 def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, model='基本') -> dict:
-    if not model in ['基本', '更多', '立直', '血统', 'all']:
+    if model not in ['基本', '更多', '立直', '血统', 'all']:
         return dict(msg="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'", error=True)
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 
