@@ -1,5 +1,11 @@
 import sqlite3
+
 '''
+
+    一个SQLite操作类，旨在优化SQLite使用
+    
+    以下是一些注释
+
     dbpath    : 数据库存储位置，如存放在 database/Majsoul/majsou.sqlite ，dbpath = 'Majsoul/majsou.sqlite'
     
     tablename : 表名
@@ -36,15 +42,19 @@ import sqlite3
 '''
 
 
-class DBHelper():
+class DBHelper:
 
-    def __init__(self,dbpath:str):
+    def __init__(self, dbpath: str):
         if dbpath.strip() == "":
             return
         self.cx = sqlite3.connect(f'./database/{dbpath}')
         self.cursor = self.cx.cursor()
 
-    def createtable(self,tablename:str,col_param:dict,fk:dict=None):
+    def __del__(self):
+        self.closeconnection()
+        super().__del__()
+
+    def createtable(self, tablename: str, col_param: dict, fk: dict = None):
         if tablename.strip():
             raise ""
             return False
@@ -52,7 +62,7 @@ class DBHelper():
             return False
         sql = f'''create table if not exists {tablename}('''
 
-        for key,value in col_param.items():
+        for key, value in col_param.items():
             params = ""
             for v in value:
                 params += f'{v} '
@@ -61,7 +71,7 @@ class DBHelper():
         if fk:
             fksql = ''
 
-            for fktbname,cols_map in fk.items():
+            for fktbname, cols_map in fk.items():
                 fksql += f'constraint {tablename}_{fktbname} '
                 selftable = "FOREIGN KEY ("
                 fktable = f'REFERENCES {fktbname} ('
@@ -75,16 +85,70 @@ class DBHelper():
                 fksql += fktable
                 sql += fksql
 
-
         sql += ')'
 
-        cx=self.cx
+        cx = self.cx
         cursor = self.cursor
         cursor.execute(sql)
         cx.commit()
 
         return True
 
+    def selecttable(self, tablename: str, columns: list = None, selection: dict = None, orderby: list = None,
+                    sort: bool = True,
+                    groupby: list = None):
+        if tablename.strip() == '':
+            print(f'请指定要查询的表名')
+            return
+        sql = 'select '
+        if columns:
+            for column in columns:
+                sql += f'{column}, '
+            sql = sql[:-2] + f'from {tablename}'
+        else:
+            sql += f'* from {tablename}'
+
+        if selection:
+            sql += ' where '
+            index = 0
+            for condition, pre_connect in selection.items():
+                sql_logic(sql=sql, condition=condition, pre_connect=pre_connect, index=index)
+                index += 1
+        if orderby:
+            sql += ''
+            for column in orderby:
+                sql += f'{column},'
+            sql = sql[:-1]
+            if sort:
+                sql += ' asc'
+            else:
+                sql += ' desc'
+        cursor = self.cursor
+        cursor.execute(sql)
+        fetchresult = cursor.fetchall()
+        result = []
+        if not columns:
+            return fetchresult
+        for fetchone in fetchresult:
+            one_dict = {}
+            for i in range(len(columns)):
+                one_dict[columns[i]] = fetchone[i]
+            result.append(one_dict)
+
+        return result
+
     def closeconnection(self):
-        self.cursor.close()
-        self.cx.close()
+        if self.cursor:
+            self.cursor.close()
+        if self.cx:
+            self.cx.close()
+
+
+def sql_logic(sql: str, condition: str, pre_connect: str = None, index: int = 0):
+    if pre_connect.strip() == '':
+        pre_connect = None
+    if index == 0 or not pre_connect:
+        sql += f'{condition.strip()} '
+    else:
+        sql += f'{pre_connect.strip()} {condition.strip()} '
+    return

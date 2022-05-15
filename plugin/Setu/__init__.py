@@ -1,1 +1,1 @@
-from plugin.Setu.setu import *
+from plugin.Setu.setu import SetuFinder

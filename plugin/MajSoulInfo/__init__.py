@@ -4,9 +4,12 @@ import os
 
 if not os.path.exists("./database/MajSoulInfo"):
     os.mkdir("./database/MajSoulInfo")
+if not os.path.exists("./config/MajSoulInfo"):
+    os.mkdir("./config/MajSoulInfo")
 
+if not os.path.exists("./images/MajSoulInfo"):
+    os.mkdir("./images/MajSoulInfo")
 
-# cx = sqlite3.connect('./database/majsoul.sqlite')
 cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 cursor = cx.cursor()
 cursor.execute("create table IF NOT EXISTS paipu("
@@ -46,3 +49,4 @@ cursor.execute("create table IF NOT EXISTS drawcards("
 cx.commit()
 cursor.close()
 cx.close()
+

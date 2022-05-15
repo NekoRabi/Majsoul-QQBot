@@ -7,7 +7,7 @@ from mirai import MessageChain
 
 
 class msgbufferpool(object):
-    '''
+    """
     Structure 结构
 
     好友消息(dict):
@@ -18,7 +18,7 @@ class msgbufferpool(object):
         群组1 (dict):
             群友1 : list
 
-    '''
+    """
 
     def __init__(self):
         self.group = {}
@@ -29,25 +29,25 @@ class msgbufferpool(object):
         self.friend = {}
 
     def addfriendmsg(self, senderid, msg):
-        if not senderid in self.friend:
+        if senderid not in self.friend:
             self.friend[senderid] = []
         self.friend[senderid].append(msg)
 
     def addgroupmsg(self, groupid, senderid, msg):
-        if not groupid in self.group:
+        if groupid not in self.group:
             self.group[groupid] = {}
 
-        if not senderid in self.group[groupid]:
+        if senderid not in self.group[groupid]:
             self.group[groupid][senderid] = []
         self.group[groupid][senderid].append = msg
 
-class command():
+
+class command:
 
     def __init__(self):
-        self.id=None
-        self.command=None
-        self.last_time=None
-
+        self.id = None
+        self.command = None
+        self.last_time = None
 
     def getcommand(self):
         return self.command
@@ -58,8 +58,8 @@ class command():
     def getid(self):
         return self.id
 
-class groupcommand(command):
 
+class groupcommand(command):
     """
     群指令类
     """
@@ -78,7 +78,6 @@ class groupcommand(command):
     def __str__(self):
         return f'id:{self.id} groupid:{self.groupid} userid:{self.userid} command:{self.command} last_time:{self.last_time}'
 
-
     def __eq__(self, other):
         if type(other) == groupcommand:
             if other.groupid == self.groupid and other.userid == self.userid and other.command == self.command:
@@ -93,7 +92,7 @@ class groupcommand(command):
         return self.userid
 
 
-class commandcache():
+class commandcache:
     """
         指令缓存区类
     """

@@ -3,6 +3,7 @@ import numpy
 
 score = 0
 
+
 def getattribute() -> list:
     global score
     attributelist = []
@@ -16,7 +17,7 @@ def getattribute() -> list:
     return attributelist
 
 
-def getstart(worlddifficulty: str = None) -> list:
+def getstart(worlddifficulty: str = None, worldtype: str = None) -> list:
     global score
     startlist = []
     for i in range(5):
@@ -32,18 +33,22 @@ def getstart(worlddifficulty: str = None) -> list:
                 score = score - 30
         elif i == 2:
             if worlddifficulty in ['peace', 'p', '0', '理想乡', '和平']:
+                score = score - 50
                 startlist.append(4)
                 continue
             elif worlddifficulty in ['easy', 'e', '1', '桃园', '简单']:
+                score = score - 25
                 startlist.append(3)
                 continue
             elif worlddifficulty in ['normal', 'common', '2', '普通', '一般']:
                 startlist.append(2)
                 continue
             elif worlddifficulty in ['hard', 'h', 'difficult', '3', '严酷', '困难']:
+                score = score + 10
                 startlist.append(1)
                 continue
             elif worlddifficulty in ['Purgatory', 'Infernal', 'hell', 'vh', '4', '炼狱', '地狱', '超难']:
+                score = score + 20
                 startlist.append(0)
                 continue
             else:
@@ -78,7 +83,7 @@ def addfont(img: IMG, senderid):
     draw.text((190, 420), text='(种族/性别/局势/开局/审美)', font=h4font, fill=(0, 0, 0))
 
 
-def create_remakeimg(senderid, basic_score=30, worlddifficulty=None):
+def create_remakeimg(senderid: int, basic_score: int = 30, worlddifficulty: str = None, worldtype: str = None):
     bgk = IMG.new('RGB', (900, 800), (230, 220, 210))
     img = IMG.open('./plugin/Remake/remake.jpg').convert("RGBA")
     count = 0
