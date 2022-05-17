@@ -57,7 +57,8 @@
 
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
-提供docker，但需要自己build (我本地环境不知道为什么跑不了docker)，部署流程包内有说明
+
+配置文件填写好后就可以启动了。双击 `start.bat` 或者打开命令行(cmd)，执行`python main.py`
 
 # 环境
 
@@ -108,7 +109,7 @@ master: 0  # 机器人主人
 
 searchfrequency: 6 # 查询频率，建议为 6
 
-replyimgpath : 真寻 # 表情包路径
+replyimgpath : fox # 表情包路径
 
 loglevel: INFO # 日志等级
 
@@ -261,7 +262,7 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  # 存在的问题
  1. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  解决办法: 将config.yml用GBK编码打开并保存 
- 2. 涩图请求超时(也许解决了)
+ 2. ~~涩图请求超时(网络不好)~~
 
  # 开发计划
 
