@@ -40,7 +40,9 @@ user_agent_list = [
 
 aiotimeout = aiohttp.ClientTimeout(total=10)
 
-serverErrorHTML='<html><body><h1>503 Service Unavailable</h1>'
+serverErrorHTML = '<html><body><h1>503 Service Unavailable</h1>'
+serverErrorCode = 503  # 牌谱屋炸了
+
 
 async def asysearchqh(url, type="3"):
     try:
@@ -69,6 +71,12 @@ def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None
             typename = "四麻"
         xhr = s.get(url=url,
                     headers={'User-Agent': random.choice(user_agent_list), "Connection": "close"}, timeout=10)
+        # searchresult = finish_all_asytasks([asysearchqh(url)])[0]
+        # if searchresult['error']:
+        #     return searchresult['msg']
+        if xhr.status_code == 503:
+            return "牌谱屋似乎离线了"
+            # return dict(error=True, offline=True)
         playerinfo = eval(xhr.text)
         if len(playerinfo) == 0:
             return "不存在该玩家"
@@ -82,15 +90,19 @@ def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None
                 prtmsg = f"玩家名: {playername}"
                 levelinfo = playerinfo.get("level")
                 level = levelinfo.get("id")
-                score = int(levelinfo.get("score")) + int(levelinfo.get("delta"))
+                score = int(levelinfo.get("score")) + \
+                    int(levelinfo.get("delta"))
                 prtmsg += levelswitch(level, score, typename)
                 cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
                 cursor = cx.cursor()
-                cursor.execute(f"select * from qhplayer where playername = '{username}'")
+                cursor.execute(
+                    f"select * from qhplayer where playername = '{username}'")
                 if cursor.fetchall() == 0:
-                    cursor.execute("insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
+                    cursor.execute(
+                        "insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
                 else:
-                    cursor.execute(f"update qhplayer set playerid = {playerid} where playername = '{username}'")
+                    cursor.execute(
+                        f"update qhplayer set playerid = {playerid} where playername = '{username}'")
                 cx.commit()
                 cx.close()
                 return prtmsg
@@ -105,7 +117,8 @@ def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None
 def getinfo(username: str, selecttype: str = "4", selectindex: int = 0):
     muti3 = False
     muti4 = False
-    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
+    headers = {
+        'User-Agent': random.choice(user_agent_list), "Connection": "close"}
     s3 = requests.Session()
     s3.mount('http://', HTTPAdapter(max_retries=3))
     s3.mount('https://', HTTPAdapter(max_retries=3))
@@ -117,6 +130,8 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0):
         xhr3 = s3.get(
             f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
             headers=headers, timeout=10)
+        if xhr3.status_code == 503:
+            return dict(error=True, offline=True)
         pl3 = eval(xhr3.text)
 
         xhr4 = s4.get(
@@ -140,13 +155,14 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0):
         else:
             playerid = None
             playername = None
-        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4)
+        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
+                    offline=False)
     except requests.exceptions.ConnectionError:
         print("查询玩家信息时连接超时")
-        return dict(error=True, muti3=muti3, muti4=muti4)
+        return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
     except requests.exceptions.ReadTimeout:
         print("查询玩家时读取超时")
-        return dict(error=True, muti3=muti3, muti4=muti4)
+        return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
 
 
 def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, model='基本') -> dict:
@@ -166,7 +182,8 @@ def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None, 
     playerid = playerid[0][0]
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
-    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
+    headers = {
+        'User-Agent': random.choice(user_agent_list), "Connection": "close"}
     nowtime = time.time()
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     rule = "三麻"
@@ -245,7 +262,8 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
         return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
     playerid = playerid[0][0]
     paipuInfo = f"最近{counts}场对局信息如下：\n"
-    content = finish_all_asytasks([asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
+    content = finish_all_asytasks(
+        [asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
     for item in content:
         paipuurl = f'https://game.maj-soul.com/1/?paipu={item["uuid"]}'
         startTime = time.strftime(
@@ -304,7 +322,8 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
 def getpaipu(playerid: str) -> dict:
     nowtime = time.time()
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
-    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
+    headers = {
+        'User-Agent': random.choice(user_agent_list), "Connection": "close"}
     content = dict(p4=[], p3=[])
     s = requests.Session()
     s.mount('http://', HTTPAdapter(max_retries=3))
@@ -360,9 +379,11 @@ async def paipu_pl3(playeridlist, nowtime):
                         "?limit=1&mode=21,22,23,24,25,26&descending=true") as response:
                     text: list = eval(await response.text())
                     if len(text) > 0:
-                        contentlist.append(dict(playerid=playerid, content=text[0]))
+                        contentlist.append(
+                            dict(playerid=playerid, content=text[0]))
                     else:
-                        contentlist.append(dict(playerid=playerid, content=text))
+                        contentlist.append(
+                            dict(playerid=playerid, content=text))
             except asyncio.TimeoutError as e:
                 logging.getLogger().exception(e)
             except Exception as e:
@@ -386,7 +407,8 @@ async def paipu_pl4(playeridlist, nowtime) -> list:
                         "?limit=1&mode=8,9,11,12,15,16&descending=true") as response:
                     text: list = eval(await response.text())
                     if len(text) > 0:
-                        contentlist.append(dict(playerid=playerid, content=text[0]))
+                        contentlist.append(
+                            dict(playerid=playerid, content=text[0]))
                     else:
                         contentlist.append(dict(playerid=playerid, content={}))
             except asyncio.TimeoutError as e:
@@ -407,18 +429,21 @@ def asygetqhpaipu():
     cursor.close()
     cx.close()
     playeridlist = []
+    content = []
     for item in res:
         playeridlist.append(item[0])
-    tasks = [
-        asyncio.ensure_future(paipu_pl3(playeridlist, nowtime)),
-        asyncio.ensure_future(paipu_pl4(playeridlist, nowtime))
-    ]
-    loop = asyncio.get_event_loop()
-    tasks = asyncio.gather(*tasks)
-    loop.run_until_complete(tasks)
-    content = []
-    for results in tasks.result():
-        content.extend(msganalysis(results))
+    # tasks = [
+    #     asyncio.ensure_future(paipu_pl3(playeridlist, nowtime)),
+    #     asyncio.ensure_future(paipu_pl4(playeridlist, nowtime))
+    # ]
+    #
+    # loop = asyncio.get_event_loop()
+    # tasks = asyncio.gather(*tasks)
+    # loop.run_until_complete(tasks)
+    results = finish_all_asytasks(
+        [paipu_pl3(playeridlist, nowtime), paipu_pl4(playeridlist, nowtime)])
+    for result in results:
+        content.extend(msganalysis(result))
     return content
 
 
@@ -560,6 +585,8 @@ def mergeimg(imgurls: list) -> Image:
 def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
     userinfo = getinfo(username)
     if userinfo['error']:
+        if userinfo['offline']:
+            return dict(msg="牌谱屋服务器离线", error=True)
         return dict(msg="查询超时", error=True)
     prtmsg = "用户名:\t" + username
     playerid = userinfo['playerid']
@@ -587,7 +614,7 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         user_p3_levelinfo = user_p3_levelinfo.get("level")
         p3_level = user_p3_levelinfo.get("id")
         p3_score = int(user_p3_levelinfo.get("score")) + \
-                   int(user_p3_levelinfo.get("delta"))
+            int(user_p3_levelinfo.get("delta"))
         prtmsg += levelswitch(p3_level, p3_score, "三麻")
 
     except AttributeError:
@@ -602,7 +629,7 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         user_p4_levelinfo = user_p4_levelinfo.get("level")
         p4_level = user_p4_levelinfo.get("id")
         p4_score = int(user_p4_levelinfo.get("score")) + \
-                   int(user_p4_levelinfo.get("delta"))
+            int(user_p4_levelinfo.get("delta"))
         prtmsg += levelswitch(p4_level, p4_score, "四麻")
     except AttributeError:
         print("查询不到四麻段位")
@@ -649,7 +676,7 @@ def drawcards(userid: int, up=False) -> dict:
                   '2gift': 0, 'person': 0, 'decoration': 0}
     results = []
     resultsmsg = "\n您的抽卡结果依次为:\n"
-    with open(r'./config/MajSoulInfo/drawcards.yml', 'r', encoding='gbk') as f:
+    with open(r'./config/MajSoulInfo/drawcards.yml', 'r', encoding='utf-8') as f:
 
         config = yaml.safe_load(f)
         lottery = config['lottery']
@@ -804,7 +831,8 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
     session_info = requests.session()
     session_info.mount('http://', HTTPAdapter(max_retries=3))
     session_info.mount('https://', HTTPAdapter(max_retries=3))
-    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
+    headers = {
+        'User-Agent': random.choice(user_agent_list), "Connection": "close"}
     try:
         if selecttype == "4":
             paipuresponse = session_paipu.get(
@@ -814,6 +842,8 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
             paipuresponse = session_paipu.get(
                 f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}"
                 "?limit=599&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
+        if paipuresponse.status_code == 503:
+            return dict(msg="牌谱屋服务器似乎离线了", error=True)
         paipuresponse = eval(paipuresponse.text)
         if len(paipuresponse) == 0:
             return dict(msg='该玩家这个月似乎没有进行过该类型的对局呢', error=True)
@@ -865,6 +895,8 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
                 f"=21.22.23.24.25.26",
                 timeout=3,
                 headers=headers)
+        if inforesponse.status_code == 503:
+            return dict(msg="牌谱屋服务器似乎离线了", error=True)
         inforesponse = eval(inforesponse.text.replace("null", "0.0"))
         infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\t 副露率: {inforesponse['副露率'] * 100 :2.2f}%\t " \
                   f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}%\t " \
@@ -922,7 +954,8 @@ def forwardmessage(msglist: list) -> list:
     cursor = cx.cursor()
     for item in msglist:
         groupids = []
-        cursor.execute(f'''select groupid,playername from group2player where playerid = {item['playerid']}''')
+        cursor.execute(
+            f'''select groupid,playername from group2player where playerid = {item['playerid']}''')
         results = cursor.fetchall()
         for g in results:
             groupids.append(g[0])

@@ -12,7 +12,7 @@ kargs = {'admin', 'whiteList', 'settings', 'welcomeinfo', 'alarmclockgroup', 'co
 
 def load_config() -> dict:
     try:
-        with open(r'./config/config.yml', encoding="gbk") as f:
+        with open(r'./config/config.yml', encoding='utf-8') as f:
             config = yaml.safe_load(f)
             # for key in kargs:
             #     if key not in config.keys():
@@ -44,7 +44,7 @@ def load_config() -> dict:
     except Exception as e:
         print(f'{e} 缺失')
         print("文件打开错误，尝试生成初始文件中...")
-        with open(r'./config.yml', 'w', encoding="gbk") as f:
+        with open(r'./config/config.yml', 'w', encoding='utf-8') as f:
             yaml.dump(dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0], setugroups=[0],
                            welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
                            silencegroup=[0], norepeatgroup=[0], disnudgegroup=[0], commandpre="", searchfrequency=6,
@@ -55,7 +55,7 @@ def load_config() -> dict:
                                         host='localhost', port=17280),
                            settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True, nudgereply=True, setu=False,
                                          silence=False, norepeat=False, asyreptile=False,voice=False),
-                           voicesettings=dict(volumn=1,speed=0.85,secretId='',secretKey=''),
+                           voicesettings=dict(volumn=1,speed=0.85,voicetype=1002,private=True,secretId='',secretKey=''),
                            qhsettings=dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, disptgroup=[0],
                                            disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
                                            dispaipugroup=[0])),

@@ -45,7 +45,7 @@ if __name__ == '__main__':
         if config['voicesetting']['secretId'].strip() == '' or config['voicesetting']['secretKey'] == '':
             print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
             settings['voice'] = False
-            with open(r'./config/config.yml', 'w') as file:
+            with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 yaml.dump(config, file, allow_unicode=True)
         else:
             vc = VoiceCreater(secretId=config['voicesetting']['secretId'],
@@ -171,7 +171,7 @@ if __name__ == '__main__':
                 if not m.group(1) in admin:
                     admin.append(int(m.group(1)))
 
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 添加为机器人管理员")))
                 else:
@@ -187,7 +187,7 @@ if __name__ == '__main__':
             if m:
                 if m.group(1) in admin:
                     admin.remove(int(m.group(1)))
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 从机器人管理员中移出")))
                 else:
@@ -260,7 +260,7 @@ if __name__ == '__main__':
                     await bot.send(event, getreply(text="本群已开启色图", rndimg=True))
                 else:
                     config['setugroups'].append(groupid)
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     await bot.send(event, getreply(text="色图开启成功", rndimg=True))
 
@@ -275,7 +275,7 @@ if __name__ == '__main__':
                 groupid = event.group.id
                 if groupid in config['setugroups']:
                     config['setugroups'].remove(groupid)
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     await bot.send(event, getreply(text="色图已关闭", rndimg=True))
                 else:
@@ -351,31 +351,31 @@ if __name__ == '__main__':
                 if command in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group not in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].append(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'查分功能禁用成功')
                 elif command in ['qhpaipu', '雀魂最近对局']:
                     if group not in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].append(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
                 elif command in ['qhinfo', '雀魂玩家详情']:
                     if group not in qhsettings['disinfogroup']:
                         qhsettings['disinfogroup'].append(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'雀魂玩家详情功能禁用成功')
                 elif command in ['qhsl', '雀魂十连']:
                     if group not in qhsettings['disybgroup']:
                         qhsettings['disybgroup'].append(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'模拟十连功能禁用成功')
                 elif command in ['qhyb', '雀魂月报']:
                     if group not in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].append(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
 
@@ -391,31 +391,31 @@ if __name__ == '__main__':
                 if command in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].remove(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'查分功能启用成功')
                 elif command in ['qhpaipu', '雀魂最近对局']:
                     if group in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].remove(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
                 elif command in ['qhinfo', '雀魂玩家详情']:
                     if group in qhsettings['disinfogroup']:
                         qhsettings['disinfogroup'].remove(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'雀魂玩家详情功能禁用成功')
                 elif command in ['qhsl', '雀魂十连']:
                     if group in qhsettings['disybgroup']:
                         qhsettings['disybgroup'].remove(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'模拟十连功能禁用成功')
                 elif command in ['qhyb', '雀魂月报']:
                     if group in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].remove(group)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
 
@@ -757,11 +757,11 @@ if __name__ == '__main__':
             if m:
                 if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                     settings['silence'] = True
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                 else:
                     settings['silence'] = False
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
 
     # 单群沉默 - 从群聊沉默
@@ -777,12 +777,12 @@ if __name__ == '__main__':
                 if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                     if event.group.id not in silencegroup:
                         silencegroup.append(event.group.id)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                 else:
                     if event.group.id in silencegroup:
                         silencegroup.remove(event.group.id)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
 
     # 关闭复读
@@ -799,13 +799,13 @@ if __name__ == '__main__':
                     print(f'已将{event.group.id}的复读关闭')
                     if event.group.id not in norepeatgroup:
                         norepeatgroup.append(event.group.id)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                 else:
                     if event.group.id in norepeatgroup:
                         print(f'已将{event.group.id}的复读开启')
                         norepeatgroup.remove(event.group.id)
-                        with open(r'./config/config.yml', 'w') as file:
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
 
     # 添加白名单
@@ -820,7 +820,7 @@ if __name__ == '__main__':
             if userid in admin and userid not in whiteList:
 
                 whiteList.append(int(m.group(1)))
-                with open(r'./config/config.yml', 'w') as file:
+                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                     yaml.dump(config, file, allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
@@ -841,7 +841,7 @@ if __name__ == '__main__':
                     return await bot.send(event, "请不要将管理员加入黑名单")
                 black_list['user'].append(int(m.group(1)))
                 print(black_list['user'])
-                with open(r'./config/config.yml', 'w') as file:
+                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                     yaml.dump(config, file, allow_unicode=True)
                 print(m)
                 return await bot.send(event, "添加成功")
@@ -861,7 +861,7 @@ if __name__ == '__main__':
                 delperson = int(m.group(1))
                 if delperson in black_list['user']:
                     black_list['user'].remove(delperson)
-                    with open(r'./config/config.yml', 'w') as file:
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, "删除成功")
                 else:

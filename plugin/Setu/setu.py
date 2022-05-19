@@ -64,7 +64,7 @@ async def getsetuinfo(description: str, num: int) -> dict:
 class SetuFinder:
 
     def __init__(self, botname):
-        with open(r'./config/Setu/config.yml') as f:
+        with open(r'./config/Setu/config.yml', 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
             self.r18setting = config['r18setting']
             self.r18groups = config['r18groups']
