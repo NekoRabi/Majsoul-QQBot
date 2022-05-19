@@ -2,536 +2,536 @@ lottery:
   decoration:
     item:
     - index: 0
-      name: 24K½ğ°ô
+      name: 24Ké‡‘æ£’
       rare: 3
       type: decoration
-      url: ./Images/decoration/24K½ğ°ô.jpg
+      url: ./Images/decoration/24Ké‡‘æ£’.jpg
     - index: 1
-      name: Ò»´¥¼´·¢
+      name: ä¸€è§¦å³å‘
       rare: 3
       type: decoration
-      url: ./Images/decoration/Ò»´¥¼´·¢.jpg
+      url: ./Images/decoration/ä¸€è§¦å³å‘.jpg
     - index: 2
-      name: ³öÕó
+      name: å‡ºé˜µ
       rare: 3
       type: decoration
-      url: ./Images/decoration/³öÕó.jpg
+      url: ./Images/decoration/å‡ºé˜µ.jpg
     - index: 3
-      name: ºÍÅÆ-KO
+      name: å’Œç‰Œ-KO
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-KO.jpg
+      url: ./Images/decoration/å’Œç‰Œ-KO.jpg
     - index: 4
-      name: ºÍÅÆ-°²¿É
+      name: å’Œç‰Œ-å®‰å¯
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-°²¿É.jpg
+      url: ./Images/decoration/å’Œç‰Œ-å®‰å¯.jpg
     - index: 5
-      name: ºÍÅÆ-ÓÄÁéà»à»
+      name: å’Œç‰Œ-å¹½çµå—·å—·
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ÓÄÁéà»à».jpg
+      url: ./Images/decoration/å’Œç‰Œ-å¹½çµå—·å—·.jpg
     - index: 6
-      name: ºÍÅÆ-·½ÖÛ·´Ó¦¶Ñ
+      name: å’Œç‰Œ-æ–¹èˆŸååº”å †
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-·½ÖÛ·´Ó¦¶Ñ.jpg
+      url: ./Images/decoration/å’Œç‰Œ-æ–¹èˆŸååº”å †.jpg
     - index: 7
-      name: ºÍÅÆ-Ğı·ç
+      name: å’Œç‰Œ-æ—‹é£
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-Ğı·ç.jpg
+      url: ./Images/decoration/å’Œç‰Œ-æ—‹é£.jpg
     - index: 8
-      name: ºÍÅÆ-Ó£»¨
+      name: å’Œç‰Œ-æ¨±èŠ±
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-Ó£»¨.jpg
+      url: ./Images/decoration/å’Œç‰Œ-æ¨±èŠ±.jpg
     - index: 9
-      name: ºÍÅÆ-ÁÒÑæ
+      name: å’Œç‰Œ-çƒˆç„°
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ÁÒÑæ.jpg
+      url: ./Images/decoration/å’Œç‰Œ-çƒˆç„°.jpg
     - index: 10
-      name: ºÍÅÆ-±¬Ñ×Áú¾í
+      name: å’Œç‰Œ-çˆ†ç‚é¾™å·
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-±¬Ñ×Áú¾í.jpg
+      url: ./Images/decoration/å’Œç‰Œ-çˆ†ç‚é¾™å·.jpg
     - index: 11
-      name: ºÍÅÆ-ºìÃµ¹å
+      name: å’Œç‰Œ-çº¢ç«ç‘°
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ºìÃµ¹å.jpg
+      url: ./Images/decoration/å’Œç‰Œ-çº¢ç«ç‘°.jpg
     - index: 12
-      name: ºÍÅÆ-ÄæÁÛ
+      name: å’Œç‰Œ-é€†é³
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ÄæÁÛ.jpg
+      url: ./Images/decoration/å’Œç‰Œ-é€†é³.jpg
     - index: 13
-      name: ºÍÅÆ-ºÚÑ×
+      name: å’Œç‰Œ-é»‘ç‚
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ºÚÑ×.jpg
+      url: ./Images/decoration/å’Œç‰Œ-é»‘ç‚.jpg
     - index: 14
-      name: ÏÌÓãÁ¢Ö±°ô
+      name: å’¸é±¼ç«‹ç›´æ£’
       rare: 3
       type: decoration
-      url: ./Images/decoration/ÏÌÓãÁ¢Ö±°ô.jpg
+      url: ./Images/decoration/å’¸é±¼ç«‹ç›´æ£’.jpg
     - index: 15
-      name: ´ó´ĞÁ¢Ö±°ô
+      name: å¤§è‘±ç«‹ç›´æ£’
       rare: 3
       type: decoration
-      url: ./Images/decoration/´ó´ĞÁ¢Ö±°ô.jpg
+      url: ./Images/decoration/å¤§è‘±ç«‹ç›´æ£’.jpg
     - index: 16
-      name: ¿×È¸ÂÌ×À²¼
+      name: å­”é›€ç»¿æ¡Œå¸ƒ
       rare: 3
       type: decoration
-      url: ./Images/decoration/¿×È¸ÂÌ×À²¼.jpg
+      url: ./Images/decoration/å­”é›€ç»¿æ¡Œå¸ƒ.jpg
     - index: 17
-      name: ¹ûÂÌÅÆ±³
+      name: æœç»¿ç‰ŒèƒŒ
       rare: 3
       type: decoration
-      url: ./Images/decoration/¹ûÂÌÅÆ±³.jpg
+      url: ./Images/decoration/æœç»¿ç‰ŒèƒŒ.jpg
     - index: 18
-      name: ×À²¼-³Ô¹Ï
+      name: æ¡Œå¸ƒ-åƒç“œ
       rare: 3
       type: decoration
-      url: ./Images/decoration/×À²¼-³Ô¹Ï.jpg
+      url: ./Images/decoration/æ¡Œå¸ƒ-åƒç“œ.jpg
     - index: 19
-      name: éÙÃ¨×¦
+      name: æ©˜çŒ«çˆª
       rare: 3
       type: decoration
-      url: ./Images/decoration/éÙÃ¨×¦.jpg
+      url: ./Images/decoration/æ©˜çŒ«çˆª.jpg
     - index: 20
-      name: µ­»ÆÅÆ±³
+      name: æ·¡é»„ç‰ŒèƒŒ
       rare: 3
       type: decoration
-      url: ./Images/decoration/µ­»ÆÅÆ±³.jpg
+      url: ./Images/decoration/æ·¡é»„ç‰ŒèƒŒ.jpg
     - index: 21
-      name: ¼¤¶·
+      name: æ¿€æ–—
       rare: 3
       type: decoration
-      url: ./Images/decoration/¼¤¶·.jpg
+      url: ./Images/decoration/æ¿€æ–—.jpg
     - index: 22
-      name: ÅÆ±³-ÌìÈ»´ôÓÄÁé
+      name: ç‰ŒèƒŒ-å¤©ç„¶å‘†å¹½çµ
       rare: 3
       type: decoration
-      url: ./Images/decoration/ÅÆ±³-ÌìÈ»´ôÓÄÁé.jpg
+      url: ./Images/decoration/ç‰ŒèƒŒ-å¤©ç„¶å‘†å¹½çµ.jpg
     - index: 23
-      name: ¹·¹ÇÍ·Á¢Ö±°ô
+      name: ç‹—éª¨å¤´ç«‹ç›´æ£’
       rare: 3
       type: decoration
-      url: ./Images/decoration/¹·¹ÇÍ·Á¢Ö±°ô.jpg
+      url: ./Images/decoration/ç‹—éª¨å¤´ç«‹ç›´æ£’.jpg
     - index: 24
-      name: ĞÉºìÁ¢Ö±°ô
+      name: çŒ©çº¢ç«‹ç›´æ£’
       rare: 3
       type: decoration
-      url: ./Images/decoration/ĞÉºìÁ¢Ö±°ô.jpg
+      url: ./Images/decoration/çŒ©çº¢ç«‹ç›´æ£’.jpg
     - index: 25
-      name: Ãµ¹åºìÅÆ±³
+      name: ç«ç‘°çº¢ç‰ŒèƒŒ
       rare: 3
       type: decoration
-      url: ./Images/decoration/Ãµ¹åºìÅÆ±³.jpg
+      url: ./Images/decoration/ç«ç‘°çº¢ç‰ŒèƒŒ.jpg
     - index: 26
-      name: Õæ½£Ê¤¸º
+      name: çœŸå‰‘èƒœè´Ÿ
       rare: 3
       type: decoration
-      url: ./Images/decoration/Õæ½£Ê¤¸º.jpg
+      url: ./Images/decoration/çœŸå‰‘èƒœè´Ÿ.jpg
     - index: 27
-      name: Á¢Ö±-¶£
+      name: ç«‹ç›´-å®
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-¶£.jpg
+      url: ./Images/decoration/ç«‹ç›´-å®.jpg
     - index: 28
-      name: Á¢Ö±-»ÃÓ°
+      name: ç«‹ç›´-å¹»å½±
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-»ÃÓ°.jpg
+      url: ./Images/decoration/ç«‹ç›´-å¹»å½±.jpg
     - index: 29
-      name: Á¢Ö±-¿ª³¡Çú
+      name: ç«‹ç›´-å¼€åœºæ›²
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-¿ª³¡Çú.jpg
+      url: ./Images/decoration/ç«‹ç›´-å¼€åœºæ›².jpg
     - index: 30
-      name: Á¢Ö±-»ğÑæ
+      name: ç«‹ç›´-ç«ç„°
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-»ğÑæ.jpg
+      url: ./Images/decoration/ç«‹ç›´-ç«ç„°.jpg
     - index: 31
-      name: Á¢Ö±-Ëé±ù
+      name: ç«‹ç›´-ç¢å†°
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-Ëé±ù.jpg
+      url: ./Images/decoration/ç«‹ç›´-ç¢å†°.jpg
     - index: 32
-      name: Á¢Ö±-²Ô»ğ
+      name: ç«‹ç›´-è‹ç«
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-²Ô»ğ.jpg
+      url: ./Images/decoration/ç«‹ç›´-è‹ç«.jpg
     - index: 33
-      name: Á¢Ö±-òùòğ
+      name: ç«‹ç›´-è™è 
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-òùòğ.jpg
+      url: ./Images/decoration/ç«‹ç›´-è™è .jpg
     - index: 34
-      name: Á¢Ö±-·ÉÓğ
+      name: ç«‹ç›´-é£ç¾½
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-·ÉÓğ.jpg
+      url: ./Images/decoration/ç«‹ç›´-é£ç¾½.jpg
     - index: 35
-      name: Á¢Ö±-ÁúÌÚ
+      name: ç«‹ç›´-é¾™è…¾
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-ÁúÌÚ.jpg
+      url: ./Images/decoration/ç«‹ç›´-é¾™è…¾.jpg
     - index: 36
-      name: Á¢Ö±°ô-Ğ¡¶ñÄ§òùòğ
+      name: ç«‹ç›´æ£’-å°æ¶é­”è™è 
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±°ô-Ğ¡¶ñÄ§òùòğ.jpg
+      url: ./Images/decoration/ç«‹ç›´æ£’-å°æ¶é­”è™è .jpg
     - index: 37
-      name: Á¢Ö±°ô-Ó¦Ô®°ô
+      name: ç«‹ç›´æ£’-åº”æ´æ£’
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±°ô-Ó¦Ô®°ô.jpg
+      url: ./Images/decoration/ç«‹ç›´æ£’-åº”æ´æ£’.jpg
     - index: 38
-      name: Á¢Ö±°ô-¶Ï¶ñ
+      name: ç«‹ç›´æ£’-æ–­æ¶
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±°ô-¶Ï¶ñ.jpg
+      url: ./Images/decoration/ç«‹ç›´æ£’-æ–­æ¶.jpg
     - index: 39
-      name: Á¢Ö±°ô-Ñ©¸â
+      name: ç«‹ç›´æ£’-é›ªç³•
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±°ô-Ñ©¸â.jpg
+      url: ./Images/decoration/ç«‹ç›´æ£’-é›ªç³•.jpg
     - index: 40
-      name: ×ÏÂŞÀ¼×À²¼
+      name: ç´«ç½—å…°æ¡Œå¸ƒ
       rare: 3
       type: decoration
-      url: ./Images/decoration/×ÏÂŞÀ¼×À²¼.jpg
+      url: ./Images/decoration/ç´«ç½—å…°æ¡Œå¸ƒ.jpg
     - index: 41
-      name: Á«Åº×Ï×À²¼
+      name: è²è—•ç´«æ¡Œå¸ƒ
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á«Åº×Ï×À²¼.jpg
+      url: ./Images/decoration/è²è—•ç´«æ¡Œå¸ƒ.jpg
     - index: 42
-      name: ºÍÅÆ-ºËĞÄÁÑ±ä
+      name: å’Œç‰Œ-æ ¸å¿ƒè£‚å˜
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ºËĞÄÁÑ±ä.jpg
+      url: ./Images/decoration/å’Œç‰Œ-æ ¸å¿ƒè£‚å˜.jpg
     - index: 43
-      name: Á¢Ö±-ĞéÄâµ¼º½
+      name: ç«‹ç›´-è™šæ‹Ÿå¯¼èˆª
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-ĞéÄâµ¼º½.jpg
+      url: ./Images/decoration/ç«‹ç›´-è™šæ‹Ÿå¯¼èˆª.jpg
     - index: 44
-      name: Á¢Ö±°ô-·ÂÉúß÷
+      name: ç«‹ç›´æ£’-ä»¿ç”Ÿå–µ
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±°ô-·ÂÉúß÷.jpg
+      url: ./Images/decoration/ç«‹ç›´æ£’-ä»¿ç”Ÿå–µ.jpg
     - index: 45
-      name: Á¢Ö±°ô-ÁµÖ®·´Ê¡
+      name: ç«‹ç›´æ£’-æ‹ä¹‹åçœ
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±°ô-ÁµÖ®·´Ê¡.jpg
+      url: ./Images/decoration/ç«‹ç›´æ£’-æ‹ä¹‹åçœ.jpg
     - index: 46
-      name: ×À²¼-ÁµÖ®¼ûÖ¤
+      name: æ¡Œå¸ƒ-æ‹ä¹‹è§è¯
       rare: 3
       type: decoration
-      url: ./Images/decoration/×À²¼-ÁµÖ®¼ûÖ¤.jpg
+      url: ./Images/decoration/æ¡Œå¸ƒ-æ‹ä¹‹è§è¯.jpg
     - index: 47
-      name: ÅÆ±³-ÁµÖ®±³Ó°
+      name: ç‰ŒèƒŒ-æ‹ä¹‹èƒŒå½±
       rare: 3
       type: decoration
-      url: ./Images/decoration/ÅÆ±³-ÁµÖ®±³Ó°.jpg
+      url: ./Images/decoration/ç‰ŒèƒŒ-æ‹ä¹‹èƒŒå½±.jpg
     - index: 48
-      name: ºÍÅÆ-ÁµÖ®½µÁÙ
+      name: å’Œç‰Œ-æ‹ä¹‹é™ä¸´
       rare: 3
       type: decoration
-      url: ./Images/decoration/ºÍÅÆ-ÁµÖ®½µÁÙ.jpg
+      url: ./Images/decoration/å’Œç‰Œ-æ‹ä¹‹é™ä¸´.jpg
     - index: 49
-      name: Á¢Ö±-ÁµÖ®¼ıÊ¸
+      name: ç«‹ç›´-æ‹ä¹‹ç®­çŸ¢
       rare: 3
       type: decoration
-      url: ./Images/decoration/Á¢Ö±-ÁµÖ®¼ıÊ¸.jpg
+      url: ./Images/decoration/ç«‹ç›´-æ‹ä¹‹ç®­çŸ¢.jpg
     length: 50
   gift:
     item:
     - index: 0
-      name: ÊÖ¹¤ÇúÆæ
+      name: æ‰‹å·¥æ›²å¥‡
       rare: 0
       type: gift
-      url: ./Images/gift/00-ÊÖ¹¤ÇúÆæ.jpg
+      url: ./Images/gift/00-æ‰‹å·¥æ›²å¥‡.jpg
     - index: 1
-      name: À¶¹ŞÇúÆæ
+      name: è“ç½æ›²å¥‡
       rare: 1
       type: gift
-      url: ./Images/gift/01-À¶¹ŞÇúÆæ.jpg
+      url: ./Images/gift/01-è“ç½æ›²å¥‡.jpg
     - index: 2
-      name: ÏãÅçÅçÇúÆæ
+      name: é¦™å–·å–·æ›²å¥‡
       rare: 2
       type: gift
-      url: ./Images/gift/02-ÏãÅçÅçÇúÆæ.jpg
+      url: ./Images/gift/02-é¦™å–·å–·æ›²å¥‡.jpg
     - index: 3
-      name: »³¾ÉÕÆ»ú
+      name: æ€€æ—§æŒæœº
       rare: 0
       type: gift
-      url: ./Images/gift/03-»³¾ÉÕÆ»ú.jpg
+      url: ./Images/gift/03-æ€€æ—§æŒæœº.jpg
     - index: 4
-      name: TwitchÕÆ»ú
+      name: TwitchæŒæœº
       rare: 1
       type: gift
-      url: ./Images/gift/04-TwitchÕÆ»ú.jpg
+      url: ./Images/gift/04-TwitchæŒæœº.jpg
     - index: 5
-      name: ´ÎÊÀ´úÓÎÏ·»ú
+      name: æ¬¡ä¸–ä»£æ¸¸æˆæœº
       rare: 2
       type: gift
-      url: ./Images/gift/05-´ÎÊÀ´úÓÎÏ·»ú.jpg
+      url: ./Images/gift/05-æ¬¡ä¸–ä»£æ¸¸æˆæœº.jpg
     - index: 6
-      name: ¼òÒ×ÃÀÊõÆ·
+      name: ç®€æ˜“ç¾æœ¯å“
       rare: 0
       type: gift
-      url: ./Images/gift/06-¼òÒ×ÃÀÊõÆ·.jpg
+      url: ./Images/gift/06-ç®€æ˜“ç¾æœ¯å“.jpg
     - index: 7
-      name: ¾«ÃÀ¹Ò»­
+      name: ç²¾ç¾æŒ‚ç”»
       rare: 1
       type: gift
-      url: ./Images/gift/07-¾«ÃÀ¹Ò»­.jpg
+      url: ./Images/gift/07-ç²¾ç¾æŒ‚ç”».jpg
     - index: 8
-      name: ¾­µäÃû»­
+      name: ç»å…¸åç”»
       rare: 2
       type: gift
-      url: ./Images/gift/08-¾­µäÃû»­.jpg
+      url: ./Images/gift/08-ç»å…¸åç”».jpg
     - index: 9
-      name: ÃÀÎ¶¹û¾Æ
+      name: ç¾å‘³æœé…’
       rare: 0
       type: gift
-      url: ./Images/gift/09-ÃÀÎ¶¹û¾Æ.jpg
+      url: ./Images/gift/09-ç¾å‘³æœé…’.jpg
     - index: 10
-      name: Ïã´¼ºì¾Æ
+      name: é¦™é†‡çº¢é…’
       rare: 1
       type: gift
-      url: ./Images/gift/10-Ïã´¼ºì¾Æ.jpg
+      url: ./Images/gift/10-é¦™é†‡çº¢é…’.jpg
     - index: 11
-      name: 82ÄêµÄÀ­·Æ
+      name: 82å¹´çš„æ‹‰è²
       rare: 2
       type: gift
-      url: ./Images/gift/11-82ÄêµÄÀ­·Æ.jpg
+      url: ./Images/gift/11-82å¹´çš„æ‹‰è².jpg
     - index: 12
-      name: ÆÕÍ¨µÄËé×ê
+      name: æ™®é€šçš„ç¢é’»
       rare: 0
       type: gift
-      url: ./Images/gift/12-ÆÕÍ¨µÄËé×ê.jpg
+      url: ./Images/gift/12-æ™®é€šçš„ç¢é’».jpg
     - index: 13
-      name: ¸ë×Óµ°±¦Ê¯
+      name: é¸½å­è›‹å®çŸ³
       rare: 1
       type: gift
-      url: ./Images/gift/13-¸ë×Óµ°±¦Ê¯.jpg
+      url: ./Images/gift/13-é¸½å­è›‹å®çŸ³.jpg
     - index: 14
-      name: º£ÑóÖ®ĞÄ
+      name: æµ·æ´‹ä¹‹å¿ƒ
       rare: 2
       type: gift
-      url: ./Images/gift/14-º£ÑóÖ®ĞÄ.jpg
+      url: ./Images/gift/14-æµ·æ´‹ä¹‹å¿ƒ.jpg
     - index: 15
-      name: ĞÜ¹«×Ğ
+      name: ç†Šå…¬ä»”
       rare: 0
       type: gift
-      url: ./Images/gift/15-ĞÜ¹«×Ğ.jpg
+      url: ./Images/gift/15-ç†Šå…¬ä»”.jpg
     - index: 16
-      name: ĞÜ¹«×ĞL
+      name: ç†Šå…¬ä»”L
       rare: 1
       type: gift
-      url: ./Images/gift/16-ĞÜ¹«×ĞL.jpg
+      url: ./Images/gift/16-ç†Šå…¬ä»”L.jpg
     - index: 17
-      name: ĞÜ¹«×ĞXXL
+      name: ç†Šå…¬ä»”XXL
       rare: 2
       type: gift
-      url: ./Images/gift/17-ĞÜ¹«×ĞXXL.jpg
+      url: ./Images/gift/17-ç†Šå…¬ä»”XXL.jpg
     - index: 18
-      name: Í¬ÈËĞ¡²á×Ó
+      name: åŒäººå°å†Œå­
       rare: 0
       type: gift
-      url: ./Images/gift/18-Í¬ÈËĞ¡²á×Ó.jpg
+      url: ./Images/gift/18-åŒäººå°å†Œå­.jpg
     - index: 19
-      name: ¼ò×°Í¬ÈËÖ¾
+      name: ç®€è£…åŒäººå¿—
       rare: 1
       type: gift
-      url: ./Images/gift/19-¼ò×°Í¬ÈËÖ¾.jpg
+      url: ./Images/gift/19-ç®€è£…åŒäººå¿—.jpg
     - index: 20
-      name: ¾«ÃÀÍ¬ÈËÖ¾
+      name: ç²¾ç¾åŒäººå¿—
       rare: 2
       type: gift
-      url: ./Images/gift/20-¾«ÃÀÍ¬ÈËÖ¾.jpg
+      url: ./Images/gift/20-ç²¾ç¾åŒäººå¿—.jpg
     - index: 21
-      name: ÆÓËØµÄĞ¡È¹×Ó
+      name: æœ´ç´ çš„å°è£™å­
       rare: 0
       type: gift
-      url: ./Images/gift/21-ÆÓËØµÄĞ¡È¹×Ó.jpg
+      url: ./Images/gift/21-æœ´ç´ çš„å°è£™å­.jpg
     - index: 22
-      name: ÆÕÍ¨µÄĞ¡È¹×Ó
+      name: æ™®é€šçš„å°è£™å­
       rare: 1
       type: gift
-      url: ./Images/gift/22-ÆÕÍ¨µÄĞ¡È¹×Ó.jpg
+      url: ./Images/gift/22-æ™®é€šçš„å°è£™å­.jpg
     - index: 23
-      name: »ªÀöµÄĞ¡È¹×Ó
+      name: åä¸½çš„å°è£™å­
       rare: 2
       type: gift
-      url: ./Images/gift/23-»ªÀöµÄĞ¡È¹×Ó.jpg
+      url: ./Images/gift/23-åä¸½çš„å°è£™å­.jpg
     length: 24
   person:
     item:
     - index: 0
-      name: Æßº£ÀñÄÎ
+      name: ä¸ƒæµ·ç¤¼å¥ˆ
       rare: 4
       type: person
-      url: ./Images/person/Æßº£ÀñÄÎ.png
+      url: ./Images/person/ä¸ƒæµ·ç¤¼å¥ˆ.png
     - index: 1
-      name: ÈıÉÏÇ§Ö¯
+      name: ä¸‰ä¸Šåƒç»‡
       rare: 4
       type: person
-      url: ./Images/person/ÈıÉÏÇ§Ö¯.png
+      url: ./Images/person/ä¸‰ä¸Šåƒç»‡.png
     - index: 2
-      name: ¾ÅÌõÁ§Óê
+      name: ä¹æ¡ç’ƒé›¨
       rare: 4
       type: person
-      url: ./Images/person/¾ÅÌõÁ§Óê.png
+      url: ./Images/person/ä¹æ¡ç’ƒé›¨.png
     - index: 3
-      name: ¶şÖ®¹¬»¨
+      name: äºŒä¹‹å®«èŠ±
       rare: 4
       type: person
-      url: ./Images/person/¶şÖ®¹¬»¨.png
+      url: ./Images/person/äºŒä¹‹å®«èŠ±.png
     - index: 4
-      name: ÎåÊ®á°Ñô²Ë
+      name: äº”åå²šé˜³èœ
       rare: 4
       type: person
-      url: ./Images/person/ÎåÊ®á°Ñô²Ë.png
+      url: ./Images/person/äº”åå²šé˜³èœ.png
     - index: 5
-      name: °ËÄ¾Î¨
+      name: å…«æœ¨å”¯
       rare: 4
       type: person
-      url: ./Images/person/°ËÄ¾Î¨.png
+      url: ./Images/person/å…«æœ¨å”¯.png
     - index: 6
-      name: Á¹¹¬ĞÓÊ÷
+      name: å‡‰å®«ææ ‘
       rare: 4
       type: person
-      url: ./Images/person/Á¹¹¬ĞÓÊ÷.png
+      url: ./Images/person/å‡‰å®«ææ ‘.png
     - index: 7
-      name: ±±¼ûÉ´ºÍ×Ó
+      name: åŒ—è§çº±å’Œå­
       rare: 4
       type: person
-      url: ./Images/person/±±¼ûÉ´ºÍ×Ó.png
+      url: ./Images/person/åŒ—è§çº±å’Œå­.png
     - index: 8
-      name: ¿¨Î¬
+      name: å¡ç»´
       rare: 4
       type: person
-      url: ./Images/person/¿¨Î¬.png
+      url: ./Images/person/å¡ç»´.png
     - index: 9
-      name: ¼§´¨Ïì
+      name: å§¬å·å“
       rare: 4
       type: person
-      url: ./Images/person/¼§´¨Ïì.png
+      url: ./Images/person/å§¬å·å“.png
     - index: 10
-      name: ËÂÆéÇ§ËëÀí
+      name: å¯ºå´åƒç©—ç†
       rare: 4
       type: person
-      url: ./Images/person/ËÂÆéÇ§ËëÀí.png
+      url: ./Images/person/å¯ºå´åƒç©—ç†.png
     - index: 11
-      name: Ğ¡Ò°ËÂÆßÓğ
+      name: å°é‡å¯ºä¸ƒç¾½
       rare: 4
       type: person
-      url: ./Images/person/Ğ¡Ò°ËÂÆßÓğ.png
+      url: ./Images/person/å°é‡å¯ºä¸ƒç¾½.png
     - index: 12
-      name: Ğ¡ÄñÓÎ³ûÌï
+      name: å°é¸Ÿæ¸¸é›ç”°
       rare: 4
       type: person
-      url: ./Images/person/Ğ¡ÄñÓÎ³ûÌï.png
+      url: ./Images/person/å°é¸Ÿæ¸¸é›ç”°.png
     - index: 13
-      name: ¸§×Ó
+      name: æŠšå­
       rare: 4
       type: person
-      url: ./Images/person/¸§×Ó.png
+      url: ./Images/person/æŠšå­.png
     - index: 14
-      name: É­´¨ç±×Ó
+      name: æ£®å·ç»«å­
       rare: 4
       type: person
-      url: ./Images/person/É­´¨ç±×Ó.png
+      url: ./Images/person/æ£®å·ç»«å­.png
     - index: 15
-      name: ÔóÄáæ«
+      name: æ³½å°¼å¨…
       rare: 4
       type: person
-      url: ./Images/person/ÔóÄáæ«.png
+      url: ./Images/person/æ³½å°¼å¨….png
     - index: 16
-      name: °×Ê¯ÄÎÄÎ
+      name: ç™½çŸ³å¥ˆå¥ˆ
       rare: 4
       type: person
-      url: ./Images/person/°×Ê¯ÄÎÄÎ.png
+      url: ./Images/person/ç™½çŸ³å¥ˆå¥ˆ.png
     - index: 17
-      name: ÏàÔ­Îè
+      name: ç›¸åŸèˆ
       rare: 4
       type: person
-      url: ./Images/person/ÏàÔ­Îè.png
+      url: ./Images/person/ç›¸åŸèˆ.png
     - index: 18
-      name: ¸£¼§
+      name: ç¦å§¬
       rare: 4
       type: person
-      url: ./Images/person/¸£¼§.png
+      url: ./Images/person/ç¦å§¬.png
     - index: 19
-      name: °¬ÀöÉ¯
+      name: è‰¾ä¸½è
       rare: 4
       type: person
-      url: ./Images/person/°¬ÀöÉ¯.png
+      url: ./Images/person/è‰¾ä¸½è.png
     - index: 20
-      name: É¯À­
+      name: èæ‹‰
       rare: 4
       type: person
-      url: ./Images/person/É¯À­.png
+      url: ./Images/person/èæ‹‰.png
     - index: 21
-      name: ÌÙ±¾ç²ÂŞ
+      name: è—¤æœ¬ç»®ç½—
       rare: 4
       type: person
-      url: ./Images/person/ÌÙ±¾ç²ÂŞ.png
+      url: ./Images/person/è—¤æœ¬ç»®ç½—.png
     - index: 22
-      name: ÌÙÌï¼ÓÄÎ
+      name: è—¤ç”°åŠ å¥ˆ
       rare: 4
       type: person
-      url: ./Images/person/ÌÙÌï¼ÓÄÎ.png
+      url: ./Images/person/è—¤ç”°åŠ å¥ˆ.png
     - index: 23
-      name: »ÔÒ¹¼§
+      name: è¾‰å¤œå§¬
       rare: 4
       type: person
-      url: ./Images/person/»ÔÒ¹¼§.png
+      url: ./Images/person/è¾‰å¤œå§¬.png
     - index: 24
-      name: ³ûÌÒ
+      name: é›æ¡ƒ
       rare: 4
       type: person
-      url: ./Images/person/³ûÌÒ.png
+      url: ./Images/person/é›æ¡ƒ.png
     - index: 25
-      name: °×ÒøÓùĞĞ
+      name: ç™½é“¶å¾¡è¡Œ
       rare: 4
       type: person
-      url: ./Images/person/°×ÒøÓùĞĞ.png
+      url: ./Images/person/ç™½é“¶å¾¡è¡Œ.png
     - index: 26
-      name: ÔçÛà°®
+      name: æ—©å‚çˆ±
       rare: 4
       type: person
-      url: ./Images/person/ÔçÛà°®.png
+      url: ./Images/person/æ—©å‚çˆ±.png
     - index: 27
-      name: ËÄ¹¬»ÔÒ¹
+      name: å››å®«è¾‰å¤œ
       rare: 4
       type: person
-      url: ./Images/person/ËÄ¹¬»ÔÒ¹.png
+      url: ./Images/person/å››å®«è¾‰å¤œ.png
     - index: 28
-      name: °×Òø¹ç
+      name: ç™½é“¶åœ­
       rare: 4
       type: person
-      url: ./Images/person/°×Òø¹ç.png
+      url: ./Images/person/ç™½é“¶åœ­.png
     length: 29
 up:
   decoration:
-  - ×À²¼-ÁµÖ®¼ûÖ¤
-  - Á¢Ö±-ÁµÖ®¼ıÊ¸
-  - ÅÆ±³-ÁµÖ®±³Ó°
-  - ºÍÅÆ-ÁµÖ®½µÁÙ
-  - Á¢Ö±°ô-ÁµÖ®·´Ê¡
+  - æ¡Œå¸ƒ-æ‹ä¹‹è§è¯
+  - ç«‹ç›´-æ‹ä¹‹ç®­çŸ¢
+  - ç‰ŒèƒŒ-æ‹ä¹‹èƒŒå½±
+  - å’Œç‰Œ-æ‹ä¹‹é™ä¸´
+  - ç«‹ç›´æ£’-æ‹ä¹‹åçœ
   person:
-  - °×Òø¹ç
-  - °×ÒøÓùĞĞ
-  - ÔçÛà°®
-  - ËÄ¹¬»ÔÒ¹
+  - ç™½é“¶åœ­
+  - ç™½é“¶å¾¡è¡Œ
+  - æ—©å‚çˆ±
+  - å››å®«è¾‰å¤œ

@@ -6,11 +6,17 @@ from utils.text_to_img import text_to_image
 config = {}
 replydata = {}
 
+kargs = {'admin', 'whiteList', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig', 'botname',
+         'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master'}
+
 
 def load_config() -> dict:
     try:
         with open(r'./config/config.yml', encoding="gbk") as f:
             config = yaml.safe_load(f)
+            # for key in kargs:
+            #     if key not in config.keys():
+            #         raise Exception
             for k, v in config.items():
                 print(k, v)
             admin = config['admin']
@@ -27,8 +33,8 @@ def load_config() -> dict:
             qhsettings = config['qhsettings']
             nudgeconfig = config['nudgeconfig']
             loglevel = config['loglevel']
-            replydata['replyimgpath'] = config['replyimgpath']
             master = config['master']
+            replydata['replyimgpath'] = config['replyimgpath']
             if master == 0:
                 print('请输入机器人主人 ( master )')
         if len(welcomeinfo) == 0:
@@ -48,12 +54,13 @@ def load_config() -> dict:
                            adapter=dict(verify_key='NekoRabi',
                                         host='localhost', port=17280),
                            settings=dict(autogetpaipu=True, autowelcome=True, r18talk=True, nudgereply=True, setu=False,
-                                         silence=False, norepeat=False, asyreptile=False),
+                                         silence=False, norepeat=False, asyreptile=False,voice=False),
+                           voicesettings=dict(volumn=1,speed=0.85,secretId='',secretKey=''),
                            qhsettings=dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, disptgroup=[0],
                                            disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
                                            dispaipugroup=[0])),
                       f, allow_unicode=True)
-            print("默认文件生成完成，请重新启动。")
+            print("默认文件生成完成，请重新启动")
             exit(0)
 
 
@@ -142,5 +149,5 @@ def create_helpimg():
                 "norepeat on/true/……  : 开启或关闭本群复读功能\n" \
                 "" \
                 "项目地址 : 获取项目链接\n"
-    text_to_image(path='help.png', text=grouphelp)
-    text_to_image(path='adminhelp.png',text=adminhelp)
+    text_to_image(path='grouphelp.png', text=grouphelp)
+    text_to_image(path='adminhelp.png', text=adminhelp)
