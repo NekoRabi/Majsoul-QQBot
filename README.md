@@ -53,7 +53,7 @@
 
 可以使用 ``` pip install -r requirements.txt``` 来快速安装所需依赖。
 
-我提供了自己的Mirai-Http配置，可以直接进行复制和替换。
+我提供了自己的 [Mirai](./other/自用mirai/mcl1.0.6.zip) 和 [Mirai-Api-Http](./other/mirai-api-http/setting.yml) 配置，可以直接进行复制和替换。
 
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
@@ -62,7 +62,7 @@
 
 # 环境
 
-我自己电脑是Python 3.8   Java 15， 服务器是 Python 3.9   Java 17.
+我自己环境是 Python 3.9  和 Java 17.
 
 **建议使用 Python 3.9 和 Java 17**
 
@@ -76,13 +76,12 @@
 
 # 配置文件
 
-中文如果出现乱码，可以使用 VSCode “通过编码重新打开” ，选择编码为GBK。
 ### config.yml
  ``` 注意, '冒号' (:) 后必须有空格 ```
  ```
 ### 请注意 ， 冒号(:)和横线(-)  后面必须要有 '空格'
 
-adapter: # Mirai
+adapter: # Mirai-api-http
   host: localhost
   port: 17280
   verify_key: NekoRabi
@@ -113,9 +112,14 @@ replyimgpath : fox # 表情包路径
 
 loglevel: INFO # 日志等级
 
-# 在某群禁用 摸头事件
-disnudgegroup:
-  - 0
+# "戳一戳"配置文件
+nudgeconfig:
+  # 在某群禁用 摸头事件
+  disnudgegroup:
+    - 0
+  sendnudgechance: 1  # 被戳时 以 "戳一戳" 还击的概率
+  supersendnudgechance: 0.2 # 还击的"戳一戳"中，触发超级还击的概率
+  supernudgequantity: 10 # 单次超级还击的发送 "戳一戳" 的次数
 
 # 在某群关闭自动回复
 norepeatgroup:
@@ -130,11 +134,11 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 whitelist:
   - 0   # 白名单
 
-# 开启色图的群聊
+# 色图群聊
 setugroups:
   - 0
 
-settings: # 各项开关
+settings: # 功能开关
   autogetpaipu: true  # 自动获取雀魂牌谱
   autowelcome: true   # 自动欢迎新人
   nudgereply: true    # 是否启用摸头事件
@@ -142,7 +146,8 @@ settings: # 各项开关
   setu: false         # 色图
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
-  help: True
+  help: true          # 是否显示帮助
+  voice: false        # 语音功能
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
   repeatQ: 20         # 复读问号 的概率
@@ -159,16 +164,30 @@ qhsettings: # 是否启用
   qhpaipu: true
   disptgroup: # 在某群禁用 qhpt
     - 0
-  disinfogroup: # 在某群禁用 qhinfo
+  disinfogroup:
     - 0
-  disslgroup:   # 在某群禁用 qhsl
+  disslgroup:
     - 0
-  disybgroup:   # 在某群禁用 qhyb
+  disybgroup:
     - 0
-  disautoquerygroup: 
+  disautoquerygroup:
     - 0
-  dispaipugroup:  # 在某群禁用 qhpaipu
+  dispaipugroup:
     - 0
+
+
+#语音设置
+voicesetting:
+  # 腾讯云文本转语音系统，请在使用前仔细看使用手册
+  # https://cloud.tencent.com/document/product/1073/37995
+  # 密钥可前往https://console.cloud.tencent.com/cam/capi网站进行获取
+  volume: 1       # 音量或是音高
+  speed: 0.9      # 语速
+  voicetype: 1002 # 音色或是音质
+  private: true   # 因为该功能可能需要机器人主人承担一定的费用，因此你可以设置该功能是否为私人使用
+                  # 即 设置private 为 true，则只有你可以让机器人说话
+  secretId: ''
+  secretKey: ''
 
 
 
@@ -255,18 +274,18 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  - 雀魂相关功能，如模拟抽卡，查询玩家信息，定时播报玩家最近战绩
  - 天凤对局播报，段位查询
  - 入群欢迎
- - 摸头、互亲、举牌、~~色图~~等图片相关功能
- - 强交互性，提供自定义回复
- - 以后会有更多
+ - 摸头、互亲、举牌、色图、占卜等图片相关功能
+ - 强交互性，提供自定义回复、图片回复和语音回复
+ - 以后会有更多……
 
  # 存在的问题
  1. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
- 解决办法: 将config.yml用GBK编码打开并保存 
- 2. ~~涩图请求超时(网络不好)~~
+ 解决办法: 将config.yml重新编码 ( 现已全部都使用 utf-8 编码 ) 
+ 2. ~~网络请求超时(网络不好)~~
 
  # 开发计划
 
-  [ ] 数据库重新设计
+  [ ] 数据库重新设计 (进行中)
 
   [ ] 增加何切支持
 
@@ -275,6 +294,9 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
   [ ] 打包成exe,或者一键启动与更新
 
   [ ] 做一份完整的说明书
+
+# 其他
+语音模块是使用的腾讯云的api，是收费的，默认关闭，有想法可以打开玩玩，一天约 0.02 或 0.03 元   [地址](https://cloud.tencent.com/document/product/1073/37995)
 
 # 联系方式
 QQ:1215791340 验证消息： 可爱的拉克丝

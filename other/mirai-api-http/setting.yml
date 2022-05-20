@@ -1,0 +1,13 @@
+adapters: 
+  - ws
+debug: false
+enableVerify: true
+verifyKey: NekoRabi
+singleMode: false
+cacheSize: 4096
+adapterSettings: 
+  ws:
+    host: localhost
+    port: 17280
+    reservedSyncId: -1
+    
