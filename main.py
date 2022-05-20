@@ -113,7 +113,7 @@ if __name__ == '__main__':
             msgchain.append(Plain(" "))
         if reply:
             msgchain.append(Plain(random.choice(reply)))
-        if text:
+        elif text:
             msgchain.append(Plain(text))
         if reply or text:
             msgchain.append(Plain(random.choice(replydata['suffix'])))
@@ -1141,9 +1141,9 @@ if __name__ == '__main__':
             success, signmsg = signup(event.sender.id)
             if success:
                 card = tc.drawcards()[0]
-                return await bot.send(event, getreply(text=signmsg, imgbase64=card.imgcontent))
+                return await bot.send(event, getreply(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
             else:
-                return await bot.send(event, getreply(text=signmsg, rndimg=True))
+                return await bot.send(event, getreply(at=event.sender.id, text=signmsg, rndimg=True))
 
 
     # 查询积分
@@ -1177,13 +1177,14 @@ if __name__ == '__main__':
                     #### return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
                     # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 
+
     @bot.on(GroupMessage)
     async def getsometarots(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr'^{commandpre}\s*今日塔罗\s*$', msg.strip())
         if m:
-            return await bot.send(event,getreply(at=event.sender.id,text='旧的"今日塔罗"功能现在改为"签到"触发'))
+            return await bot.send(event, getreply(at=event.sender.id, text='旧的"今日塔罗"功能现在改为"签到"触发'))
 
 
     @bot.on(MessageEvent)

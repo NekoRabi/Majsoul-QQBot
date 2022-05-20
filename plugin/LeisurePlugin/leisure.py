@@ -30,7 +30,7 @@ def signup(userid: int) -> tuple:
     elif today != user[0][1]:
         cursor.execute(f"update userinfo set lastsignin = '{today}',score = {user[0][0] + 1} where userid = {userid}")
         cx.commit()
-        singinmsg += str(user[0][0] + 1)
+        singinmsg += f"{user[0][0] + 1}\n这是你今天的塔罗牌"
     else:
         return False, "一天只能签到一次哦~"
     cursor.close()
