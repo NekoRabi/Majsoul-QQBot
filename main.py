@@ -1,4 +1,3 @@
-import base64
 import logging
 
 import nest_asyncio
@@ -11,8 +10,8 @@ from utils.text_to_voice import VoiceCreater
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
-    Image, MessageEvent, Voice
-from mirai.models import MemberJoinEvent, NudgeEvent
+    Image, MessageEvent, Voice, AtAll
+from mirai.models import MemberJoinEvent, NudgeEvent, Forward, ForwardMessageNode
 
 if __name__ == '__main__':
 
@@ -40,6 +39,7 @@ if __name__ == '__main__':
     nudgeconfig = config['nudgeconfig']
     stfinder = SetuFinder(botname)
     vc = None
+    tc = TarotCards()
 
     if settings['voice']:
         if config['voicesetting']['secretId'].strip() == '' or config['voicesetting']['secretKey'] == '':
@@ -60,6 +60,7 @@ if __name__ == '__main__':
         admin.append(master)
     print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
 
+
     async def asyqh_autopaipu():
         result = asygetqhpaipu()
         print("查询新的雀魂对局信息有:")
@@ -68,6 +69,7 @@ if __name__ == '__main__':
             for group in msgobj['groups']:
                 await bot.send_group_message(group, msgobj['msg'])
         return
+
 
     async def asyth_all():
         result = asygetTH()
@@ -78,8 +80,10 @@ if __name__ == '__main__':
                 await bot.send_group_message(group, msgobj['msg'])
         return
 
+
     def get_groupsender_permission(event: GroupMessage):
         return event.sender.permission
+
 
     def is_havingadmin(event: GroupMessage):
         if event.sender.id in admin:
@@ -87,6 +91,7 @@ if __name__ == '__main__':
         elif event.sender.permission == "MEMBER":
             return False
         return True
+
 
     def getbase64voice(text):
         voice = dict(error=False, file=None, errmsg=None)
@@ -96,12 +101,16 @@ if __name__ == '__main__':
             voice['error'] = True
         return voice
 
-    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None,
-                 at: int = None) -> MessageChain:
+
+    def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None, imgbase64=None,
+                 at: int = None, atall=False) -> MessageChain:
         msgchain = []
         if at:
             msgchain.append(At(at))
-            msgchain.append(" ")
+            msgchain.append(Plain(" "))
+        elif atall:
+            msgchain.append(AtAll())
+            msgchain.append(Plain(" "))
         if reply:
             msgchain.append(Plain(random.choice(reply)))
         if text:
@@ -109,12 +118,18 @@ if __name__ == '__main__':
         if reply or text:
             msgchain.append(Plain(random.choice(replydata['suffix'])))
         if rndimg:
+            msgchain.append(Plain("\n"))
             msgchain.append(
                 Image(path=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
         if imgpath:
+            msgchain.append(Plain("\n"))
             msgchain.append(
                 Image(path=f"{imgpath}"))
+        if imgbase64:
+            msgchain.append(Plain("\n"))
+            msgchain.append(Image(base64=imgbase64))
         return MessageChain(msgchain)
+
 
     # 聊天记录存储
 
@@ -127,6 +142,7 @@ if __name__ == '__main__':
             qqlogger.info(event)
         else:
             qqlogger.info(event)
+
 
     # 欢迎
 
@@ -150,6 +166,7 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
+
     @bot.on(FriendMessage)
     async def asyspidertest(event: FriendMessage):
         if event.sender.id == master:
@@ -160,6 +177,7 @@ if __name__ == '__main__':
                 print("牌谱刷新中")
                 await bot.send(event, "牌谱刷新中")
                 await asyqh_autopaipu()
+
 
     @bot.on(FriendMessage)
     async def addadmin(event: FriendMessage):
@@ -178,6 +196,7 @@ if __name__ == '__main__':
                     return await bot.send(event, MessageChain(Plain(f" {m.group(1)}已经是管理员了")))
         return
 
+
     @bot.on(FriendMessage)
     async def deladmin(event: FriendMessage):
         if event.sender.id == master:
@@ -194,12 +213,15 @@ if __name__ == '__main__':
                     return await bot.send(event, MessageChain(Plain(f" {m.group(1)}不是管理员了")))
         return
 
+
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
         if str(event.message_chain) == '你好':
             return bot.send(event, 'Hello, World!')
 
+
     '''获取日志'''
+
 
     @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
@@ -217,6 +239,7 @@ if __name__ == '__main__':
                     return
             return
 
+
     # PING
 
     @bot.on(FriendMessage)
@@ -225,6 +248,7 @@ if __name__ == '__main__':
             rootLogger.info("ping了一下")
             await bot.send(event, "pong!")
         return
+
 
     # 强制复读
 
@@ -237,6 +261,7 @@ if __name__ == '__main__':
             if m:
                 return await bot.send_group_message(int(m.group(1)), m.group(2))
 
+
     @bot.on(GroupMessage)
     async def forceAt(event: GroupMessage):
         if event.sender.id in admin:
@@ -247,6 +272,7 @@ if __name__ == '__main__':
                 if At in event.message_chain:
                     target = event.message_chain.get_first(At).target
                     return await bot.send(event, MessageChain([At(target), Plain(f" {m.group(1)}")]))
+
 
     @bot.on(GroupMessage)
     async def enablesetu(event: GroupMessage):
@@ -264,6 +290,7 @@ if __name__ == '__main__':
                         yaml.dump(config, file, allow_unicode=True)
                     await bot.send(event, getreply(text="色图开启成功", rndimg=True))
 
+
     @bot.on(GroupMessage)
     async def disablesetu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -280,6 +307,7 @@ if __name__ == '__main__':
                     await bot.send(event, getreply(text="色图已关闭", rndimg=True))
                 else:
                     await bot.send(event, getreply(text="本群色图已关闭", rndimg=True))
+
 
     @bot.on(GroupMessage)
     async def setu(event: GroupMessage):
@@ -326,7 +354,9 @@ if __name__ == '__main__':
                         await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
         return
 
+
     """雀魂相关"""
+
 
     @bot.on(MessageEvent)
     async def getmajsoulhelp(event: MessageEvent):
@@ -336,6 +366,7 @@ if __name__ == '__main__':
             # if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'help')):
             #     return bot.send(event, getreply(text="帮助文档刚刚才发过哦~", rndimg=True, at=event.sender.id))
             return await bot.send(event, Image(path="./images/grouphelp.png"))
+
 
     # 禁用功能
 
@@ -379,6 +410,7 @@ if __name__ == '__main__':
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
 
+
     @bot.on(GroupMessage)
     async def enableqhplugin(event: GroupMessage):
         # 匹配指令
@@ -419,6 +451,7 @@ if __name__ == '__main__':
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
 
+
     # 查分
 
     @bot.on(GroupMessage)
@@ -444,6 +477,7 @@ if __name__ == '__main__':
                     else:
                         await bot.send(event, Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
             return
+
 
     @bot.on(GroupMessage)
     async def getrecentqhpaipu(event: GroupMessage):
@@ -473,6 +507,7 @@ if __name__ == '__main__':
                     else:
                         await bot.send(event, getsomeqhpaipu(playername=playername, type=searchtype))
 
+
     @bot.on(GroupMessage)
     async def getplayerdetails(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -501,6 +536,7 @@ if __name__ == '__main__':
                         await bot.send(event, Image(path=f'./images/MajsoulInfo/detail{playername}.png'))
         return
 
+
     @bot.on(GroupMessage)
     async def getmondetails(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -524,6 +560,7 @@ if __name__ == '__main__':
                     await bot.send(event, MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
         return
 
+
     # 获取某群的雀魂关注人员
 
     @bot.on(GroupMessage)
@@ -533,6 +570,7 @@ if __name__ == '__main__':
         m = re.match(fr'^{commandpre}(qhgetwatch|雀魂获取本群关注)\s*$', msg.strip())
         if m:
             await bot.send(event, getallwatcher(event.group.id))
+
 
     # 将一个雀魂用户加入某群的关注
 
@@ -549,6 +587,7 @@ if __name__ == '__main__':
                 # else:
                 #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
                 await bot.send(event, addwatch(m.group(2), event.group.id))
+
 
     # 删除某群雀魂关注
 
@@ -567,6 +606,7 @@ if __name__ == '__main__':
                 #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
                 await bot.send(event, removewatch(m.group(2), event.group.id))
         return
+
 
     # 来一发雀魂十连
 
@@ -636,7 +676,9 @@ if __name__ == '__main__':
                 return await bot.send(event, getreply(text="此群已禁用模拟抽卡"))
         return
 
+
     '''天凤相关'''
+
 
     @bot.on(GroupMessage)
     async def addtenhouwatch(event: GroupMessage):
@@ -650,6 +692,7 @@ if __name__ == '__main__':
                 return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             await bot.send(event, getthpt(m.group(2)))
 
+
     @bot.on(GroupMessage)
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -661,6 +704,7 @@ if __name__ == '__main__':
                 await bot.send(event, addthwatch(m.group(2), event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+
 
     @bot.on(GroupMessage)
     async def deltenhouwatcher(event: GroupMessage):
@@ -675,6 +719,7 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
+
     @bot.on(GroupMessage)
     async def gettenhouwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -683,9 +728,11 @@ if __name__ == '__main__':
         if m:
             await bot.send(event, getthwatch(event.group.id))
 
+
     '''通用功能'''
 
     '''随机搞怪回复'''
+
 
     @bot.on(GroupMessage)
     async def duideduide(event: GroupMessage):
@@ -714,7 +761,9 @@ if __name__ == '__main__':
                             await bot.send(event, random.choice(
                                 ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
 
+
     '''创建举牌文字'''
+
 
     @bot.on(MessageEvent)
     async def jupai(event: MessageEvent):
@@ -731,7 +780,9 @@ if __name__ == '__main__':
             ])
             await bot.send(event, message_chain)
 
+
     '''获取机器人信息'''
+
 
     @bot.on(FriendMessage)
     async def getbotinfo(event: FriendMessage):
@@ -744,7 +795,9 @@ if __name__ == '__main__':
                 return await bot.send(event,
                                       f"机器人设置:{config}\n白名单用户:{whiteList}\n黑名单用户:{black_list['user']}\n屏蔽群组:{black_list['group']}")
 
+
     '''沉默机器人'''
+
 
     # 全局沉默
     @bot.on(FriendMessage)
@@ -763,6 +816,7 @@ if __name__ == '__main__':
                     settings['silence'] = False
                     with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
+
 
     # 单群沉默 - 从群聊沉默
 
@@ -784,6 +838,7 @@ if __name__ == '__main__':
                         silencegroup.remove(event.group.id)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
+
 
     # 关闭复读
 
@@ -808,6 +863,7 @@ if __name__ == '__main__':
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
 
+
     # 添加白名单
 
     @bot.on(GroupMessage)
@@ -826,6 +882,7 @@ if __name__ == '__main__':
                 return await bot.send(event, "添加成功")
             else:
                 return await bot.send(event, "添加失败,用户已存在")
+
 
     # 添加黑名单
 
@@ -848,6 +905,7 @@ if __name__ == '__main__':
             else:
                 return await bot.send(event, "添加失败,用户已存在")
 
+
     # 移出黑名单
 
     @bot.on(FriendMessage)
@@ -867,7 +925,9 @@ if __name__ == '__main__':
                 else:
                     return await bot.send(event, "删除失败,用户不存在")
 
+
     '''随机打断、复读、嘲讽'''
+
 
     @bot.on(GroupMessage)
     async def on_group_message(event: GroupMessage):
@@ -893,6 +953,7 @@ if __name__ == '__main__':
                         return await bot.send(event, event.message_chain)
         return
 
+
     # 获取项目地址
 
     @bot.on(MessageEvent)
@@ -906,7 +967,9 @@ if __name__ == '__main__':
 
             # 与机器人互动
 
+
     last_bvid = {}
+
 
     @bot.on(GroupMessage)
     # 哔哩哔哩解析
@@ -949,6 +1012,7 @@ if __name__ == '__main__':
                     [Image(url=img_url), Plain(text=msg)])
                 return await bot.send(event, message_chain)
 
+
     @bot.on(GroupMessage)
     async def diyreply(event: GroupMessage):
         if not settings['silence']:
@@ -989,6 +1053,7 @@ if __name__ == '__main__':
                                 return await bot.send(event, getreply(reply=v, rndimg=True))
                         return await bot.send(event, getreply(reply=replydata['mismatch']['common'], rndimg=True))
 
+
     # 亲亲
 
     @bot.on(GroupMessage)
@@ -1006,6 +1071,7 @@ if __name__ == '__main__':
                     await bot.send(event, MessageChain(
                         Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
 
+
     # 摸头
 
     @bot.on(GroupMessage)
@@ -1021,6 +1087,7 @@ if __name__ == '__main__':
             #     target = m.group(2)
             #     await petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+
 
     @bot.on(MessageEvent)
     async def imgoperate(event: MessageEvent):
@@ -1038,6 +1105,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print(e)
                 rootLogger.exception(e)
+
 
     @bot.on(GroupMessage)
     async def getremakeimg(event: GroupMessage):
@@ -1062,15 +1130,21 @@ if __name__ == '__main__':
             await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
         return
 
+
     # 签到获取积分
 
     @bot.on(MessageEvent)
-    async def signin(event: MessageEvent):
+    async def signUp(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr'^{commandpre}\s*签到\s*$', msg.strip())
         if m:
-            signmsg = siginin(event.sender.id)
-            return await bot.send(event, getreply(text=signmsg, rndimg=True))
+            success, signmsg = signup(event.sender.id)
+            if success:
+                card = tc.drawcards()[0]
+                return await bot.send(event, getreply(text=signmsg, imgbase64=card.imgcontent))
+            else:
+                return await bot.send(event, getreply(text=signmsg, rndimg=True))
+
 
     # 查询积分
 
@@ -1082,6 +1156,7 @@ if __name__ == '__main__':
             scoremsg = getscore(
                 userid=event.sender.id)
             return await bot.send(event, getreply(text=scoremsg, rndimg=True))
+
 
     @bot.on(GroupMessage)
     async def getuserscore(event: GroupMessage):
@@ -1101,6 +1176,44 @@ if __name__ == '__main__':
                     return await bot.send(event, Voice(base64=voice['file']))
                     #### return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
                     # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
+
+    @bot.on(GroupMessage)
+    async def getsometarots(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr'^{commandpre}\s*今日塔罗\s*$', msg.strip())
+        if m:
+            return await bot.send(event,getreply(at=event.sender.id,text='旧的"今日塔罗"功能现在改为"签到"触发'))
+
+
+    @bot.on(MessageEvent)
+    async def getsometarots(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr'^{commandpre}\s*(\d)?张?(([tT][Aa][Rr][oO][Tt])|(塔罗牌))', msg.strip())
+        if m:
+            if m.group(1):
+                num = int(m.group(1))
+                if 0 < num < 10:
+                    cards = tc.drawcards(count=num)
+                    msgC = []
+                    for card in cards:
+                        fmn = ForwardMessageNode(
+                            sender_id=event.sender.id,
+                            sender_name=event.sender.get_name(),
+                            message_chain=MessageChain([Image(base64=card.imgcontent)])
+                        )
+                        # fmn = ForwardMessageNode.create(event.sender,MessageChain([Image(base64=card.imgcontent)]))
+                        msgC.append(fmn)
+                        # msgC.append(Image(base64=card.imgcontent))
+                    # ForwardMessageNode(event.sender,MessageChain(msgC))
+                    return bot.send(event, Forward(node_list=msgC))
+                else:
+                    return bot.send(event, getreply(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
+            else:
+                card = tc.drawcards()[0]
+                return await bot.send(event, Image(base64=card.imgcontent))
+
 
     # 戳一戳 出发摸头
 
@@ -1155,6 +1268,7 @@ if __name__ == '__main__':
                                                          Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
         return
 
+
     # 群龙王
     # @bot.on(GroupEvent)
     # async def dradonchange(event: MemberHonorChangeEvent):
@@ -1167,13 +1281,16 @@ if __name__ == '__main__':
 
     scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
 
+
     @bot.on(Startup)
     def start_scheduler(_):
         scheduler.start()  # 启动定时器
 
+
     @bot.on(Shutdown)
     def stop_scheduler(_):
         scheduler.shutdown(True)  # 结束定时器
+
 
     # 雀魂对局记录轮询器
 
@@ -1214,5 +1331,6 @@ if __name__ == '__main__':
                     logging.exception(e)
                 print(
                     f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
+
 
     bot.run(port=17580)

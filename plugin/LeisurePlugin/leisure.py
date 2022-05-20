@@ -1,12 +1,15 @@
 import sqlite3
 import time
 import os
+from mirai import MessageChain
+from utils.MessageChainBuilder import buildmessagechain
+from plugin.LeisurePlugin.tarot import TarotCards
 
 if not os.path.exists("./database/LeisurePlugin"):
     os.mkdir("./database/LeisurePlugin")
 
 
-def siginin(userid: int) -> str:
+def signup(userid: int) -> tuple:
     singinmsg = "签到成功,积分+1\n当前积分 : "
     cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
     cursor = cx.cursor()
@@ -23,16 +26,16 @@ def siginin(userid: int) -> str:
     if len(user) == 0:
         cursor.execute(f"insert into userinfo(userid,score,lastsignin) values({userid},1,'{today}')")
         cx.commit()
-        singinmsg += "1"
+        singinmsg += "1\n这是你今天的塔罗牌"
     elif today != user[0][1]:
         cursor.execute(f"update userinfo set lastsignin = '{today}',score = {user[0][0] + 1} where userid = {userid}")
         cx.commit()
         singinmsg += str(user[0][0] + 1)
     else:
-        singinmsg = "一天只能签到一次哦~"
+        return False, "一天只能签到一次哦~"
     cursor.close()
     cx.close()
-    return singinmsg
+    return True, singinmsg
 
 
 def getscore(userid: int):
