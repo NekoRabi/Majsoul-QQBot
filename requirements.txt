@@ -7,3 +7,4 @@ PyYAML
 APScheduler
 yiri-mirai
 uvicorn
+tencentcloud-sdk-python
