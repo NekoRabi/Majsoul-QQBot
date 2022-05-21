@@ -137,3 +137,14 @@ class commandcache:
         for cmd in self.groupbuffer.values():
             cmdstr += f'{cmd}\n'
         return cmdstr
+
+# c = command(586468489, 1215791340, 'help')
+# d = command(586468489, 1215791340, 'help')
+# cmdcache = commandcache()
+# print(c)
+# print(d)
+# print(time.time())
+# cmdcache.updatecache(c)
+# cmdcache.updatecache(d)
+# print(c == d)
+# print(cmdcache)

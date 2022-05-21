@@ -6,5 +6,6 @@ requests
 PyYAML
 APScheduler
 yiri-mirai
+nest_asyncio
 uvicorn
 tencentcloud-sdk-python

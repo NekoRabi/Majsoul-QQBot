@@ -316,7 +316,7 @@ if __name__ == '__main__':
         m1 = re.match(
             fr'^{commandpre}(色图|涩图|setu)\s*([\w\d\|]+)?\s*$', msg.strip())
         m2 = re.match(
-            fr"^{commandpre}来(\d)*(张|份)([\w\d\|]+)?\s*(的)?\s*(色图|涩图)\s*$", msg.strip())
+            fr"^{commandpre}来(\d)*[张份点]?([\w\d\|]+)?\s*(的)?\s*[色涩涉]图\s*$", msg.strip())
         if m1:
             if random.random() * 100 < 10:
                 print(f"发出对{event.sender.id}的少冲提醒")
@@ -345,7 +345,7 @@ if __name__ == '__main__':
 
                     try:
                         imginfo = stfinder.getsetu(
-                            m2.group(3), event.group.id, m2.group(1))
+                            m2.group(2), event.group.id, m2.group(1))
                         if imginfo['FoundError']:
                             return await bot.send(event, getreply(text=imginfo['ErrorMsg']))
                         await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
@@ -962,8 +962,9 @@ if __name__ == '__main__':
         m = re.match(fr"^{commandpre}项目地址\s*$", msg.strip())
         if m:
             return await bot.send(event, MessageChain([Plain(
-                "Github : https://github.com/NekoRabi/Majsoul-QQBot\nGitee : "
-                "https://gitee.com/Syaro/Majsoul-QQBot\n如果觉得好可以点个star⭐")]))
+                "Github : https://github.com/NekoRabi/Majsoul-QQBot\n"
+                "Gitee : https://gitee.com/Syaro/Majsoul-QQBot\n"
+                "如果觉得好可以点个star⭐")]))
 
             # 与机器人互动
 
@@ -1159,7 +1160,7 @@ if __name__ == '__main__':
 
 
     @bot.on(GroupMessage)
-    async def getuserscore(event: GroupMessage):
+    async def sendVoice(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr'^{commandpre}\s*说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$', msg.strip())
@@ -1174,6 +1175,27 @@ if __name__ == '__main__':
                 voice = getbase64voice(text)
                 if not voice['error']:
                     return await bot.send(event, Voice(base64=voice['file']))
+                    #### return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
+                    # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
+
+
+    @bot.on(FriendMessage)
+    async def sendVoice(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr'^{commandpre}\s*在(\d+)说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$', msg.strip())
+        if m:
+            if settings['voice']:
+                if config['voicesetting']['private']:
+                    if event.sender.id != master:
+                        return
+                groupid = int(m.group(1))
+                text = m.group(2).strip()
+                if len(text) > 40:
+                    return await bot.send(event, getreply(text="文本太长啦", rndimg=True))
+                voice = getbase64voice(text)
+                if not voice['error']:
+                    return await bot.send_group_message(groupid, Voice(base64=voice['file']))
                     #### return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
                     # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 

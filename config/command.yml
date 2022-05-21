@@ -1,0 +1,64 @@
+command_compilation:
+  # 指令正则  "^{commandpre}addadmin\s*(\d+)\s*$"
+  # 只能修改 "^{commandpre}" 后面的部分，会自动拼接指令前缀
+  # 注意: 冒号后面要有空格
+  # 请严格保持括号顺序
+  sys:
+    help: '(help|帮助)\s*$'
+    addadmin: "addadmin\s*(\d+)\s*$"
+    deladmin: "deladmin\s*(\d+)\s*$"
+    sendmsgtogroup: "stext::\s*([0-9]+)\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$"
+    getbotinfo: "getinfo\s*$"
+    silence_all: "silence\s*(\w+)\s*$"
+    silence_group: "silence\s*(\w+)\s*$"
+    repeat: "norepeat\s*(\w+)\s*$"
+    addwhitelist: "addwhitelist\s*([0-9]+)\s*$"
+    delwhitelist: "delwhitelist\s*([0-9]+)\s*$"
+    addblacklist: "addblacklist\s*([0-9]+)\s*$"
+    delblacklist: "delblacklist\s*([0-9]+)\s*$"
+
+    signin: "\s*签到\s*$"
+    getscore: "\s*获取当前积分\s*$"
+    tarot: "\s*(\d)?张?(([tT][Aa][Rr][oO][Tt])|(塔罗牌))"
+
+  setu:
+    enable: "(open|enable|开启)\s*(涩图|色图|setu)\s*$"
+    disable: "(close|disable|关闭)\s*(涩图|色图|setu)\s*$"
+    getsetu1: "(色图|涩图|setu)\s*([\w\d\|]+)?\s*$"
+    getsetu2: "来(\d)*[张份点]?([\w\d\|]+)?\s*(的)?\s*[色涩涉]图\s*$"
+
+  majsoul:
+    disable: "disable\s*(\w+)\s*$"
+    enable : "enable\s*(\w+)\s*$"
+    qhpt: "(qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，。@\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$"
+    qhpaipu : "(qhpaipu|雀魂最近对局)\s*([\w_、,\.，@。\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$"
+    qhinfo: "(qhinfo|雀魂玩家详情)\s*([\w_、,\.，@。\'\"!]+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$"
+    qhyb: "(qhyb|雀魂月报)\s*([\w_、,\.，@。\'\"!]+)\s*([34])?\s*([0-9]{{4}})?[-]?([0-9]{{1,2}})?\s*$"
+    qhsl: "(qhsl|雀魂十连)\s*(\w+)*\s*$"
+    getwatch: "(qhgetwatch|雀魂获取本群关注)\s*$"
+    addwatch: "(qhadd|雀魂添加关注)\s*([\w_@、,\.，。\'\"!]+)\s*$"
+    delwatch: "(qhdel|雀魂删除关注)\s*([\w_@、,\.，。\'\"!]+)\s*$"
+
+  tenhou:
+    thpt: "(thpt|天凤pt|天凤分数)\s*([\w_、@,。，\'\\\.!！]+)\s*$"
+    addwatch: "(thadd|天凤添加关注)\s*([\w_、,。@，\'\\\.!！]+)\s*$"
+    delwatch: "(thdel|天凤删除关注)\s*([\w_、,。@，\'\\\.!！]+)\s*$"
+    getwatch: "(thgetwatch|天凤获取本群关注)\s*$"
+
+  jupai:
+    jupai: "举牌\s*([\u4e00-\u9fa5\w_%&',;:=?!^.$\x22，。？！]+)\s*$"
+
+  reply:
+    jida: "([\w\d]+)鸡打\s*\."
+    wochao: "我超(\w+)\s*\."
+    kisskiss: "(亲|亲亲)\s*@?(\w+)?\s*"
+    touchhead: "(摸|摸摸|摸头)\s*@?(\w+)?\s*$"
+
+  imgoperation:
+    bw: "bw\s*([\u4e00-\u9fa5\w%&,;:=?!\s$\x22，。？！\d]+)\s*$"
+
+  remake:
+    remake: "(重开|remake)\s*(\d+)?\s*(\w+)?\s*$"
+
+  voice:
+    sendvoice: "\s*说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$"

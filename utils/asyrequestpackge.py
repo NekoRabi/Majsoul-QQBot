@@ -1,7 +1,7 @@
 import asyncio
 
 
-def finish_all_asytasks(task_funs:list)->list:
+def finish_all_asytasks(task_funs: list) -> list:
     tasks = []
     for task in task_funs:
         tasks.append(asyncio.ensure_future(task))

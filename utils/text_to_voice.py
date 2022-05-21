@@ -44,7 +44,7 @@ class VoiceCreater:
             req = models.TextToVoiceRequest()
             params = {
                 "Text": text,
-                "SessionId": time.strftime('%Y/%m/%d/%H', time.localtime(time.time())),
+                "SessionId": time.strftime('%Y/%m/%d/%H/%M', time.localtime(time.time())),
                 "Volume": self.volume,
                 "Speed": self.speed,
                 "VoiceType": self.voicetype,
