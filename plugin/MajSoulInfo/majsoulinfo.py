@@ -546,13 +546,18 @@ def levelswitch(level, score, type):
         score = maxscore // 2
 
     if stage_level < 0:
-        msg += type + "段位:  雀士"
+        # msg += type + "段位:  雀士"
+        msg += type + ":" +"  雀士"
     elif stage_level < 4:
-        msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
-            score) + "/" + str(maxscore)
+        # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
+        #     score) + "/" + str(maxscore)
+        msg += type+ ":"  + prtlevelmsg(stage_level, score_level) + " \t [" + str(
+            score) + "/" + str(maxscore) + " ]"
     else:
-        msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
-            score / 100) + "/" + str(maxscore / 100)
+        # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
+        #     score / 100) + "/" + str(maxscore / 100)
+        msg += type+ ":"  + prtlevelmsg(stage_level, score_level) + " \t [" + str(
+            score / 100) + "/" + str(maxscore / 100) + " ]"
     return msg
 
 

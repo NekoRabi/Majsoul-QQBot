@@ -68,7 +68,8 @@ async def asyautoget_th_match() -> list:
     if int(minute) <= 10:
         timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime)]
     else:
-        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime), dict(nowtime=jpnowtime, daytime=jpdaytime)]
+        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime),
+                    dict(nowtime=jpnowtime, daytime=jpdaytime)]
 
     msglist = []
     for usetime in timelist:
@@ -77,7 +78,8 @@ async def asyautoget_th_match() -> list:
             async with session.get(url=f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
                                    allow_redirects=True) as response:
                 filedata = await response.read()
-        open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(filedata)
+        open(
+            f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(filedata)
         un_gz(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
         os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
         cursor.execute("select playername from watchedplayer")
@@ -111,11 +113,14 @@ async def asyautoget_th_match() -> list:
                         msg = ""
                         msg += f"{model}\n"
                         msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
-                        order = get_matchorder(playerlist=players, playername=p)
+                        order = get_matchorder(
+                            playerlist=players, playername=p)
                         if len(players) == 4:
-                            msg += f"{bordercast_temple[4][order]}\n\n".replace('%player%', p)
+                            msg += f"{bordercast_temple[4][order]}\n\n".replace(
+                                '%player%', p)
                         else:
-                            msg += f"{bordercast_temple[3][order]}\n\n".replace('%player%', p)
+                            msg += f"{bordercast_temple[3][order]}\n\n".replace(
+                                '%player%', p)
                         for item in players:
                             msg += f"{item}\n"
                         if len(players) == 3:
@@ -128,7 +133,7 @@ async def asyautoget_th_match() -> list:
                         msglist.append(dict(playername=p, msg=msg))
                         break
         os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log')
-        print(msglist)
+        # print(msglist)
     cursor.close()
     cx.close()
     return forwardmessage(msglist)
@@ -151,7 +156,8 @@ async def asyautoget_th_matching() -> list:
             text = await response.text()
 
     text = text[6:-4]
-    text = text.replace('\r\n', '').replace('",', '";').replace('"', '').split(';')
+    text = text.replace('\r\n', '').replace(
+        '",', '";').replace('"', '').split(';')
     nowmatches = []
     for infos in text:
         info = infos.split(',')
@@ -163,15 +169,18 @@ async def asyautoget_th_matching() -> list:
         for i in range(4, len(info), 3):
             dstr = base64.b64decode(info[i]).decode('utf-8')
             info[i] = dstr
-            player = dict(playername=info[i], playerlevel=info[i + 1], playerrank=info[i + 2])
+            player = dict(
+                playername=info[i], playerlevel=info[i + 1], playerrank=info[i + 2])
             players.append(player)
-        duiju = dict(url=duijuurl, type=type, time=time, numberX=numberX, players=players)
+        duiju = dict(url=duijuurl, type=type, time=time,
+                     numberX=numberX, players=players)
         nowmatches.append(duiju)
 
     eligible_Matches = []
     for match in nowmatches:
         matchplayer = get_thmatch_player(match)
-        player_t = ishaving_player_in_list(player_list=matchplayer, target_list=watchedplayers)
+        player_t = ishaving_player_in_list(
+            player_list=matchplayer, target_list=watchedplayers)
         if player_t:
             for gameplayer in gamingplayer:
                 if player_t == gameplayer['playername'] and gameplayer['url'] == match['url']:
@@ -181,16 +190,19 @@ async def asyautoget_th_matching() -> list:
                     gameplayer['isgaming'] = 1
                     break
             else:
-                gamingplayer.append(dict(playername=player_t, url=match['url'], isgaming=2))
+                gamingplayer.append(
+                    dict(playername=player_t, url=match['url'], isgaming=2))
                 tempmatch = dict(playername=player_t, match=match)
-                tempmatch = dict(playername=player_t, msg=matching2string(tempmatch))
+                tempmatch = dict(playername=player_t,
+                                 msg=matching2string(tempmatch))
                 eligible_Matches.append(tempmatch)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    print(gamingplayer)
+    print('正在进行的玩家:', gamingplayer)
     for item in gamingplayer:
         if item['isgaming'] == 2:
-            cursor.execute(f'''insert into isgaming(playername,url) values ("{item['playername']}","{item['url']}")''')
+            cursor.execute(
+                f'''insert into isgaming(playername,url) values ("{item['playername']}","{item['url']}")''')
         elif item['isgaming'] == 0:
             cursor.execute(
                 f'''delete from isgaming where playername = '{item["playername"]}' and url = "{item['url']}" ''')
@@ -202,7 +214,7 @@ async def asyautoget_th_matching() -> list:
 
 
 def asygetTH():
-    return finish_all_asytasks([asyautoget_th_match(), asyautoget_th_matching()])
+    return finish_all_asytasks([asyautoget_th_match(), asyautoget_th_matching()], mergelist=True)
 
 
 # 转发消息，封装为 向 groupid 群聊 发送 msg 的格式
@@ -213,10 +225,12 @@ def forwardmessage(msglist: list) -> list:
     cursor = cx.cursor()
     for item in msglist:
         groupids = []
-        cursor.execute(f'''select groupid from group2player where playername = "{item['playername']}"''')
+        cursor.execute(
+            f'''select groupid from group2player where playername = "{item['playername']}"''')
         for g in cursor.fetchall():
             groupids.append(g[0])
-        messageChainList.append(dict(groups=groupids, msg=item['msg'], playername=item['playername']))
+        messageChainList.append(
+            dict(groups=groupids, msg=item['msg'], playername=item['playername']))
     cursor.close()
     cx.close()
     return messageChainList
@@ -227,11 +241,13 @@ def addthwatch(playername: str, groupid: int):
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
 
-    cursor.execute(f'select * from watchedplayer where playername = "{playername}"')
+    cursor.execute(
+        f'select * from watchedplayer where playername = "{playername}"')
     if len(cursor.fetchall()) > 0:
         print("该用户已添加进关注列表")
     else:
-        cursor.execute(f'insert into watchedplayer(playername) values("{playername}")')
+        cursor.execute(
+            f'insert into watchedplayer(playername) values("{playername}")')
         cx.commit()
         print(f"已将{playername}添加到数据库")
 
@@ -243,12 +259,14 @@ def addthwatch(playername: str, groupid: int):
         cx.commit()
         print(f"已将群组{groupid}添加到数据库")
 
-    cursor.execute(f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+    cursor.execute(
+        f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
     if len(cursor.fetchall()) > 0:
         print("该用户已添加进此群的关注列表")
         return "该用户已添加进此群的关注列表,无需重复添加"
     else:
-        cursor.execute(f'insert into group2player(playername,groupid) values("{playername}",{groupid})')
+        cursor.execute(
+            f'insert into group2player(playername,groupid) values("{playername}",{groupid})')
         cx.commit()
         print(f"已将{playername}添加到群聊{groupid}的关注")
 
@@ -261,21 +279,26 @@ def removethwatch(playername: str, groupid: int):
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
 
-    cursor.execute(f'select * from watchedplayer where playername = "{playername}"')
+    cursor.execute(
+        f'select * from watchedplayer where playername = "{playername}"')
     if len(cursor.fetchall()) == 0:
         print("未关注该用户")
         return "未关注该用户"
     else:
-        cursor.execute(f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+        cursor.execute(
+            f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
         if len(cursor.fetchall()) > 0:
-            cursor.execute(f"delete from group2player where playername = '{playername}' and groupid = {groupid}")
+            cursor.execute(
+                f"delete from group2player where playername = '{playername}' and groupid = {groupid}")
             cx.commit()
         else:
             print("此群未关注该用户")
             return "此群未关注该用户"
-        cursor.execute(f'select * from group2player where playername = "{playername}"')
+        cursor.execute(
+            f'select * from group2player where playername = "{playername}"')
         if len(cursor.fetchall()) == 0:
-            cursor.execute(f"delete from watchedplayer where playername = '{playername}'")
+            cursor.execute(
+                f"delete from watchedplayer where playername = '{playername}'")
             cx.commit()
         print(f"将{playername}从群聊{groupid}的关注中删除成功")
         return "删除成功"
@@ -286,7 +309,8 @@ def getthwatch(groupid: int) -> str:
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
 
-    cursor.execute(f'select playername from group2player where groupid = {groupid}')
+    cursor.execute(
+        f'select playername from group2player where groupid = {groupid}')
     result = cursor.fetchall()
     for player in result:
         msg += player[0] + " "

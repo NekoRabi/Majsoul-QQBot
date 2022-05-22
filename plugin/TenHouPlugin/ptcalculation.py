@@ -123,11 +123,11 @@ class playerscore:
         if self.rank[3] == 20:
             p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]}'
         else:
-            p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]} {int(self.score[3])}pt'
+            p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]} [{int(self.score[3])}/{levelmap[self.rank[3]]["maxscore"]}]'
         if self.rank[4] == 20:
             p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]}'
         else:
-            p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]} {int(self.score[4])}pt'
+            p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]} [{int(self.score[4])}/{levelmap[self.rank[4]]["maxscore"]}]'
         # p3 = f'三麻段位:' \
         #      f'当前段位: {levelmap[self.rank[3]]["name"]} {int(self.score[3])}pt 历史最高:{levelmap[self.maxrk[3]]["name"]} {int(self.maxsc[3])}pt'
         # p4 = f'四麻段位:' \
