@@ -11,7 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
     Image, MessageEvent, Voice, AtAll
-from mirai.models import MemberJoinEvent, NudgeEvent, Forward, ForwardMessageNode
+from mirai.models import MemberJoinEvent, NudgeEvent, Forward, ForwardMessageNode, FlashImage
 
 if __name__ == '__main__':
 
@@ -965,13 +965,11 @@ if __name__ == '__main__':
                 msg = "".join(map(str, event.message_chain[Plain]))
                 m = re.match(fr'^{commandpre}([\w\d]+)鸡打\s*\.', msg.strip())
                 if m:
-                    if '呆' not in m.group(1):
-                        return await bot.send(event,
+                    return await bot.send(event,
                                               f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
                 m1 = re.match(fr'^{commandpre}我超(\w+)\s*\.', msg.strip())
                 if m1:
-                    if '呆' not in m1.group(1):
-                        return await bot.send(event,
+                    return await bot.send(event,
                                               f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
 
                 senderid = event.sender.id
@@ -1097,7 +1095,7 @@ if __name__ == '__main__':
             return await bot.send(event, getreply(text=scoremsg, rndimg=True))
 
     @bot.on(GroupMessage)
-    async def sendVoice(event: GroupMessage):
+    async def sendGroupVoice(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr'^{commandpre}\s*说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$', msg.strip())
@@ -1116,7 +1114,7 @@ if __name__ == '__main__':
                     # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 
     @bot.on(FriendMessage)
-    async def sendVoice(event: FriendMessage):
+    async def sendVoiceToGroup(event: FriendMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr'^{commandpre}\s*在(\d+)说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$', msg.strip())
@@ -1142,6 +1140,15 @@ if __name__ == '__main__':
             fr'^{commandpre}\s*今日塔罗\s*$', msg.strip())
         if m:
             return await bot.send(event, getreply(at=event.sender.id, text='旧的"今日塔罗"功能现在改为"签到"触发'))
+
+    @bot.on(MessageEvent)
+    async def saveFlashImage(event:MessageEvent):
+        if FlashImage in event.message_chain and settings['saveflashimg']:
+            flashimg = event.message_chain.get_first(FlashImage)
+            try:
+                await flashimg.download(directory='./data/flashimages')
+            except Exception as e:
+                print(f'闪照保存发生错误: {e}')
 
     @bot.on(MessageEvent)
     async def getsometarots(event: MessageEvent):

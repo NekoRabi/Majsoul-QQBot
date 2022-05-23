@@ -32,7 +32,7 @@ bordercast_temple = {
     },
     3: {
         1: " %player% 轻松拿下一位,实在太强啦",
-        2: " %player% 悄悄拿二,默默上分",
+        2: " %player% 悄悄拿二,韬光养晦",
         3: " %player% 忍痛吃三，太苦了"
     }
 }
@@ -82,7 +82,7 @@ async def asyautoget_th_match() -> list:
             f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(filedata)
         un_gz(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
         os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
-        cursor.execute("select playername from watchedplayer")
+        cursor.execute("select playername from watchedplayer where iswatching = 1")
         result = cursor.fetchall()
         playername = []
         for player in result:
@@ -144,7 +144,7 @@ async def asyautoget_th_matching() -> list:
     gamingplayer = get_gaming_thplayers()
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    cursor.execute("select playername from watchedplayer")
+    cursor.execute("select playername from watchedplayer where iswatching = 1")
     result = cursor.fetchall()
     watchedplayers = set()
     for player in result:
@@ -249,18 +249,18 @@ def addthwatch(playername: str, groupid: int):
         cursor.execute(
             f'insert into watchedplayer(playername) values("{playername}")')
         cx.commit()
-        print(f"已将{playername}添加到数据库")
+        print(f"已将{playername}添加到天风关注数据库")
 
     cursor.execute(f'select * from QQgroup where groupid = {groupid}')
     if len(cursor.fetchall()) > 0:
-        print("该群已注册进列表")
+        print("该群已注册进天凤观战数据库")
     else:
         cursor.execute(f'insert into QQgroup(groupid) values({groupid})')
         cx.commit()
         print(f"已将群组{groupid}添加到数据库")
 
     cursor.execute(
-        f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+        f'select * from group2player where groupid = {groupid} and playername = "{playername}" and iswatching = 1')
     if len(cursor.fetchall()) > 0:
         print("该用户已添加进此群的关注列表")
         return "该用户已添加进此群的关注列表,无需重复添加"
@@ -286,23 +286,29 @@ def removethwatch(playername: str, groupid: int):
         return "未关注该用户"
     else:
         cursor.execute(
-            f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+            f'select * from group2player where groupid = {groupid} and playername = "{playername}" and iswatching = 1')
         if len(cursor.fetchall()) > 0:
             cursor.execute(
-                f"delete from group2player where playername = '{playername}' and groupid = {groupid}")
+                f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
             cx.commit()
         else:
             print("此群未关注该用户")
             return "此群未关注该用户"
         cursor.execute(
-            f'select * from group2player where playername = "{playername}"')
+            f'select * from group2player where playername = "{playername}" and iswatching = 1')
         if len(cursor.fetchall()) == 0:
             cursor.execute(
-                f"delete from watchedplayer where playername = '{playername}'")
+                f"update watchedplayer set iswatching = 0 where playername = '{playername}'")
             cx.commit()
         print(f"将{playername}从群聊{groupid}的关注中删除成功")
         return "删除成功"
 
+# def clearwatch(groupid: int) :
+#     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
+#     cursor = cx.cursor()
+#
+#     cursor.execute(
+#         f'select playername from group2player where groupid = {groupid}')
 
 def getthwatch(groupid: int) -> str:
     msg = "本群关注的天凤玩家有:\n"
@@ -310,7 +316,7 @@ def getthwatch(groupid: int) -> str:
     cursor = cx.cursor()
 
     cursor.execute(
-        f'select playername from group2player where groupid = {groupid}')
+        f'select playername from group2player where groupid = {groupid} and iswatching = 1')
     result = cursor.fetchall()
     for player in result:
         msg += player[0] + " "

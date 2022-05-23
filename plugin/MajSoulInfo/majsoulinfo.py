@@ -424,7 +424,7 @@ def asygetqhpaipu():
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
-    cursor.execute(f"select playerid from watchedplayer")
+    cursor.execute(f"select playerid from watchedplayer where iswatching = 1")
     res = cursor.fetchall()
     cursor.close()
     cx.close()
@@ -552,12 +552,12 @@ def levelswitch(level, score, type):
         # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
         #     score) + "/" + str(maxscore)
         msg += type+ ":"  + prtlevelmsg(stage_level, score_level) + " \t [" + str(
-            score) + "/" + str(maxscore) + " ]"
+            score) + "/" + str(maxscore) + "]"
     else:
         # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
         #     score / 100) + "/" + str(maxscore / 100)
         msg += type+ ":"  + prtlevelmsg(stage_level, score_level) + " \t [" + str(
-            score / 100) + "/" + str(maxscore / 100) + " ]"
+            score / 100) + "/" + str(maxscore / 100) + "]"
     return msg
 
 
@@ -593,7 +593,7 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         if userinfo['offline']:
             return dict(msg="牌谱屋服务器离线", error=True)
         return dict(msg="查询超时", error=True)
-    prtmsg = "用户名:\t" + username
+    prtmsg =  username
     playerid = userinfo['playerid']
     if playerid:
         pass
@@ -778,7 +778,7 @@ def addwatch(playername: str, groupid: int):
         pass
     try:
         cursor.execute(
-            f"select * from group2player where groupid = {groupid} and playerid = {playerid}")
+            f"select * from group2player where groupid = {groupid} and playerid = {playerid}  and iswatching = 1")
         if len(cursor.fetchall()) == 0:
             cursor.execute(
                 f"insert into group2player(groupid,playerid,playername) values({groupid},{playerid},'{playername}')")
@@ -922,14 +922,14 @@ def removewatch(playername: str, groupid: int) -> str:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(
-        f"delete from group2player where playername = '{playername}' and groupid = {groupid}")
+        f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
     cx.commit()
     cursor.execute(
-        f"select playerid,playername from group2player where playername = '{playername}'")
+        f"select playerid,playername from group2player where playername = '{playername}' and iswatching = 1")
     player = cursor.fetchall()
     if len(player) == 0:
         cursor.execute(
-            f"delete from watchedplayer where playername = '{playername}'")
+            f"update watchedplayer set iswatching = 0 where playername = '{playername}' and iswatching = 1")
         cx.commit()
     cursor.close()
     cx.close()
@@ -941,7 +941,7 @@ def getallwatcher(groupid: int) -> str:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(
-        f"select playerid,playername from group2player where groupid = {groupid}")
+        f"select playerid,playername from group2player where groupid = {groupid} and iswatching = 1")
     players = cursor.fetchall()
     watcher = []
     if len(players) == 0:
@@ -960,7 +960,7 @@ def forwardmessage(msglist: list) -> list:
     for item in msglist:
         groupids = []
         cursor.execute(
-            f'''select groupid,playername from group2player where playerid = {item['playerid']}''')
+            f'''select groupid,playername from group2player where playerid = {item['playerid']} and iswatching = 1''')
         results = cursor.fetchall()
         for g in results:
             groupids.append(g[0])
