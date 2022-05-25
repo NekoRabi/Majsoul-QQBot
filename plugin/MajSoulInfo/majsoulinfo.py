@@ -91,7 +91,7 @@ def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None
                 levelinfo = playerinfo.get("level")
                 level = levelinfo.get("id")
                 score = int(levelinfo.get("score")) + \
-                    int(levelinfo.get("delta"))
+                        int(levelinfo.get("delta"))
                 prtmsg += levelswitch(level, score, typename)
                 cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
                 cursor = cx.cursor()
@@ -547,16 +547,16 @@ def levelswitch(level, score, type):
 
     if stage_level < 0:
         # msg += type + "段位:  雀士"
-        msg += type + ":" +"  雀士"
+        msg += type + ":" + "  雀士"
     elif stage_level < 4:
         # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
         #     score) + "/" + str(maxscore)
-        msg += type+ ":"  + prtlevelmsg(stage_level, score_level) + " \t [" + str(
+        msg += type + ":" + prtlevelmsg(stage_level, score_level) + " \t [" + str(
             score) + "/" + str(maxscore) + "]"
     else:
         # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
         #     score / 100) + "/" + str(maxscore / 100)
-        msg += type+ ":"  + prtlevelmsg(stage_level, score_level) + " \t [" + str(
+        msg += type + ":" + prtlevelmsg(stage_level, score_level) + " \t [" + str(
             score / 100) + "/" + str(maxscore / 100) + "]"
     return msg
 
@@ -593,7 +593,7 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         if userinfo['offline']:
             return dict(msg="牌谱屋服务器离线", error=True)
         return dict(msg="查询超时", error=True)
-    prtmsg =  username
+    prtmsg = username
     playerid = userinfo['playerid']
     if playerid:
         pass
@@ -619,7 +619,7 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         user_p3_levelinfo = user_p3_levelinfo.get("level")
         p3_level = user_p3_levelinfo.get("id")
         p3_score = int(user_p3_levelinfo.get("score")) + \
-            int(user_p3_levelinfo.get("delta"))
+                   int(user_p3_levelinfo.get("delta"))
         prtmsg += levelswitch(p3_level, p3_score, "三麻")
 
     except AttributeError:
@@ -634,7 +634,7 @@ def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         user_p4_levelinfo = user_p4_levelinfo.get("level")
         p4_level = user_p4_levelinfo.get("id")
         p4_score = int(user_p4_levelinfo.get("score")) + \
-            int(user_p4_levelinfo.get("delta"))
+                   int(user_p4_levelinfo.get("delta"))
         prtmsg += levelswitch(p4_level, p4_score, "四麻")
     except AttributeError:
         print("查询不到四麻段位")
@@ -914,11 +914,11 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
         print(f'\n玩家详情读取超时:\t{e}\n')
         return dict(msg="查询超时,请再试一次", error=True)
     text_to_image(path=f"MajsoulInfo/yb{playername}.png", text=msg)
-    return dict(msg=msg, error=False)
+    return dict(msg=msg, error=False,)
+    # return dict(msg=msg, error=False, imgbase64=text_to_image(text=msg, needtobase64=True))
 
 
 def removewatch(playername: str, groupid: int) -> str:
-    # cx = sqlite3.connect("./database/majsoul.sqlite")
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(

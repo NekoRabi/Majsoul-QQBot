@@ -10,6 +10,7 @@ import re
 import sqlite3
 import os
 from plugin.TenHouPlugin.ptcalculation import ptcalculation
+from utils import text_to_image
 from utils.asyrequestpackge import finish_all_asytasks
 
 user_agent_list = [
@@ -230,7 +231,9 @@ def forwardmessage(msglist: list) -> list:
         for g in cursor.fetchall():
             groupids.append(g[0])
         messageChainList.append(
-            dict(groups=groupids, msg=item['msg'], playername=item['playername']))
+            dict(groups=groupids, msg=item['msg'], playername=item['playername']
+                 # ,imgbase=text_to_image(text=item['msg'], needtobase64=True)
+        ))
     cursor.close()
     cx.close()
     return messageChainList
@@ -302,6 +305,7 @@ def removethwatch(playername: str, groupid: int):
             cx.commit()
         print(f"将{playername}从群聊{groupid}的关注中删除成功")
         return "删除成功"
+
 
 # def clearwatch(groupid: int) :
 #     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')

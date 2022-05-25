@@ -42,13 +42,7 @@ if __name__ == '__main__':
     tc = TarotCards()
 
     if settings['voice']:
-        if config['voicesetting']['secretId'].strip() == '' or config['voicesetting']['secretKey'] == '':
-            print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
-            settings['voice'] = False
-            with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                yaml.dump(config, file, allow_unicode=True)
-        else:
-            vc = VoiceCreater(secretId=config['voicesetting']['secretId'],
+        vc = VoiceCreater(secretId=config['voicesetting']['secretId'],
                               secretKey=config['voicesetting']['secretKey'],
                               voicetype=config['voicesetting']['voicetype'],
                               volume=config['voicesetting']['volume'],
@@ -75,6 +69,7 @@ if __name__ == '__main__':
         print(result)
         for msgobj in result:
             for group in msgobj['groups']:
+                # await bot.send_group_message(group,getreply(imgbase64=msgobj['imgbase']))
                 await bot.send_group_message(group, msgobj['msg'])
         return
 
@@ -116,11 +111,13 @@ if __name__ == '__main__':
             msgchain.append(
                 Image(path=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
         if imgpath:
-            msgchain.append(Plain("\n"))
+            if reply or text:
+                msgchain.append(Plain("\n"))
             msgchain.append(
                 Image(path=f"{imgpath}"))
         if imgbase64:
-            msgchain.append(Plain("\n"))
+            if reply or text:
+                msgchain.append(Plain("\n"))
             msgchain.append(Image(base64=imgbase64))
         return MessageChain(msgchain)
 
@@ -339,7 +336,7 @@ if __name__ == '__main__':
     @bot.on(MessageEvent)
     async def getmajsoulhelp(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(help|帮助)\s*$', msg.strip())
+        m = re.match(fr'^{commandpre}([hH][eE][lL][pP]|帮助)\s*$', msg.strip())
         if m and settings['help']:
             # if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'help')):
             #     return bot.send(event, getreply(text="帮助文档刚刚才发过哦~", rndimg=True, at=event.sender.id))
@@ -530,6 +527,7 @@ if __name__ == '__main__':
                     await bot.send(event, report['msg'])
                 else:
                     await bot.send(event, MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
+                    # await bot.send(event,getreply(imgbase64=report['imgbase64']))
         return
 
     # 获取某群的雀魂关注人员

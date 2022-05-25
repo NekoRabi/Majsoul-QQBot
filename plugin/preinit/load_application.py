@@ -7,7 +7,7 @@ config = {}
 replydata = {}
 
 kargs = {'admin', 'whiteList', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig', 'botname',
-         'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master'}
+         'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master','voicesetting'}
 
 
 def load_config() -> dict:
@@ -33,10 +33,17 @@ def load_config() -> dict:
             qhsettings = config['qhsettings']
             nudgeconfig = config['nudgeconfig']
             loglevel = config['loglevel']
+            voicesetting = config['voicesetting']
             master = config['master']
             replydata['replyimgpath'] = config['replyimgpath']
-            if master == 0:
-                print('请输入机器人主人 ( master )')
+        if master == 0:
+            print('请输入机器人主人 ( master )')
+        if settings['voice']:
+            if voicesetting['secretId'].strip() == '' or voicesetting['secretKey'] == '':
+                print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
+                settings['voice'] = False
+                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                    yaml.dump(config, file, allow_unicode=True)
         if len(welcomeinfo) == 0:
             print("入群欢迎文本不存在，该功能将关闭")
             config['settings']['autowelcome'] = False
