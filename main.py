@@ -20,6 +20,7 @@ if __name__ == '__main__':
     config = load_config()
     replydata = load_replydata()
     create_helpimg()
+    commands_map = load_commands()
     cmdbuffer = commandcache()
     qqlogger = getQQlogger()
     rootLogger = create_logger(config['loglevel'])

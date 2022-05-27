@@ -261,7 +261,7 @@ def getsomeqhpaipu(playername: str, type="4", counts=5):
         print("数据库中无此用户，请先查询该用户。")
         return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
     playerid = playerid[0][0]
-    paipuInfo = f"最近{counts}场对局信息如下：\n"
+    paipuInfo = f"最近{counts}场对局信息如下："
     content = finish_all_asytasks(
         [asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
     for item in content:
@@ -424,7 +424,7 @@ def asygetqhpaipu():
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
-    cursor.execute(f"select playerid from watchedplayer where iswatching = 1")
+    cursor.execute(f"select playerid from watchedplayer where watchedgroupcount > 0")
     res = cursor.fetchall()
     cursor.close()
     cx.close()
@@ -470,7 +470,7 @@ def jiexi(paipu: dict, playerid: int) -> list:
                  f"{players[1]['nickname']}:{players[1]['score']}", f"{players[2]['nickname']}:{players[2]['score']}",
                  f"{players[3]['nickname']}:{players[3]['score']}"))
             cx.commit()
-            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
+            paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for info in players:
                 paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
@@ -493,7 +493,7 @@ def jiexi(paipu: dict, playerid: int) -> list:
                  f"{players[1]['nickname']}:{players[1]['score']}", f"{players[2]['nickname']}:{players[2]['score']}",
                  f"Null"))
             cx.commit()
-            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
+            paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for info in players:
                 paipuInfo += f"{info['nickname']}:{info['score']} ({info['gradingScore']})\n"
@@ -778,21 +778,30 @@ def addwatch(playername: str, groupid: int):
         pass
     try:
         cursor.execute(
-            f"select * from group2player where groupid = {groupid} and playerid = {playerid}  and iswatching = 1")
-        if len(cursor.fetchall()) == 0:
+            f"select * from group2player where groupid = {groupid} and playerid = {playerid}")
+        groupplayers = cursor.fetchall()
+        if len(groupplayers) == 0:
             cursor.execute(
                 f"insert into group2player(groupid,playerid,playername) values({groupid},{playerid},'{playername}')")
             cx.commit()
         else:
-            print("此群该用户已添加关注，无需重复关注")
-            return "添加失败,此群该用户已添加关注，无需重复关注"
+            if groupplayers[0][4] == 1:
+                print("此群该用户已添加关注，无需重复关注")
+                return "添加失败,此群该用户已添加关注，无需重复关注"
+            else:
+                cursor.execute(
+                    f"update group2player set iswatching = 1 where groupid = {groupid} and playerid = {playerid}")
+                cx.commit()
     except sqlite3.IntegrityError:
         print("此群该用户已添加关注，无需重复关注")
         return "添加失败,该用户已添加关注，无需重复关注"
     try:
         cursor.execute(
-            f'insert into watchedplayer(playerid,playername) values({playerid},"{playername}")')
-        cx.commit()
+            f'select * from watchedplayer where playername = "{playername}"')
+        if len(cursor.fetchall()) == 0:
+            cursor.execute(
+                f'insert into watchedplayer(playerid,playername,watchedgroupcount) values({playerid},"{playername}",1)')
+            cx.commit()
     except sqlite3.IntegrityError:
         print(f"用户{playername}已被其他群关注")
     return "添加成功"
@@ -922,14 +931,20 @@ def removewatch(playername: str, groupid: int) -> str:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(
-        f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
-    cx.commit()
-    cursor.execute(
-        f"select playerid,playername from group2player where playername = '{playername}' and iswatching = 1")
+        f"select * from group2player where playername = '{playername}'")
     player = cursor.fetchall()
     if len(player) == 0:
+        return '本群未关注该玩家'
+    if player[0][4] ==1:
         cursor.execute(
-            f"update watchedplayer set iswatching = 0 where playername = '{playername}' and iswatching = 1")
+            f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
+    cx.commit()
+    cursor.execute(
+        f"select * from group2player where playername = '{playername}' and iswatching = 1")
+    groupplayers = cursor.fetchall()
+    if len(groupplayers) == 0:
+        cursor.execute(
+            f"update watchedplayer set watchedgroupcount = 0 where playername = '{playername}'")
         cx.commit()
     cursor.close()
     cx.close()
@@ -1022,7 +1037,7 @@ def msganalysis(infos: list) -> list:
                      f"{players[2]['nickname']}:{players[2]['score']}",
                      f"{players[3]['nickname']}:{players[3]['score']}"))
             cx.commit()
-            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
+            paipuInfo += f"牌谱链接 : {paipuurl}\n"
             paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
             for player in players:
                 paipuInfo += f"{player['nickname']}:{player['score']} ({player['gradingScore']})\n"

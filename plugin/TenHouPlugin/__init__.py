@@ -14,7 +14,7 @@ cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
 cursor = cx.cursor()
 cursor.execute('create table IF NOT EXISTS watchedplayer ('
                'id integer primary key,'
-               'iswatching integer not null default 1,'
+               'watchedgroupcount integer not null default 0,'
                'playername varchar(50) UNIQUE)')
 cursor.execute("create table IF NOT EXISTS QQgroup("
                "id integer primary key ,"

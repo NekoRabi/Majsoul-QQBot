@@ -118,6 +118,14 @@ def load_replydata() -> dict:
     replydata['suffix'] = ['']
     return replydata
 
+def load_commands() ->dict:
+
+    try:
+        with open(r'./config/command.yml', encoding='utf-8') as f:
+            all_commands = yaml.safe_load(f)
+            return all_commands
+    except Exception as e:
+        print(f"发生未知错误{e}")
 
 def create_helpimg():
     grouphelp = "指令帮助 ()内为可选项,[]为必选项,{}为可用参数,<>为类型:\n" \
@@ -140,6 +148,7 @@ def create_helpimg():
                 "重开 / remake : 异世界转生\n" \
                 "bw [<文本>] [<图片>] : 返回一张黑白处理后的图片，底部有一行文字\n" \
                 "签到 : 顾名思义，就是签到\n" \
+                "(x张)塔罗牌: 抽x张塔罗牌\n" \
                 "项目地址 : 获取项目链接\n"
     adminhelp = "私聊指令:\n" \
                 "addadmin / deladmin QQ号 :添加或者删除机器人管理员\n" \

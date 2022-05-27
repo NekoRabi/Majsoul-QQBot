@@ -83,7 +83,7 @@ async def asyautoget_th_match() -> list:
             f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(filedata)
         un_gz(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
         os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
-        cursor.execute("select playername from watchedplayer where iswatching = 1")
+        cursor.execute("select playername from watchedplayer where watchedgroupcount > 0")
         result = cursor.fetchall()
         playername = []
         for player in result:
@@ -117,10 +117,10 @@ async def asyautoget_th_match() -> list:
                         order = get_matchorder(
                             playerlist=players, playername=p)
                         if len(players) == 4:
-                            msg += f"{bordercast_temple[4][order]}\n\n".replace(
+                            msg += f"{bordercast_temple[4][order]}\n".replace(
                                 '%player%', p)
                         else:
-                            msg += f"{bordercast_temple[3][order]}\n\n".replace(
+                            msg += f"{bordercast_temple[3][order]}\n".replace(
                                 '%player%', p)
                         for item in players:
                             msg += f"{item}\n"
@@ -145,7 +145,7 @@ async def asyautoget_th_matching() -> list:
     gamingplayer = get_gaming_thplayers()
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    cursor.execute("select playername from watchedplayer where iswatching = 1")
+    cursor.execute("select playername from watchedplayer where watchedgroupcount > 0")
     result = cursor.fetchall()
     watchedplayers = set()
     for player in result:
@@ -227,7 +227,7 @@ def forwardmessage(msglist: list) -> list:
     for item in msglist:
         groupids = []
         cursor.execute(
-            f'''select groupid from group2player where playername = "{item['playername']}"''')
+            f'''select groupid from group2player where playername = "{item['playername']}" and iswatching = 1''')
         for g in cursor.fetchall():
             groupids.append(g[0])
         messageChainList.append(
@@ -243,39 +243,117 @@ def forwardmessage(msglist: list) -> list:
 def addthwatch(playername: str, groupid: int):
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-
-    cursor.execute(
-        f'select * from watchedplayer where playername = "{playername}"')
-    if len(cursor.fetchall()) > 0:
-        print("该用户已添加进关注列表")
-    else:
-        cursor.execute(
-            f'insert into watchedplayer(playername) values("{playername}")')
-        cx.commit()
-        print(f"已将{playername}添加到天风关注数据库")
-
     cursor.execute(f'select * from QQgroup where groupid = {groupid}')
-    if len(cursor.fetchall()) > 0:
+    groups = cursor.fetchall()
+    newplayer = False
+    if len(groups) > 0:
         print("该群已注册进天凤观战数据库")
     else:
         cursor.execute(f'insert into QQgroup(groupid) values({groupid})')
         cx.commit()
         print(f"已将群组{groupid}添加到数据库")
-
     cursor.execute(
-        f'select * from group2player where groupid = {groupid} and playername = "{playername}" and iswatching = 1')
-    if len(cursor.fetchall()) > 0:
-        print("该用户已添加进此群的关注列表")
-        return "该用户已添加进此群的关注列表,无需重复添加"
+        f'select * from watchedplayer where playername = "{playername}"')
+    watchedplayers = cursor.fetchall()
+    if len(watchedplayers) == 0:
+    #     if watchedplayers[0][1] != 1:
+    #         cursor.execute(
+    #             f'update watchedplayer set iswatching = 1 where playername = "{playername}"')
+    #         cx.commit()
+    #         print("已更新天凤关注")
+    #     else:
+    #         print("该用户已添加进关注列表")
+    # else:
+        newplayer = True
+        cursor.execute(
+            f'insert into watchedplayer(playername) values("{playername}")')
+        cx.commit()
+        print(f"已将{playername}添加到天风关注数据库")
+    cursor.execute(
+        f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+    groupplayers = cursor.fetchall()
+    if len(groupplayers) > 0:
+        if groupplayers[0][3] != 1:
+            cursor.execute(
+                f'update group2player set iswatching = 1 where groupid = {groupid} and playername = "{playername}"')
+            if newplayer:
+                cursor.execute(
+                    f'update watchedplayer set watchedgroupcount = 1 where playername = "{playername}"')
+            else:
+                cursor.execute(
+                    f'update watchedplayer set watchedgroupcount = {watchedplayers[0][1] + 1} where playername = "{playername}"')
+            cx.commit()
+            print("已更新天凤群关注")
+        else:
+            print("该用户已添加进此群的关注列表")
+            cursor.close()
+            cx.close()
+            return "此群已关注该玩家"
     else:
         cursor.execute(
             f'insert into group2player(playername,groupid) values("{playername}",{groupid})')
+
+        if newplayer:
+            cursor.execute(
+                f'update watchedplayer set watchedgroupcount = 1 where playername = "{playername}"')
+        else:
+            cursor.execute(
+                f'update watchedplayer set watchedgroupcount = {watchedplayers[0][1] + 1} where playername = "{playername}"')
         cx.commit()
         print(f"已将{playername}添加到群聊{groupid}的关注")
-
     cursor.close()
     cx.close()
     return "添加成功"
+
+
+
+
+    # cursor.execute(
+    #     f'select * from watchedplayer where playername = "{playername}"')
+    # watchedplayers = cursor.fetchall()
+    # if len(watchedplayers) > 0:
+    #     if watchedplayers[0][1] != 1:
+    #         cursor.execute(
+    #             f'update watchedplayer set iswatching = 1 where playername = "{playername}"')
+    #         cx.commit()
+    #         print("已更新天凤关注")
+    #     else:
+    #         print("该用户已添加进关注列表")
+    # else:
+    #     cursor.execute(
+    #         f'insert into watchedplayer(playername) values("{playername}")')
+    #     cx.commit()
+    #     print(f"已将{playername}添加到天风关注数据库")
+    #
+    # cursor.execute(f'select * from QQgroup where groupid = {groupid}')
+    # if len(cursor.fetchall()) > 0:
+    #     print("该群已注册进天凤观战数据库")
+    # else:
+    #     cursor.execute(f'insert into QQgroup(groupid) values({groupid})')
+    #     cx.commit()
+    #     print(f"已将群组{groupid}添加到数据库")
+    #
+    # cursor.execute(
+    #     f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+    # groupplayers = cursor.fetchall()
+    # if len(groupplayers) > 0:
+    #     if groupplayers[0][3] != 1:
+    #         cursor.execute(
+    #             f'update group2player set iswatching = 1 where groupid = {groupid} and playername = "{playername}"')
+    #         cx.commit()
+    #         print("已更新天凤群关注")
+    #     else:
+    #         print("该用户已添加进此群的关注列表")
+    #         return "该用户已添加进此群的关注列表,无需重复添加"
+    # else:
+    #     cursor.execute(
+    #         f'insert into group2player(playername,groupid) values("{playername}",{groupid})')
+    #     cx.commit()
+    #     print(f"已将{playername}添加到群聊{groupid}的关注")
+
+    # cursor.close()
+    # cx.close()
+    # return "添加成功"
 
 
 def removethwatch(playername: str, groupid: int):
@@ -283,28 +361,55 @@ def removethwatch(playername: str, groupid: int):
     cursor = cx.cursor()
 
     cursor.execute(
-        f'select * from watchedplayer where playername = "{playername}"')
-    if len(cursor.fetchall()) == 0:
+        f'select * from group2player where groupid ={groupid} and playername ="{playername}"')
+    groupplayers = cursor.fetchall()
+    if len(groupplayers) == 0:
         print("未关注该用户")
-        return "未关注该用户"
-    else:
-        cursor.execute(
-            f'select * from group2player where groupid = {groupid} and playername = "{playername}" and iswatching = 1')
-        if len(cursor.fetchall()) > 0:
-            cursor.execute(
-                f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
-            cx.commit()
-        else:
-            print("此群未关注该用户")
-            return "此群未关注该用户"
-        cursor.execute(
-            f'select * from group2player where playername = "{playername}" and iswatching = 1')
-        if len(cursor.fetchall()) == 0:
-            cursor.execute(
-                f"update watchedplayer set iswatching = 0 where playername = '{playername}'")
-            cx.commit()
-        print(f"将{playername}从群聊{groupid}的关注中删除成功")
         return "删除成功"
+    cursor.execute(
+        f'select * from watchedplayer where playername = "{playername}"')
+    watcherplayers = cursor.fetchall()
+    if groupplayers[0][3]!=0:
+        cursor.execute(
+            f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
+        cursor.execute(
+            f"update watchedplayer set watchedgroupcount = {watcherplayers[0][1] - 1} where playername = '{playername}'")
+        print("删除成功")
+        return "删除成功"
+    else:
+        print("未关注该用户")
+        return ("删除成功")
+
+
+    # cursor.execute(
+    #     f'select * from watchedplayer where playername = "{playername}"')
+    # watcherplayers = cursor.fetchall()
+    # if len(watcherplayers) == 0:
+    #     print("未关注该用户")
+    #     return "未关注该用户"
+    # else:
+    #     cursor.execute(
+    #         f'select * from group2player where groupid = {groupid} and playername = "{playername}"')
+    #     groupplayers = cursor.fetchall()
+    #     if len(groupplayers) > 0:
+    #         if groupplayers[0][3] != 0:
+    #             cursor.execute(
+    #                 f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
+    #             cx.commit()
+    #             print("将该用户从此群订阅中删除")
+    #         else:
+    #             print("此群未关注该用户")
+    #     else:
+    #         print("此群未关注该用户")
+    #         return "此群未关注该用户"
+    #     cursor.execute(
+    #         f'select * from group2player where playername = "{playername}" and iswatching = 1')
+    #     if len(cursor.fetchall()) == 0:
+    #         cursor.execute(
+    #             f"update watchedplayer set iswatching = 0 where playername = '{playername}'")
+    #         cx.commit()
+    #     print(f"将{playername}从群聊{groupid}的关注中删除成功")
+    #     return "删除成功"
 
 
 # def clearwatch(groupid: int) :
@@ -367,7 +472,7 @@ def matching2string(eligiblematch: dict) -> str:
     playername = eligiblematch['playername']
     match = eligiblematch['match']
     # msg = f"{playername}正在{match['type']}乱杀，快来围观:\n"
-    msg = f"{playername}正在天凤乱杀，快来围观:\n"
+    msg = f"{playername}正在天凤对局，快来围观:\n"
     msg += f"https://tenhou.net/3/?wg={match['url']}\n"
     # msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
     for player in get_thmatch_player(match):

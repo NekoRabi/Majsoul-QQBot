@@ -2,16 +2,17 @@
 
 ---
 
-TenHouPlugin
+TenHouPlugin (最好是直接删库，重新生成)
 ```
 ALTER TABLE group2player ADD COLUMN iswatching integer not null default 1;
-ALTER TABLE watchedplayer ADD COLUMN iswatching integer not null default 1;
+ALTER TABLE watchedplayer ADD COLUMN watchedgroupcount integer not null default 0;
+
 ```
 
-MajSoulInfo
+MajSoulInfo (最好是直接删库，重新生成)
 ```
 
-ALTER TABLE watchedplayer ADD COLUMN iswatching integer not null default 1;
+ALTER TABLE watchedplayer ADD COLUMN watchedgroupcount integer not null default 0;
 
 ALTER TABLE group2player ADD COLUMN iswatching integer not null default 1;
 

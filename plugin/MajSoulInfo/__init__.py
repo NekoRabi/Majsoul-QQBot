@@ -25,7 +25,7 @@ cursor.execute("create table IF NOT EXISTS paipu("
                ")")
 cursor.execute('create table IF NOT EXISTS watchedplayer ('
                'id integer primary key,'
-               'iswatching integer not null default 1,'
+               'watchedgroupcount integer not null default 0,'
                'playerid integer,'
                'playername varchar(50) UNIQUE)')
 cursor.execute("create table IF NOT EXISTS QQgroup("
