@@ -375,6 +375,9 @@ def removethwatch(playername: str, groupid: int):
         cursor.execute(
             f"update watchedplayer set watchedgroupcount = {watcherplayers[0][1] - 1} where playername = '{playername}'")
         print("删除成功")
+        cx.commit()
+        cursor.close()
+        cx.close()
         return "删除成功"
     else:
         print("未关注该用户")
