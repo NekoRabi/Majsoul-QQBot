@@ -106,3 +106,4 @@ voicesetting:
                   # 即 设置private 为 true，则只有你可以让机器人说话
   secretId: ''
   secretKey: ''
+  codec: 'mp3'

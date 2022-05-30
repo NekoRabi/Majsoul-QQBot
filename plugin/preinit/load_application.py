@@ -5,7 +5,6 @@ from utils.text_to_img import text_to_image
 
 config = {}
 replydata = {}
-
 kargs = {'admin', 'whiteList', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig', 'botname',
          'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master','voicesetting'}
 
@@ -148,14 +147,14 @@ def create_helpimg():
                 "重开 / remake : 异世界转生\n" \
                 "bw [<文本>] [<图片>] : 返回一张黑白处理后的图片，底部有一行文字\n" \
                 "签到 : 顾名思义，就是签到\n" \
-                "(x张)塔罗牌: 抽x张塔罗牌\n" \
+                "(1-9张)塔罗牌: 抽n张塔罗牌\n" \
                 "项目地址 : 获取项目链接\n"
     adminhelp = "私聊指令:\n" \
                 "addadmin / deladmin QQ号 :添加或者删除机器人管理员\n" \
                 "addwhitelist /delwhitelist QQ号 :修改白名单\n" \
                 "addblacklist / delblacklist QQ: 修改黑名单\n" \
                 "ping :ping一下服务器,用于验证机器人存活\n" \
-                "silence on/true/off/false :开启全局沉默模式，减少信息输出\n" \
+                "silence on/true/off/false :控制全局沉默模式启用，减少信息输出\n" \
                 "freshqh : 刷新本地雀魂牌谱数据库\n" \
                 "群管理指令:\n" \
                 "open/enable/开启 涩图/色图/setu : 开启本群色图功能\n" \

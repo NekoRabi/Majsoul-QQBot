@@ -43,17 +43,14 @@ if __name__ == '__main__':
     tc = TarotCards()
 
     if settings['voice']:
-        vc = VoiceCreater(secretId=config['voicesetting']['secretId'],
-                              secretKey=config['voicesetting']['secretKey'],
-                              voicetype=config['voicesetting']['voicetype'],
-                              volume=config['voicesetting']['volume'],
-                              speed=config['voicesetting']['speed'])
+        vc = VoiceCreater(setting=config['voicesetting'])
 
     bot = create_bot(config)
 
     if master not in admin:
         admin.append(master)
     print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
+
 
     async def asyqh_autopaipu():
         print("开始查询雀魂信息")
@@ -63,6 +60,7 @@ if __name__ == '__main__':
             for group in msgobj['groups']:
                 await bot.send_group_message(group, msgobj['msg'])
         return
+
 
     async def asyth_all():
         print("开始查询天凤信息")
@@ -74,8 +72,10 @@ if __name__ == '__main__':
                 await bot.send_group_message(group, msgobj['msg'])
         return
 
+
     def get_groupsender_permission(event: GroupMessage):
         return event.sender.permission
+
 
     def is_havingadmin(event: GroupMessage):
         if event.sender.id in admin:
@@ -84,6 +84,7 @@ if __name__ == '__main__':
             return False
         return True
 
+
     def getbase64voice(text):
         voice = dict(error=False, file=None, errmsg=None)
         if vc:
@@ -91,6 +92,7 @@ if __name__ == '__main__':
         else:
             voice['error'] = True
         return voice
+
 
     def getreply(reply: list = None, text: str = None, rndimg: bool = False, imgpath: str = None, imgbase64=None,
                  at: int = None, atall=False) -> MessageChain:
@@ -122,6 +124,7 @@ if __name__ == '__main__':
             msgchain.append(Image(base64=imgbase64))
         return MessageChain(msgchain)
 
+
     # 聊天记录存储
 
     @bot.on(MessageEvent)
@@ -133,6 +136,7 @@ if __name__ == '__main__':
             qqlogger.info(event)
         else:
             qqlogger.info(event)
+
 
     # 欢迎
 
@@ -156,8 +160,9 @@ if __name__ == '__main__':
                                          MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif')))
             return
 
+
     @bot.on(FriendMessage)
-    async def asyspidertest(event: FriendMessage):
+    async def freshqhpaipu(event: FriendMessage):
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
@@ -167,84 +172,103 @@ if __name__ == '__main__':
                 await bot.send(event, "牌谱刷新中")
                 await asyqh_autopaipu()
 
+
     @bot.on(FriendMessage)
     async def addadmin(event: FriendMessage):
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}addadmin\s*(\d+)\s*$", msg.strip())
+                fr"^{commandpre}{commands_map['sys']['addadmin']}", msg.strip())
             if m:
-                if not m.group(1) in admin:
-                    admin.append(int(m.group(1)))
-
+                qqid = int(m.group(1))
+                if qqid not in admin:
+                    admin.append(qqid)
                     with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 添加为机器人管理员")))
                 else:
                     return await bot.send(event, MessageChain(Plain(f" {m.group(1)}已经是管理员了")))
+        else:
+            await bot.send(event, getreply(text="抱歉,您无权这么做", rndimg=True))
         return
+
 
     @bot.on(FriendMessage)
     async def deladmin(event: FriendMessage):
         if event.sender.id == master:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}deladmin\s*(\d+)\s*$", msg.strip())
+                fr"^{commandpre}{commands_map['sys']['deladmin']}", msg.strip())
             if m:
-                if m.group(1) in admin:
-                    admin.remove(int(m.group(1)))
+                qqid = int(m.group(1))
+                if qqid in admin:
+                    admin.remove(qqid)
                     with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                         yaml.dump(config, file, allow_unicode=True)
                     return await bot.send(event, MessageChain(Plain(f" 已将 {m.group(1)} 从机器人管理员中移出")))
                 else:
-                    return await bot.send(event, MessageChain(Plain(f" {m.group(1)}不是管理员了")))
+                    return await bot.send(event, MessageChain(Plain(f" {m.group(1)}不是管理员")))
+        else:
+            await bot.send(event, getreply(text="抱歉,您无权这么做", rndimg=True))
         return
 
+
     @bot.on(FriendMessage)
-    async def on_friend_message(event: FriendMessage):
+    async def sayhello(event: FriendMessage):
         if str(event.message_chain) == '你好':
             return bot.send(event, 'Hello, World!')
 
+
     '''获取日志'''
+    '''{commands_map['sys']['']}'''
+
 
     @bot.on(FriendMessage)
-    async def on_friend_message(event: FriendMessage):
+    async def getsyslog(event: FriendMessage):
         if event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}log\s*(\w+)?\s*(\d+)\s*$", msg.strip())
+                fr"^{commandpre}{commands_map['sys']['log']}", msg.strip())
             if m:
-                if m.group(1):
-                    if m.group(2):
-                        return
-                    else:
-                        return
-                else:
-                    return
-            return
+                return await bot.send(event, "日志功能开发中")
+            #     if m.group(1):
+            #         if m.group(2):
+            #             return
+            #         else:
+            #             return
+            #     else:
+            #         return
+            # return
+
 
     # PING
 
     @bot.on(FriendMessage)
     async def ping(event: FriendMessage):
-        if event.message_chain.has("ping"):
-            rootLogger.info("ping了一下")
-            await bot.send(event, "pong!")
+        if event.sender.id in admin:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(
+                fr"^{commandpre}{commands_map['sys']['ping']}", msg.strip())
+            if m:
+                rootLogger.info("ping了一下")
+                await bot.send(event, "pong!")
         return
+
 
     # 强制复读
 
     @bot.on(FriendMessage)
-    async def sendmsgTogroup(event: FriendMessage):
+    async def sendmsgtogroup(event: FriendMessage):
         if event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
-                fr"^{commandpre}stext::\s*([0-9]+)\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$", msg.strip())
+                fr"^{commandpre}{commands_map['sys']['sendmsgtogroup']}", msg.strip())
             if m:
                 return await bot.send_group_message(int(m.group(1)), m.group(2))
 
+
     @bot.on(GroupMessage)
-    async def forceAt(event: GroupMessage):
+    async def groupAt(event: GroupMessage):
         if event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(
@@ -254,11 +278,13 @@ if __name__ == '__main__':
                     target = event.message_chain.get_first(At).target
                     return await bot.send(event, MessageChain([At(target), Plain(f" {m.group(1)}")]))
 
+
+    # 色图
     @bot.on(GroupMessage)
     async def enablesetu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr'^{commandpre}(open|enable|开启)\s*(涩图|色图|setu)\s*$', msg.strip())
+            fr"^{commandpre}{commands_map['setu']['enable']}", msg.strip())
         if m:
             if is_havingadmin(event):
                 groupid = event.group.id
@@ -270,12 +296,13 @@ if __name__ == '__main__':
                         yaml.dump(config, file, allow_unicode=True)
                     await bot.send(event, getreply(text="色图开启成功", rndimg=True))
 
+
     @bot.on(GroupMessage)
     async def disablesetu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
 
         m = re.match(
-            fr'^{commandpre}(close|disable|关闭)\s*(涩图|色图|setu)\s*$', msg.strip())
+            fr"^{commandpre}{commands_map['setu']['disable']}", msg.strip())
         if m:
             if is_havingadmin(event):
                 groupid = event.group.id
@@ -287,14 +314,15 @@ if __name__ == '__main__':
                 else:
                     await bot.send(event, getreply(text="本群色图已关闭", rndimg=True))
 
+
     @bot.on(GroupMessage)
-    async def setu(event: GroupMessage):
+    async def getsomesetu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
         m1 = re.match(
-            fr'^{commandpre}(色图|涩图|setu)\s*([\w\d\|]+)?\s*$', msg.strip())
+            fr"^{commandpre}{commands_map['setu']['getsetu1']}", msg.strip())
         m2 = re.match(
-            fr"^{commandpre}来(\d)*[张份点]?([\w\d\|]+)?\s*(的)?\s*[色涩涉]图\s*$", msg.strip())
+            fr"^{commandpre}{commands_map['setu']['getsetu2']}", msg.strip())
         if m1:
             if random.random() * 100 < 10:
                 print(f"发出对{event.sender.id}的少冲提醒")
@@ -332,16 +360,207 @@ if __name__ == '__main__':
                         await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
         return
 
-    """雀魂相关"""
 
     @bot.on(MessageEvent)
-    async def getmajsoulhelp(event: MessageEvent):
+    async def getsyshelp(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}([hH][eE][lL][pP]|帮助)\s*$', msg.strip())
+        m = re.match(
+            fr"^{commandpre}{commands_map['sys']['help']}", msg.strip())
         if m and settings['help']:
             # if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'help')):
             #     return bot.send(event, getreply(text="帮助文档刚刚才发过哦~", rndimg=True, at=event.sender.id))
             return await bot.send(event, Image(path="./images/grouphelp.png"))
+
+
+    '''获取机器人信息'''
+
+
+    @bot.on(FriendMessage)
+    async def getbotinfo(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr"^{commandpre}{commands_map['sys']['getbotinfo']}", msg.strip())
+        if m:
+            if userid in admin:
+                return await bot.send(event,
+                                      f"机器人设置:{config}\n白名单用户:{whiteList}\n黑名单用户:{black_list['user']}\n屏蔽群组:{black_list['group']}")
+
+
+    '''沉默机器人'''
+
+
+    # 全局沉默
+    @bot.on(FriendMessage)
+    async def besilence(event: FriendMessage):
+        if event.sender.id in admin:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            userid = event.sender.id
+            # 匹配指令
+            m = re.match(fr"^{commandpre}{commands_map['sys']['silence_all']}", msg.strip())
+            if m:
+                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
+                    settings['silence'] = True
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+                else:
+                    settings['silence'] = False
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+
+
+    # 单群沉默 - 从群聊沉默
+
+    @bot.on(GroupMessage)
+    async def begroupsilencebygroup(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        if userid in admin:
+            m = re.match(fr"^{commandpre}{commands_map['sys']['silence_group']}", msg.strip())
+            if m:
+                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
+                    if event.group.id not in silencegroup:
+                        silencegroup.append(event.group.id)
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+                else:
+                    if event.group.id in silencegroup:
+                        silencegroup.remove(event.group.id)
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+
+
+    # 关闭复读
+
+    @bot.on(GroupMessage)
+    async def norepeatbygroup(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        if userid in admin:
+            m = re.match(fr"^{commandpre}{commands_map['sys']['repeat']}", msg.strip())
+            if m:
+                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
+                    print(f'已将{event.group.id}的复读关闭')
+                    if event.group.id not in norepeatgroup:
+                        norepeatgroup.append(event.group.id)
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+                else:
+                    if event.group.id in norepeatgroup:
+                        print(f'已将{event.group.id}的复读开启')
+                        norepeatgroup.remove(event.group.id)
+                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                            yaml.dump(config, file, allow_unicode=True)
+
+
+    # 添加白名单
+
+    @bot.on(GroupMessage)
+    async def addwhitelist(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr"^{commandpre}{commands_map['sys']['addwhitelist']}", msg.strip())
+        if m:
+            if userid in admin and userid not in whiteList:
+
+                whiteList.append(int(m.group(1)))
+                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                    yaml.dump(config, file, allow_unicode=True)
+                print(m)
+                return await bot.send(event, "添加成功")
+            else:
+                return await bot.send(event, "添加失败,用户已存在")
+
+
+    # 添加黑名单
+
+    @bot.on(FriendMessage)
+    async def addblacklist(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr"^{commandpre}{commands_map['sys']['addblacklist']}", msg.strip())
+        if m:
+            if userid in admin:
+                if int(m.group(1)) in admin:
+                    return await bot.send(event, "请不要将管理员加入黑名单")
+                black_list['user'].append(int(m.group(1)))
+                print(black_list['user'])
+                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                    yaml.dump(config, file, allow_unicode=True)
+                print(m)
+                return await bot.send(event, "添加成功")
+            else:
+                return await bot.send(event, "添加失败,用户已存在")
+
+
+    # 移出黑名单
+
+    @bot.on(FriendMessage)
+    async def delblacklist(event: FriendMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        userid = event.sender.id
+        # 匹配指令
+        m = re.match(fr"^{commandpre}{commands_map['sys']['delblacklist']}", msg.strip())
+        if m:
+            if userid in admin:
+                delperson = int(m.group(1))
+                if delperson in black_list['user']:
+                    black_list['user'].remove(delperson)
+                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                        yaml.dump(config, file, allow_unicode=True)
+                    return await bot.send(event, "删除成功")
+                else:
+                    return await bot.send(event, "删除失败,用户不存在")
+
+
+    # 获取项目地址
+
+    @bot.on(MessageEvent)
+    async def getprojectlink(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}项目地址\s*$", msg.strip())
+        if m:
+            return await bot.send(event, MessageChain([Plain(
+                "Github : https://github.com/NekoRabi/Majsoul-QQBot\n"
+                "Gitee : https://gitee.com/Syaro/Majsoul-QQBot\n"
+                "如果觉得好可以点个star⭐")]))
+
+            # 与机器人互动
+
+
+    # 签到获取积分
+
+    @bot.on(MessageEvent)
+    async def signUp(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['sys']['signin']}", msg.strip())
+        if m:
+            success, signmsg = signup(event.sender.id)
+            if success:
+                card = tc.drawcards()[0]
+                return await bot.send(event, getreply(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
+            else:
+                return await bot.send(event, getreply(at=event.sender.id, text=signmsg, rndimg=True))
+
+
+    # 查询积分
+
+    @bot.on(MessageEvent)
+    async def getuserscore(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['sys']['getscore']}", msg.strip())
+        if m:
+            scoremsg = getscore(
+                userid=event.sender.id)
+            return await bot.send(event, getreply(text=scoremsg, rndimg=True))
+
+
+    """雀魂相关"""
+
 
     # 禁用功能
 
@@ -350,7 +569,7 @@ if __name__ == '__main__':
         # 匹配指令
         if is_havingadmin(event) or event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
-            m = re.match(fr'^{commandpre}disable\s*(\w+)\s*$', msg.strip())
+            m = re.match(fr"^{commandpre}{commands_map['majsoul']['disable']}", msg.strip())
             if m:
                 command = m.group(1)
                 group = event.group.id
@@ -384,13 +603,16 @@ if __name__ == '__main__':
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
+                else:
+                    return await bot.send(event, '无此功能,请重新输入参数')
+
 
     @bot.on(GroupMessage)
     async def enableqhplugin(event: GroupMessage):
         # 匹配指令
         if is_havingadmin(event) or event.sender.id in admin:
             msg = "".join(map(str, event.message_chain[Plain]))
-            m = re.match(fr'^{commandpre}enable\s*(\w+)\s*$', msg.strip())
+            m = re.match(fr"^{commandpre}{commands_map['majsoul']['enable']}", msg.strip())
             if m:
                 command = m.group(1)
                 group = event.group.id
@@ -425,14 +647,14 @@ if __name__ == '__main__':
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
 
+
     # 查分
 
     @bot.on(GroupMessage)
     async def qhpt(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(
-            fr'^{commandpre}(qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，。@\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhpt']}", msg.strip())
         if m:
             if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
 
@@ -451,11 +673,11 @@ if __name__ == '__main__':
                         await bot.send(event, Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
             return
 
+
     @bot.on(GroupMessage)
     async def getrecentqhpaipu(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'^{commandpre}(qhpaipu|雀魂最近对局)\s*([\w_、,\.，@。\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhpaipu']}", msg.strip())
         if m:
             if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
 
@@ -479,12 +701,11 @@ if __name__ == '__main__':
                     else:
                         await bot.send(event, getsomeqhpaipu(playername=playername, type=searchtype))
 
+
     @bot.on(GroupMessage)
     async def getplayerdetails(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-
-        m = re.match(
-            fr'^{commandpre}(qhinfo|雀魂玩家详情)\s*([\w_、,\.，@。\'\"!]+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhinfo']}", msg.strip())
         if m:
             if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
@@ -507,13 +728,11 @@ if __name__ == '__main__':
                         await bot.send(event, Image(path=f'./images/MajsoulInfo/detail{playername}.png'))
         return
 
+
     @bot.on(GroupMessage)
     async def getmondetails(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-
-        m = re.match(
-            fr'^{commandpre}(qhyb|雀魂月报)\s*([\w_、,\.，@。\'\"!]+)\s*([34])?\s*([0-9]{{4}})?[-]?([0-9]{{1,2}})?\s*$',
-            msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhyb']}", msg.strip())
         if m:
             if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
                 if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhyb')):
@@ -531,24 +750,24 @@ if __name__ == '__main__':
                     # await bot.send(event,getreply(imgbase64=report['imgbase64']))
         return
 
+
     # 获取某群的雀魂关注人员
 
     @bot.on(GroupMessage)
     async def getqhwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(qhgetwatch|雀魂获取本群关注)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['getwatch']}", msg.strip())
         if m:
             await bot.send(event, getallwatcher(event.group.id))
+
 
     # 将一个雀魂用户加入某群的关注
 
     @bot.on(GroupMessage)
     async def addmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        # 匹配指令
-        m = re.match(
-            fr'^{commandpre}(qhadd|雀魂添加关注)\s*([\w_@、,\.，。\'\"!]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['addwatch']}", msg.strip())
         if m:
             if event.group.id not in qhsettings['disautoquerygroup']:
                 # if is_havingadmin(event):
@@ -557,14 +776,14 @@ if __name__ == '__main__':
                 #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
                 await bot.send(event, addwatch(m.group(2), event.group.id))
 
+
     # 删除某群雀魂关注
 
     @bot.on(GroupMessage)
-    async def delwatcher(event: GroupMessage):
+    async def delmajsoulwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(
-            fr'^{commandpre}(qhdel|雀魂删除关注)\s*([\w_@、,\.，。\'\"!]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['delwatch']}", msg.strip())
         if m:
             if event.group.id not in qhsettings['disautoquerygroup']:
                 # if is_havingadmin(event):
@@ -575,12 +794,13 @@ if __name__ == '__main__':
                 await bot.send(event, removewatch(m.group(2), event.group.id))
         return
 
+
     # 来一发雀魂十连
 
     @bot.on(GroupMessage)
-    async def addmajsoulwatch(event: GroupMessage):
+    async def qhdrawcards(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(qhsl|雀魂十连)\s*(\w+)*\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhsl']}", msg.strip())
         if m:
             if qhsettings['qhsl'] and event.group.id not in qhsettings['disslgroup']:
                 if m.group(2):
@@ -643,38 +863,34 @@ if __name__ == '__main__':
                 return await bot.send(event, getreply(text="此群已禁用模拟抽卡"))
         return
 
-    '''天凤相关'''
+
+    # 天凤相关
 
     @bot.on(GroupMessage)
-    async def addtenhouwatch(event: GroupMessage):
+    async def ranktenhouplayer(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        # 匹配指令
-        m = re.match(
-            fr'^{commandpre}(thpt|天凤pt|天凤分数)\s*([\w_、@,。，\'\\\.!！]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['tenhou']['thpt']}", msg.strip())
         if m:
-
             if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'thpt')):
                 return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             await bot.send(event, getthpt(m.group(2)))
 
+
     @bot.on(GroupMessage)
     async def addtenhouwatch(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        # 匹配指令
-        m = re.match(
-            fr'^{commandpre}(thadd|天凤添加关注)\s*([\w_、,。@，\'\\\.!！]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['tenhou']['addwatch']}", msg.strip())
         if m:
             if is_havingadmin(event):
                 await bot.send(event, addthwatch(m.group(2), event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
+
     @bot.on(GroupMessage)
     async def deltenhouwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        # 匹配指令
-        m = re.match(
-            fr'^{commandpre}(thdel|天凤删除关注)\s*([\w_、,。@，\'\\\.!！]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['tenhou']['delwatch']}", msg.strip())
         if m:
             if is_havingadmin(event):
                 await bot.send(event,
@@ -682,17 +898,20 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
+
     @bot.on(GroupMessage)
     async def gettenhouwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         # 匹配指令
-        m = re.match(fr'^{commandpre}(thgetwatch|天凤获取本群关注)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['tenhou']['getwatch']}", msg.strip())
         if m:
             await bot.send(event, getthwatch(event.group.id))
+
 
     '''通用功能'''
 
     '''随机搞怪回复'''
+
 
     @bot.on(GroupMessage)
     async def duideduide(event: GroupMessage):
@@ -721,7 +940,9 @@ if __name__ == '__main__':
                             await bot.send(event, random.choice(
                                 ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
 
+
     '''创建举牌文字'''
+
 
     @bot.on(MessageEvent)
     async def jupai(event: MessageEvent):
@@ -738,146 +959,12 @@ if __name__ == '__main__':
             ])
             await bot.send(event, message_chain)
 
-    '''获取机器人信息'''
-
-    @bot.on(FriendMessage)
-    async def getbotinfo(event: FriendMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        userid = event.sender.id
-        # 匹配指令
-        m = re.match(fr'^{commandpre}getinfo\s*$', msg.strip())
-        if m:
-            if userid in admin:
-                return await bot.send(event,
-                                      f"机器人设置:{config}\n白名单用户:{whiteList}\n黑名单用户:{black_list['user']}\n屏蔽群组:{black_list['group']}")
-
-    '''沉默机器人'''
-
-    # 全局沉默
-    @bot.on(FriendMessage)
-    async def besilence(event: FriendMessage):
-        if event.sender.id in admin:
-            msg = "".join(map(str, event.message_chain[Plain]))
-            userid = event.sender.id
-            # 匹配指令
-            m = re.match(fr'^{commandpre}silence\s*(\w+)\s*$', msg.strip())
-            if m:
-                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
-                    settings['silence'] = True
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
-                else:
-                    settings['silence'] = False
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
-
-    # 单群沉默 - 从群聊沉默
-
-    @bot.on(GroupMessage)
-    async def begroupsilencebygroup(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        userid = event.sender.id
-        # 匹配指令
-        if userid in admin:
-            m = re.match(fr'^{commandpre}silence\s*(\w+)\s*$', msg.strip())
-            if m:
-                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
-                    if event.group.id not in silencegroup:
-                        silencegroup.append(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                else:
-                    if event.group.id in silencegroup:
-                        silencegroup.remove(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-
-    # 关闭复读
-
-    @bot.on(GroupMessage)
-    async def norepeatbygroup(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        userid = event.sender.id
-        # 匹配指令
-        if userid in admin:
-            m = re.match(fr'^{commandpre}norepeat\s*(\w+)\s*$', msg.strip())
-            if m:
-                if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
-                    print(f'已将{event.group.id}的复读关闭')
-                    if event.group.id not in norepeatgroup:
-                        norepeatgroup.append(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                else:
-                    if event.group.id in norepeatgroup:
-                        print(f'已将{event.group.id}的复读开启')
-                        norepeatgroup.remove(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-
-    # 添加白名单
-
-    @bot.on(GroupMessage)
-    async def addwhitelist(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        userid = event.sender.id
-        # 匹配指令
-        m = re.match(fr'^{commandpre}addwhitelist\s*([0-9]+)\s*$', msg.strip())
-        if m:
-            if userid in admin and userid not in whiteList:
-
-                whiteList.append(int(m.group(1)))
-                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                    yaml.dump(config, file, allow_unicode=True)
-                print(m)
-                return await bot.send(event, "添加成功")
-            else:
-                return await bot.send(event, "添加失败,用户已存在")
-
-    # 添加黑名单
-
-    @bot.on(FriendMessage)
-    async def addblacklist(event: FriendMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        userid = event.sender.id
-        # 匹配指令
-        m = re.match(fr'^{commandpre}addblacklist\s*([0-9]+)\s*$', msg.strip())
-        if m:
-            if userid in admin:
-                if int(m.group(1)) in admin:
-                    return await bot.send(event, "请不要将管理员加入黑名单")
-                black_list['user'].append(int(m.group(1)))
-                print(black_list['user'])
-                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                    yaml.dump(config, file, allow_unicode=True)
-                print(m)
-                return await bot.send(event, "添加成功")
-            else:
-                return await bot.send(event, "添加失败,用户已存在")
-
-    # 移出黑名单
-
-    @bot.on(FriendMessage)
-    async def delblacklist(event: FriendMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        userid = event.sender.id
-        # 匹配指令
-        m = re.match(fr'^{commandpre}delblacklist\s*([0-9]+)\s*$', msg.strip())
-        if m:
-            if userid in admin:
-                delperson = int(m.group(1))
-                if delperson in black_list['user']:
-                    black_list['user'].remove(delperson)
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
-                    return await bot.send(event, "删除成功")
-                else:
-                    return await bot.send(event, "删除失败,用户不存在")
 
     '''随机打断、复读、嘲讽'''
 
+
     @bot.on(GroupMessage)
-    async def on_group_message(event: GroupMessage):
+    async def randominterrupt(event: GroupMessage):
         if not (settings['silence'] or settings['norepeat']):
             if event.group.id not in silencegroup:
                 if event.group.id not in norepeatgroup:
@@ -900,21 +987,9 @@ if __name__ == '__main__':
                         return await bot.send(event, event.message_chain)
         return
 
-    # 获取项目地址
-
-    @bot.on(MessageEvent)
-    async def getlink(event: MessageEvent):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr"^{commandpre}项目地址\s*$", msg.strip())
-        if m:
-            return await bot.send(event, MessageChain([Plain(
-                "Github : https://github.com/NekoRabi/Majsoul-QQBot\n"
-                "Gitee : https://gitee.com/Syaro/Majsoul-QQBot\n"
-                "如果觉得好可以点个star⭐")]))
-
-            # 与机器人互动
 
     last_bvid = {}
+
 
     @bot.on(GroupMessage)
     # 哔哩哔哩解析
@@ -957,19 +1032,20 @@ if __name__ == '__main__':
                     [Image(url=img_url), Plain(text=msg)])
                 return await bot.send(event, message_chain)
 
+
     @bot.on(GroupMessage)
     async def diyreply(event: GroupMessage):
         if not settings['silence']:
             if event.group.id not in silencegroup:
                 msg = "".join(map(str, event.message_chain[Plain]))
-                m = re.match(fr'^{commandpre}([\w\d]+)鸡打\s*\.', msg.strip())
+                m = re.match(fr"^{commandpre}{commands_map['reply']['jida']}", msg.strip())
                 if m:
                     return await bot.send(event,
-                                              f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
-                m1 = re.match(fr'^{commandpre}我超(\w+)\s*\.', msg.strip())
+                                          f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
+                m1 = re.match(fr"^{commandpre}{commands_map['reply']['wochao']}", msg.strip())
                 if m1:
                     return await bot.send(event,
-                                              f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
+                                          f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
 
                 senderid = event.sender.id
                 if botname == "":
@@ -995,12 +1071,13 @@ if __name__ == '__main__':
                                 return await bot.send(event, getreply(reply=v, rndimg=True))
                         return await bot.send(event, getreply(reply=replydata['mismatch']['common'], rndimg=True))
 
+
     # 亲亲
 
     @bot.on(GroupMessage)
     async def on_kiss(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(亲|亲亲)\s*@?(\w+)?\s*', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['reply']['kisskiss']}", msg.strip())
         if m:
             if At in event.message_chain:
                 operator_id = event.sender.id
@@ -1012,12 +1089,13 @@ if __name__ == '__main__':
                     await bot.send(event, MessageChain(
                         Image(path=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif')))
 
+
     # 摸头
 
     @bot.on(GroupMessage)
-    async def on_group_message(event: GroupMessage):
+    async def touchhead(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}(摸|摸摸|摸头)\s*@?(\w+)?\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['reply']['touchhead']}", msg.strip())
         if m:
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
@@ -1028,11 +1106,12 @@ if __name__ == '__main__':
             #     await petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
+
     @bot.on(MessageEvent)
     async def imgoperate(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr'^{commandpre}bw\s*([\u4e00-\u9fa5\w%&,;:=?!\s$\x22，。？！\d]+)\s*$', msg.strip())
+            fr"^{commandpre}{commands_map['imgoperation']['bw']}", msg.strip())
         if m and event.message_chain.has(Image):
             try:
                 img = event.message_chain.get_first(Image)
@@ -1045,11 +1124,11 @@ if __name__ == '__main__':
                 print(e)
                 rootLogger.exception(e)
 
+
     @bot.on(GroupMessage)
     async def getremakeimg(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'^{commandpre}(重开|remake)\s*(\d+)?\s*(\w+)?\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['remake']['remake']}", msg.strip())
         if m:
 
             if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'remake')):
@@ -1068,36 +1147,11 @@ if __name__ == '__main__':
             await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
         return
 
-    # 签到获取积分
-
-    @bot.on(MessageEvent)
-    async def signUp(event: MessageEvent):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}\s*签到\s*$', msg.strip())
-        if m:
-            success, signmsg = signup(event.sender.id)
-            if success:
-                card = tc.drawcards()[0]
-                return await bot.send(event, getreply(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
-            else:
-                return await bot.send(event, getreply(at=event.sender.id, text=signmsg, rndimg=True))
-
-    # 查询积分
-
-    @bot.on(MessageEvent)
-    async def getuserscore(event: MessageEvent):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr'^{commandpre}\s*获取当前积分\s*$', msg.strip())
-        if m:
-            scoremsg = getscore(
-                userid=event.sender.id)
-            return await bot.send(event, getreply(text=scoremsg, rndimg=True))
 
     @bot.on(GroupMessage)
     async def sendGroupVoice(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'^{commandpre}\s*说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['sendvoice']['sendvoice']}", msg.strip())
         if m:
             if settings['voice']:
                 if config['voicesetting']['private']:
@@ -1112,11 +1166,11 @@ if __name__ == '__main__':
                     # return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
                     # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 
+
     @bot.on(FriendMessage)
     async def sendVoiceToGroup(event: FriendMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'^{commandpre}\s*在(\d+)说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['sendvoice']['sendgroupvoice']}", msg.strip())
         if m:
             if settings['voice']:
                 if config['voicesetting']['private']:
@@ -1132,16 +1186,9 @@ if __name__ == '__main__':
                     # return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
                     # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 
-    @bot.on(GroupMessage)
-    async def getsometarots(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'^{commandpre}\s*今日塔罗\s*$', msg.strip())
-        if m:
-            return await bot.send(event, getreply(at=event.sender.id, text='旧的"今日塔罗"功能现在改为"签到"触发'))
 
     @bot.on(MessageEvent)
-    async def saveFlashImage(event:MessageEvent):
+    async def saveFlashImage(event: MessageEvent):
         if FlashImage in event.message_chain and settings['saveflashimg']:
             flashimg = event.message_chain.get_first(FlashImage)
             try:
@@ -1149,11 +1196,11 @@ if __name__ == '__main__':
             except Exception as e:
                 print(f'闪照保存发生错误: {e}')
 
+
     @bot.on(MessageEvent)
     async def getsometarots(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'^{commandpre}\s*(\d)?张?(([tT][Aa][Rr][oO][Tt])|(塔罗牌))', msg.strip())
+        m = re.match(fr"^{commandpre}{commands_map['sys']['tarot']}", msg.strip())
         if m:
             if m.group(1):
                 num = int(m.group(1))
@@ -1178,12 +1225,12 @@ if __name__ == '__main__':
                 card = tc.drawcards()[0]
                 return await bot.send(event, Image(base64=card.imgcontent))
 
+
     # 戳一戳 出发摸头
 
     @bot.on(NudgeEvent)
     async def Nudgepetpet(event: NudgeEvent):
 
-        # await bot.send(event,NudgeEvent(from_id=bot.qq,target=event.from_id))
         sender = event.from_id
 
         if sender == bot.qq:
@@ -1231,6 +1278,7 @@ if __name__ == '__main__':
                                                          Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
         return
 
+
     # 群龙王
     # @bot.on(GroupEvent)
     # async def dradonchange(event: MemberHonorChangeEvent):
@@ -1243,13 +1291,16 @@ if __name__ == '__main__':
 
     scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
 
+
     @bot.on(Startup)
     def start_scheduler(_):
         scheduler.start()  # 启动定时器
 
+
     @bot.on(Shutdown)
     def stop_scheduler(_):
         scheduler.shutdown(True)  # 结束定时器
+
 
     # 雀魂对局记录轮询器
 
@@ -1290,5 +1341,6 @@ if __name__ == '__main__':
                     logging.exception(e)
                 print(
                     f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
+
 
     bot.run(port=17580)

@@ -1,9 +1,10 @@
 # 指令正则  ^{commandpre}addadmin\s*(\d+)\s*$
 # 只能修改 ^{commandpre}" 后面的部分，会自动拼接指令前缀
 # 注意: 冒号后面要有空格
-# 请严格保持括号顺序,不要增加，也不要减少，可能会导致程序出错
+# 请严格保持括号顺序,不要增加，也不要减少，修改顺序和变更数量会导致程序出错
 sys:
-  help: (help|帮助)\s*$
+  ping: ping\s*$
+  help: ([hH][eE][lL][pP]|帮助)\s*$
   addadmin: addadmin\s*(\d+)\s*$
   deladmin: deladmin\s*(\d+)\s*$
   sendmsgtogroup: stext::\s*([0-9]+)\s*([\u4e00-\u9fa5\w%&',;=?!^.$\x22，。？！]+)\s*$
@@ -15,6 +16,7 @@ sys:
   delwhitelist: delwhitelist\s*([0-9]+)\s*$
   addblacklist: addblacklist\s*([0-9]+)\s*$
   delblacklist: delblacklist\s*([0-9]+)\s*$
+  log: log\s*(\w+)?\s*(\d+)\s*$
 
   signin: \s*签到\s*$
   getscore: \s*获取当前积分\s*$
@@ -27,8 +29,8 @@ setu:
   getsetu2: 来(\d)*[张份点]?([\w\d\|]+)?\s*(的)?\s*[色涩涉]图\s*$
 
 majsoul:
-  disable: disable\s*(\w+)\s*$
-  enable : enable\s*(\w+)\s*$
+  disable: disable\s*majsoul\s*(\w+)\s*$
+  enable : enable\s*majsoul\s*(\w+)\s*$
   qhpt: (qhpt|雀魂分数|雀魂pt)\s*([\w_、,\.，。@\'\"!]+)\s*([34])?\s*([0-9]+)?\s*$
   qhpaipu : (qhpaipu|雀魂最近对局)\s*([\w_、,\.，@。\'\"!]+)\s*([34])*\s*([0-9]+)?\s*$
   qhinfo: (qhinfo|雀魂玩家详情)\s*([\w_、,\.，@。\'\"!]+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$
@@ -59,6 +61,6 @@ imgoperation:
 remake:
   remake: (重开|remake)\s*(\d+)?\s*(\w+)?\s*$
 
-voice:
+sendvoice:
   sendvoice: \s*说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$
-  
+  sendgroupvoice: \s*在(\d+)说[:：]\s*([\w\d\s,!！，。\?？\.]+)\s*$

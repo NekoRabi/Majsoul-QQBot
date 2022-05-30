@@ -10,17 +10,26 @@ from tencentcloud.tts.v20190823 import tts_client, models
 
 class VoiceCreater:
 
-    def __init__(self, secretId, secretKey, volume=1, speed=0.9, voicetype=1002,codec='mp3', token=None, timestamp=None):
-        self.token = token
-        self.secretId = secretId
-        self.secretKey = secretKey
-        self.timestamp = timestamp
-        self.volume = volume
-        self.speed = speed
-        self.voicetype = voicetype
-        self.codec = codec
+    def __init__(self, setting=None, secretId=None, secretKey=None, volume=1, speed=0.9, voicetype=1002, codec='mp3',
+                 token=None, timestamp=None):
+        if setting:
+            self.secretId = setting['secretId']
+            self.secretKey = setting['secretKey']
+            self.volume = setting['volume']
+            self.speed = setting['speed']
+            self.voicetype = setting['voicetype']
+            self.codec = setting['codec']
+        else:
+            self.token = token
+            self.secretId = secretId
+            self.secretKey = secretKey
+            self.timestamp = timestamp
+            self.volume = volume
+            self.speed = speed
+            self.voicetype = voicetype
+            self.codec = codec
 
-    def changesettings(self,key,value):
+    def changesettings(self, key, value):
         if key == 'voicetype':
             self.voicetype = int(value)
         elif key == 'volume':
