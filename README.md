@@ -1,7 +1,7 @@
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等
 
- [指令帮助](./docs/command_help.md)
+# [指令帮助](./docs/command_help.md)
 
 # 效果展示
 
@@ -108,9 +108,9 @@ master: 0  # 机器人主人
 
 searchfrequency: 6 # 查询频率，建议为 6
 
-replyimgpath : fox # 表情包路径
+replyimgpath : fox # 表情包选择,请将表情包方放在文件夹'data/reply/img/'下以
 
-loglevel: INFO # 日志等级
+loglevel: INFO # 日志等级,功能暂时关闭
 
 # "戳一戳"配置文件
 nudgeconfig:
@@ -148,6 +148,7 @@ settings: # 功能开关
   norepeat: false     # 全局自动回复
   help: true          # 是否显示帮助
   voice: false        # 语音功能
+  saveflashimg: false # 保存闪照
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
   repeatQ: 20         # 复读问号 的概率
@@ -188,6 +189,7 @@ voicesetting:
                   # 即 设置private 为 true，则只有你可以让机器人说话
   secretId: ''
   secretKey: ''
+  codec: 'mp3'    # 音频格式,为 'mp3'或'wav'
 
 
 
@@ -276,16 +278,18 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  - 入群欢迎
  - 摸头、互亲、举牌、色图、占卜等图片相关功能
  - 强交互性，提供自定义回复、图片回复和语音回复
+ - 支持自定义指令，可以自定义自己喜欢的触发方式
  - 以后会有更多……
 
  # 存在的问题
  1. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  解决办法: 将config.yml重新编码 ( 现已全部都使用 utf-8 编码 ) 
  2. ~~网络请求超时(网络不好)~~
+ 3. 天凤关注订阅时，新加入的玩家 ( 并且未在数据库注册过 ) 如果在短时间内 ( 2小时 ) 狂打,会出现输出多个播报对局的情况
 
  # 开发计划
 
-  [ ] 数据库重新设计 (进行中)
+  [ ] 数据库重新设计 ( 快完成了!! )
 
   [ ] 增加何切支持
 
@@ -296,7 +300,9 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
   [ ] 做一份完整的说明书
 
 # 其他
-语音模块是使用的腾讯云的api，是收费的，默认关闭，有想法可以打开玩玩，一天约 0.02 或 0.03 元   [地址](https://cloud.tencent.com/document/product/1073/37995)
+语音模块是使用的腾讯云的api，是收费的，默认关闭，有想法可以打开玩玩，约 0.02 或 0.03 元  
+
+[腾讯云语音模块地址](https://cloud.tencent.com/document/product/1073/37995)
 
 # 联系方式
 QQ:1215791340 验证消息： 可爱的拉克丝
