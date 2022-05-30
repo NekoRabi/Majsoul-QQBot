@@ -432,14 +432,6 @@ def asygetqhpaipu():
     content = []
     for item in res:
         playeridlist.append(item[0])
-    # tasks = [
-    #     asyncio.ensure_future(paipu_pl3(playeridlist, nowtime)),
-    #     asyncio.ensure_future(paipu_pl4(playeridlist, nowtime))
-    # ]
-    #
-    # loop = asyncio.get_event_loop()
-    # tasks = asyncio.gather(*tasks)
-    # loop.run_until_complete(tasks)
     results = finish_all_asytasks(
         [paipu_pl3(playeridlist, nowtime), paipu_pl4(playeridlist, nowtime)])
     for result in results:
@@ -770,40 +762,94 @@ def addwatch(playername: str, groupid: int):
         print("数据库中无此用户，请先查询该用户。")
         return "添加失败,数据库中无此用户,请先用 qhpt 查询该用户。"
     playerid = playerid[0][0]
-    try:
-        cursor.execute(f"insert into QQgroup(groupid)values({groupid})")
+    # try:
+    #     cursor.execute(f"insert into QQgroup(groupid)values({groupid})")
+    #     cx.commit()
+    # except sqlite3.IntegrityError:
+    #     # 群组已添加
+    #     pass
+    # try:
+    #     cursor.execute(
+    #         f"select * from group2player where groupid = {groupid} and playerid = {playerid}")
+    #     groupplayers = cursor.fetchall()
+    #     if len(groupplayers) == 0:
+    #         cursor.execute(
+    #             f"insert into group2player(groupid,playerid,playername) values({groupid},{playerid},'{playername}')")
+    #         cx.commit()
+    #     else:
+    #         if groupplayers[0][4] == 1:
+    #             print("此群该用户已添加关注，无需重复关注")
+    #             return "添加失败,此群该用户已添加关注，无需重复关注"
+    #         else:
+    #             cursor.execute(
+    #                 f"update group2player set iswatching = 1 where groupid = {groupid} and playerid = {playerid}")
+    #             cx.commit()
+    # except sqlite3.IntegrityError:
+    #     print("此群该用户已添加关注，无需重复关注")
+    #     return "添加失败,该用户已添加关注，无需重复关注"
+    # try:
+    #     cursor.execute(
+    #         f'select * from watchedplayer where playername = "{playername}"')
+    #     if len(cursor.fetchall()) == 0:
+    #         cursor.execute(
+    #             f'insert into watchedplayer(playerid,playername,watchedgroupcount) values({playerid},"{playername}",1)')
+    #         cx.commit()
+    # except sqlite3.IntegrityError:
+    #     print(f"用户{playername}已被其他群关注")
+    # return "添加成功"
+
+
+    cursor.execute(f'select * from QQgroup where groupid = {groupid}')
+    groups = cursor.fetchall()
+    newplayer = False
+    if len(groups) > 0:
+        print("该群已注册进雀魂观战数据库")
+    else:
+        cursor.execute(f'insert into QQgroup(groupid) values({groupid})')
         cx.commit()
-    except sqlite3.IntegrityError:
-        # 群组已添加
-        pass
-    try:
+        print(f"已将群组{groupid}添加到数据库")
+    cursor.execute(
+        f'select * from watchedplayer where playerid = {playerid}')
+    watchedplayers = cursor.fetchall()
+    if len(watchedplayers) == 0:
+        #     if watchedplayers[0][1] != 1:
+        #         cursor.execute(
+        #             f'update watchedplayer set iswatching = 1 where playername = "{playername}"')
+        #         cx.commit()
+        #         print("已更新雀魂关注")
+        #     else:
+        #         print("该用户已添加进关注列表")
+        # else:
+        newplayer = True
         cursor.execute(
-            f"select * from group2player where groupid = {groupid} and playerid = {playerid}")
-        groupplayers = cursor.fetchall()
-        if len(groupplayers) == 0:
+            f'insert into watchedplayer(playerid,playername) values({playerid},"{playername}")')
+        cx.commit()
+        print(f"已将{playername}添加到雀魂关注数据库")
+    cursor.execute(
+        f'select * from group2player where groupid = {groupid} and playerid = "{playerid}"')
+    groupplayers = cursor.fetchall()
+    if len(groupplayers) > 0:
+        if groupplayers[0][3] != 1:
             cursor.execute(
-                f"insert into group2player(groupid,playerid,playername) values({groupid},{playerid},'{playername}')")
+                f'update group2player set iswatching = 1 where groupid = {groupid} and playerid = {playerid}')
+            cursor.execute(
+                    f'update watchedplayer set watchedgroupcount = {watchedplayers[0][1] + 1} where playerid = {playerid}')
             cx.commit()
+            print("已更新雀魂群关注")
         else:
-            if groupplayers[0][4] == 1:
-                print("此群该用户已添加关注，无需重复关注")
-                return "添加失败,此群该用户已添加关注，无需重复关注"
-            else:
-                cursor.execute(
-                    f"update group2player set iswatching = 1 where groupid = {groupid} and playerid = {playerid}")
-                cx.commit()
-    except sqlite3.IntegrityError:
-        print("此群该用户已添加关注，无需重复关注")
-        return "添加失败,该用户已添加关注，无需重复关注"
-    try:
+            print("该用户已添加进此群的关注列表")
+            cursor.close()
+            cx.close()
+            return "此群已关注该玩家"
+    else:
         cursor.execute(
-            f'select * from watchedplayer where playername = "{playername}"')
-        if len(cursor.fetchall()) == 0:
-            cursor.execute(
-                f'insert into watchedplayer(playerid,playername,watchedgroupcount) values({playerid},"{playername}",1)')
-            cx.commit()
-    except sqlite3.IntegrityError:
-        print(f"用户{playername}已被其他群关注")
+            f'insert into group2player(playerid,playername,groupid) values({playerid},"{playername}",{groupid})')
+        cursor.execute(
+            f'update watchedplayer set watchedgroupcount = {watchedplayers[0][1] + 1} where playerid = {playerid}')
+        cx.commit()
+        print(f"已将{playername}添加到群聊{groupid}的关注")
+    cursor.close()
+    cx.close()
     return "添加成功"
 
 
@@ -923,32 +969,63 @@ def getmonthreport(playername: str, selecttype: str, year: str, month: str) -> d
         print(f'\n玩家详情读取超时:\t{e}\n')
         return dict(msg="查询超时,请再试一次", error=True)
     text_to_image(path=f"MajsoulInfo/yb{playername}.png", text=msg)
-    return dict(msg=msg, error=False,)
+    return dict(msg=msg, error=False, )
     # return dict(msg=msg, error=False, imgbase64=text_to_image(text=msg, needtobase64=True))
 
 
 def removewatch(playername: str, groupid: int) -> str:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
+    # cursor.execute(
+    #     f"select * from group2player where playername = '{playername}'")
+    # player = cursor.fetchall()
+    # if len(player) == 0:
+    #     return '本群未关注该玩家'
+    # if player[0][4] == 1:
+    #     cursor.execute(
+    #         f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
+    # cx.commit()
+    # cursor.execute(
+    #     f"select * from group2player where playername = '{playername}' and iswatching = 1")
+    # groupplayers = cursor.fetchall()
+    # if len(groupplayers) == 0:
+    #     cursor.execute(
+    #         f"update watchedplayer set watchedgroupcount = 0 where playername = '{playername}'")
+    #     cx.commit()
+    # cursor.close()
+    # cx.close()
+    # return "删除成功"
+
     cursor.execute(
-        f"select * from group2player where playername = '{playername}'")
-    player = cursor.fetchall()
-    if len(player) == 0:
-        return '本群未关注该玩家'
-    if player[0][4] ==1:
-        cursor.execute(
-            f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
-    cx.commit()
+        f"select playerid from qhplayer where playername = '{playername}'")
+    playerid = cursor.fetchall()
+    if len(playerid) == 0:
+        print("数据库中无此用户,删除未进行")
+        return "删除成功"
+    playerid = playerid[0][0]
     cursor.execute(
-        f"select * from group2player where playername = '{playername}' and iswatching = 1")
+        f'select * from group2player where groupid ={groupid} and playerid ={playerid}')
     groupplayers = cursor.fetchall()
     if len(groupplayers) == 0:
+        print("未关注该用户")
+        return "删除成功"
+    cursor.execute(
+        f'select * from watchedplayer where playerid = {playerid}')
+    watcherplayers = cursor.fetchall()
+    if groupplayers[0][3] != 0:
         cursor.execute(
-            f"update watchedplayer set watchedgroupcount = 0 where playername = '{playername}'")
+            f"update group2player set iswatching = 0 where playerid = {playerid} and groupid = {groupid}")
+        cursor.execute(
+            f"update watchedplayer set watchedgroupcount = {watcherplayers[0][1] - 1} where playerid = {playerid}")
+        print("删除成功")
         cx.commit()
-    cursor.close()
-    cx.close()
-    return "删除成功"
+        cursor.close()
+        cx.close()
+        return "删除成功"
+    else:
+        print("未关注该用户")
+        return ("删除成功")
+
 
 
 def getallwatcher(groupid: int) -> str:
@@ -956,15 +1033,13 @@ def getallwatcher(groupid: int) -> str:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     cursor.execute(
-        f"select playerid,playername from group2player where groupid = {groupid} and iswatching = 1")
+        f"select watchedplayers,watchnums from groupwatches where groupid = {groupid}")
     players = cursor.fetchall()
-    watcher = []
     if len(players) == 0:
         return "本群未关注任何玩家"
-    msg = "本群关注的玩家有:\n"
-    for player in players:
-        watcher.append(player[1])
-        msg += str(player[1]) + ", "
+    msg = f"本群共关注了{players[0][1]}位玩家:\n{players[0][0]}"
+    cursor.close()
+    cx.close()
     return msg
 
 

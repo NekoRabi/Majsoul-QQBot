@@ -12,11 +12,11 @@ if not os.path.exists("./data/TenHouPlugin"):
 
 cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
 cursor = cx.cursor()
-cursor.execute('create table IF NOT EXISTS watchedplayer ('
+cursor.execute('create table if not exists watchedplayer ('
                'id integer primary key,'
                'watchedgroupcount integer not null default 0,'
                'playername varchar(50) UNIQUE)')
-cursor.execute("create table IF NOT EXISTS QQgroup("
+cursor.execute("create table if not exists QQgroup("
                "id integer primary key ,"
                "groupid integer UNIQUE)")
 cursor.execute("create table IF NOT EXISTS group2player("
@@ -25,7 +25,7 @@ cursor.execute("create table IF NOT EXISTS group2player("
                "playername varchar(50),"
                "iswatching integer not null default 1,"
                "UNIQUE(groupid,playername) ON CONFLICT REPLACE)")
-cursor.execute("create table IF NOT EXISTS paipu("
+cursor.execute("create table if not exists paipu("
                "id integer primary key,"
                "startTime varchar(50),"
                "model varchar(50),"
@@ -40,6 +40,13 @@ cursor.execute("create table if not exists isgaming("
                "url varchar(20)"
                ")")
 
+cursor.execute("create view if not exists groupwatches as "
+               "select groupid,"
+               "group_concat(playername) as watchedplayers,"
+               "count(groupid) as watchnums "
+               "from group2player "
+               "where iswatching = 1 "
+               "group by groupid")
 cx.commit()
 cursor.close()
 cx.close()

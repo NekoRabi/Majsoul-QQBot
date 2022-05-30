@@ -233,7 +233,7 @@ def forwardmessage(msglist: list) -> list:
         messageChainList.append(
             dict(groups=groupids, msg=item['msg'], playername=item['playername']
                  # ,imgbase=text_to_image(text=item['msg'], needtobase64=True)
-        ))
+                 ))
     cursor.close()
     cx.close()
     return messageChainList
@@ -256,14 +256,14 @@ def addthwatch(playername: str, groupid: int):
         f'select * from watchedplayer where playername = "{playername}"')
     watchedplayers = cursor.fetchall()
     if len(watchedplayers) == 0:
-    #     if watchedplayers[0][1] != 1:
-    #         cursor.execute(
-    #             f'update watchedplayer set iswatching = 1 where playername = "{playername}"')
-    #         cx.commit()
-    #         print("已更新天凤关注")
-    #     else:
-    #         print("该用户已添加进关注列表")
-    # else:
+        #     if watchedplayers[0][1] != 1:
+        #         cursor.execute(
+        #             f'update watchedplayer set iswatching = 1 where playername = "{playername}"')
+        #         cx.commit()
+        #         print("已更新天凤关注")
+        #     else:
+        #         print("该用户已添加进关注列表")
+        # else:
         newplayer = True
         cursor.execute(
             f'insert into watchedplayer(playername) values("{playername}")')
@@ -304,9 +304,6 @@ def addthwatch(playername: str, groupid: int):
     cursor.close()
     cx.close()
     return "添加成功"
-
-
-
 
     # cursor.execute(
     #     f'select * from watchedplayer where playername = "{playername}"')
@@ -369,7 +366,7 @@ def removethwatch(playername: str, groupid: int):
     cursor.execute(
         f'select * from watchedplayer where playername = "{playername}"')
     watcherplayers = cursor.fetchall()
-    if groupplayers[0][3]!=0:
+    if groupplayers[0][3] != 0:
         cursor.execute(
             f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
         cursor.execute(
@@ -382,7 +379,6 @@ def removethwatch(playername: str, groupid: int):
     else:
         print("未关注该用户")
         return ("删除成功")
-
 
     # cursor.execute(
     #     f'select * from watchedplayer where playername = "{playername}"')
@@ -428,10 +424,11 @@ def getthwatch(groupid: int) -> str:
     cursor = cx.cursor()
 
     cursor.execute(
-        f'select playername from group2player where groupid = {groupid} and iswatching = 1')
-    result = cursor.fetchall()
-    for player in result:
-        msg += player[0] + " "
+        f"select watchedplayers,watchnums from groupwatches where groupid = {groupid}")
+    players = cursor.fetchall()
+    if len(players) == 0:
+        return "本群未关注任何玩家"
+    msg = f"本群共关注了{players[0][1]}位玩家:\n{players[0][0]}"
     cursor.close()
     cx.close()
     return msg
