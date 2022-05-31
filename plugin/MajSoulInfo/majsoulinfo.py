@@ -824,6 +824,9 @@ def addwatch(playername: str, groupid: int):
         cursor.execute(
             f'insert into watchedplayer(playerid,playername) values({playerid},"{playername}")')
         cx.commit()
+        cursor.execute(
+            f'select * from watchedplayer where playerid = {playerid}')
+        watchedplayers = cursor.fetchall()
         print(f"已将{playername}添加到雀魂关注数据库")
     cursor.execute(
         f'select * from group2player where groupid = {groupid} and playerid = "{playerid}"')
