@@ -55,6 +55,13 @@ cursor.execute("create view if not exists groupwatches as "
                "from group2player "
                "where iswatching = 1 "
                "group by groupid")
+
+cursor.execute("create view if not exists watchedplayersview as "
+               "select playername,playerid, "
+               "count(groupid) as watchedgroupcount "
+               "from group2player "
+               "where iswatching = 1 "
+               "group by playername")
 cx.commit()
 cursor.close()
 cx.close()

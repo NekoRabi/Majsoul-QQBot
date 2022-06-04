@@ -2,7 +2,7 @@ import os
 import sqlite3
 
 from plugin.TenHouPlugin.TenHou import asyautoget_th_matching, addthwatch, asyautoget_th_match, removethwatch, \
-    getthwatch, asygetTH,getthpt
+    getthwatch, asygetTH,getthpt,clearthwatch
 
 if not os.path.exists("./database/TenHouPlugin"):
     os.mkdir("./database/TenHouPlugin")
@@ -47,6 +47,13 @@ cursor.execute("create view if not exists groupwatches as "
                "from group2player "
                "where iswatching = 1 "
                "group by groupid")
+
+cursor.execute("create view if not exists watchedplayersview as "
+               "select playername,"
+               "count(groupid) as watchedgroupcount "
+               "from group2player "
+               "where iswatching = 1 "
+               "group by playername")
 cx.commit()
 cursor.close()
 cx.close()

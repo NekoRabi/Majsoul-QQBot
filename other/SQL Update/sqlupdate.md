@@ -1,4 +1,4 @@
-# 6.0.0-alpha
+# 0.6.0-alpha
 
 ---
 
@@ -35,5 +35,20 @@ LeisurePlugin
 ALTER TABLE userinfo ADD COLUMN keepsigndays integer not null default 1;
 
 create table IF NOT EXISTS tarot (id integer primary key,cardsid integer,cardname varchar(40) not null,position int not null default 1 )
+
+```
+
+# 0.6.0-beta
+TenHouPlugin
+```
+create view if not exists watchedplayersview as select playername,count(groupid) as watchedgroupcount from group2player where iswatching = 1 group by playername
+```
+
+
+MajSoulInfo
+
+
+```
+create view if not exists watchedplayersview as select playername,playerid, count(groupid) as watchedgroupcount from group2player where iswatching = 1 group by playername")
 
 ```

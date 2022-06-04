@@ -286,7 +286,7 @@ if __name__ == '__main__':
         m = re.match(
             fr"^{commandpre}{commands_map['setu']['enable']}", msg.strip())
         if m:
-            if is_havingadmin(event):
+            if event.sender.id in admin:
                 groupid = event.group.id
                 if groupid in config['setugroups']:
                     await bot.send(event, getreply(text="本群已开启色图", rndimg=True))
@@ -304,7 +304,7 @@ if __name__ == '__main__':
         m = re.match(
             fr"^{commandpre}{commands_map['setu']['disable']}", msg.strip())
         if m:
-            if is_havingadmin(event):
+            if event.sender.id in admin:
                 groupid = event.group.id
                 if groupid in config['setugroups']:
                     config['setugroups'].remove(groupid)
@@ -898,6 +898,15 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
+    @bot.on(GroupMessage)
+    async def cleartenhouwatcher(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['tenhou']['clearwatch']}", msg.strip())
+        if m:
+            if is_havingadmin(event):
+                await bot.send(event,clearthwatch(groupid=event.group.id))
+            else:
+                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
     @bot.on(GroupMessage)
     async def gettenhouwatcher(event: GroupMessage):
