@@ -28,10 +28,10 @@ def signup(userid: int) -> tuple:
         if differ == 1:
             singinmsg += f"{user[0][0] + 1},你已连续签到{user[0][2] + 1}天\n这是你今天的塔罗牌"
             cursor.execute(
-                f"update userinfo set lastsignin = '{today}',score = {user[0][0] + 1},keepsigndays = {user[0][2]+1} where userid = {userid}")
+                f"update userinfo set lastsignin = '{today}',score = score + 1,keepsigndays = keepsigndays + 1 where userid = {userid}")
         else:
             singinmsg += f"{user[0][0] + 1},连续签到中断惹~\n这是你今天的塔罗牌"
-            cursor.execute(f"update userinfo set lastsignin = '{today}',score = {user[0][0] + 1},keepsigndays = 1 where userid = {userid}")
+            cursor.execute(f"update userinfo set lastsignin = '{today}',score = score + 1 ,keepsigndays = 1 where userid = {userid}")
         cx.commit()
     else:
         return False, "一天只能签到一次哦~"

@@ -48,6 +48,13 @@ cursor.execute("create table IF NOT EXISTS drawcards("
                "drawcount int,"
                "lastdraw varchar(50)"
                ")")
+cursor.execute("create table if not exists playerdrawcard("
+               "id integer primary key,"
+               "userid integer not null,"
+               "drawtime varchar(50) not null,"
+               "itemlevel int not null,"
+               "itemname TEXT not null"
+               ")")
 cursor.execute("create view if not exists groupwatches as "
                "select groupid,"
                "group_concat(playername) as watchedplayers,"
