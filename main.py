@@ -957,7 +957,7 @@ if __name__ == '__main__':
     async def jupai(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr'''^{commandpre}举牌\s*([\u4e00-\u9fa5\w_%&',;:=?!^.$\x22，。？！]+)\s*$''', msg.strip())
+            fr'''^{commandpre}{commands_map['jupai']['jupai']}''', msg.strip())
         if m:
 
             if len(m.group(1)) > 40:

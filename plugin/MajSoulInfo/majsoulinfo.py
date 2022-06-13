@@ -55,7 +55,7 @@ async def asysearchqh(url, type="3"):
         print(f"查询超时,{e}")
         return dict(msg="查询超时，请再试一次", error=True)
 
-
+# qhpt
 def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None):
     s = requests.Session()
     s.mount('http://', HTTPAdapter(max_retries=3))
@@ -97,7 +97,7 @@ def getcertaininfo(username: str, selecttype: str = "4", selectindex: int = None
                 cursor = cx.cursor()
                 cursor.execute(
                     f"select * from qhplayer where playername = '{username}'")
-                if cursor.fetchall() == 0:
+                if len(cursor.fetchall()) == 0:
                     cursor.execute(
                         "insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
                 else:
@@ -578,7 +578,7 @@ def mergeimg(imgurls: list) -> Image:
 
 """查询雀魂用户信息"""
 
-
+#  qhpt
 def query(username: str, selecttype: str = "", selectindex: int = 0) -> dict:
     userinfo = getinfo(username)
     if userinfo['error']:
