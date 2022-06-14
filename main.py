@@ -1,12 +1,13 @@
 import logging
-
 import nest_asyncio
 import re
+import requests
 import websockets.exceptions
 
 from plugin import *
 from utils.bufferpool import *
 from utils.text_to_voice import VoiceCreater
+from utils.file_cleaner import cleaner
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from mirai import FriendMessage, GroupMessage, Plain, Startup, Shutdown, At, MessageChain, \
@@ -54,7 +55,7 @@ if __name__ == '__main__':
 
     async def asyqh_autopaipu():
         print("开始查询雀魂信息")
-        result = asygetqhpaipu()
+        result = majsoul.asygetqhpaipu()
         print(result)
         for msgobj in result:
             for group in msgobj['groups']:
@@ -64,7 +65,7 @@ if __name__ == '__main__':
 
     async def asyth_all():
         print("开始查询天凤信息")
-        result = asygetTH()
+        result = tenhou.asygetTH()
         print(result)
         for msgobj in result:
             for group in msgobj['groups']:
@@ -571,33 +572,33 @@ if __name__ == '__main__':
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(fr"^{commandpre}{commands_map['majsoul']['disable']}", msg.strip())
             if m:
-                command = m.group(1)
+                commandname = m.group(1)
                 group = event.group.id
-                if command in ['qhpt', '雀魂分数', '雀魂pt']:
+                if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group not in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].append(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'查分功能禁用成功')
-                elif command in ['qhpaipu', '雀魂最近对局']:
+                elif commandname in ['qhpaipu', '雀魂最近对局']:
                     if group not in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].append(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
-                elif command in ['qhinfo', '雀魂玩家详情']:
+                elif commandname in ['qhinfo', '雀魂玩家详情']:
                     if group not in qhsettings['disinfogroup']:
                         qhsettings['disinfogroup'].append(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'雀魂玩家详情功能禁用成功')
-                elif command in ['qhsl', '雀魂十连']:
+                elif commandname in ['qhsl', '雀魂十连']:
                     if group not in qhsettings['disybgroup']:
                         qhsettings['disybgroup'].append(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'模拟十连功能禁用成功')
-                elif command in ['qhyb', '雀魂月报']:
+                elif commandname in ['qhyb', '雀魂月报']:
                     if group not in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].append(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
@@ -614,38 +615,40 @@ if __name__ == '__main__':
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(fr"^{commandpre}{commands_map['majsoul']['enable']}", msg.strip())
             if m:
-                command = m.group(1)
+                commandname = m.group(1)
                 group = event.group.id
-                if command in ['qhpt', '雀魂分数', '雀魂pt']:
+                if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].remove(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'查分功能启用成功')
-                elif command in ['qhpaipu', '雀魂最近对局']:
+                elif commandname in ['qhpaipu', '雀魂最近对局']:
                     if group in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].remove(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
-                elif command in ['qhinfo', '雀魂玩家详情']:
+                elif commandname in ['qhinfo', '雀魂玩家详情']:
                     if group in qhsettings['disinfogroup']:
                         qhsettings['disinfogroup'].remove(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'雀魂玩家详情功能禁用成功')
-                elif command in ['qhsl', '雀魂十连']:
+                elif commandname in ['qhsl', '雀魂十连']:
                     if group in qhsettings['disybgroup']:
                         qhsettings['disybgroup'].remove(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'模拟十连功能禁用成功')
-                elif command in ['qhyb', '雀魂月报']:
+                elif commandname in ['qhyb', '雀魂月报']:
                     if group in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].remove(group)
                         with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                             yaml.dump(config, file, allow_unicode=True)
                             return await bot.send(event, f'牌谱查询功能禁用成功')
+                else:
+                    return await bot.send(event, '无此功能,请重新输入参数')
 
 
     # 查分
@@ -662,11 +665,11 @@ if __name__ == '__main__':
                     return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 if m.group(3):
                     if m.group(4):
-                        await bot.send(event, getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
+                        await bot.send(event, majsoul.getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
                     else:
-                        await bot.send(event, getcertaininfo(m.group(2), m.group(3)))
+                        await bot.send(event, majsoul.getcertaininfo(m.group(2), m.group(3)))
                 else:
-                    result = query(m.group(2))
+                    result = majsoul.query(m.group(2))
                     if result['error']:
                         await bot.send(event, result['msg'])
                     else:
@@ -693,13 +696,14 @@ if __name__ == '__main__':
                         searchnumber = int(m.group(4))
                         if 0 < searchnumber < 11:
                             await bot.send(event,
-                                           getsomeqhpaipu(playername=playername, type=searchtype, counts=searchnumber))
+                                           majsoul.getsomeqhpaipu(playername=playername, type=searchtype,
+                                                                  counts=searchnumber))
                             return
                         else:
                             await bot.send(event, "牌局数量有误，最多支持10场牌局")
                             return
                     else:
-                        await bot.send(event, getsomeqhpaipu(playername=playername, type=searchtype))
+                        await bot.send(event, majsoul.getsomeqhpaipu(playername=playername, type=searchtype))
 
 
     @bot.on(GroupMessage)
@@ -720,7 +724,7 @@ if __name__ == '__main__':
                 else:
                     if model is None:
                         model = '基本'
-                    detail = getplayerdetail(
+                    detail = majsoul.getplayerdetail(
                         playername=playername, selecttype=selecttype, model=model)
                     if detail['error']:
                         await bot.send(event, detail['msg'])
@@ -741,7 +745,7 @@ if __name__ == '__main__':
                 selecttype = m.group(3)
                 year = m.group(4)
                 month = m.group(5)
-                report = getmonthreport(
+                report = majsoul.getmonthreport(
                     playername=playername, selecttype=selecttype, year=year, month=month)
                 if report['error']:
                     await bot.send(event, report['msg'])
@@ -759,7 +763,7 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr"^{commandpre}{commands_map['majsoul']['getwatch']}", msg.strip())
         if m:
-            await bot.send(event, getallwatcher(event.group.id))
+            await bot.send(event, majsoul.getallwatcher(event.group.id))
 
 
     # 将一个雀魂用户加入某群的关注
@@ -774,7 +778,7 @@ if __name__ == '__main__':
                 #     await bot.send(event, addwatch(m.group(2), event.group.id))
                 # else:
                 #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
-                await bot.send(event, addwatch(m.group(2), event.group.id))
+                await bot.send(event, majsoul.addwatch(m.group(2), event.group.id))
 
 
     # 删除某群雀魂关注
@@ -791,7 +795,7 @@ if __name__ == '__main__':
                 #                    removewatch(playername=m.group(2), groupid=event.group.id))
                 # else:
                 #     await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
-                await bot.send(event, removewatch(m.group(2), event.group.id))
+                await bot.send(event, majsoul.removewatch(m.group(2), event.group.id))
         return
 
 
@@ -805,7 +809,7 @@ if __name__ == '__main__':
             if qhsettings['qhsl'] and event.group.id not in qhsettings['disslgroup']:
                 if m.group(2):
                     if m.group(2) in ['限时', '限定', 'up', 'UP']:
-                        result = drawcards(userid=event.sender.id, up=True)
+                        result = majsoul.drawcards(userid=event.sender.id, up=True)
                         if result['error']:
                             return await bot.send(event,
                                                   MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
@@ -819,7 +823,7 @@ if __name__ == '__main__':
                         #     Plain(result['resultsmsg'])
                         # ]))
                     elif m.group(2) in ['常驻', '普通', 'common', 'normal']:
-                        result = drawcards(userid=event.sender.id, up=False)
+                        result = majsoul.drawcards(userid=event.sender.id, up=False)
                         if result['error']:
                             return await bot.send(event,
                                                   MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
@@ -833,7 +837,7 @@ if __name__ == '__main__':
                         #     Plain(result['resultsmsg'])
                         # ]))
                     else:
-                        result = drawcards(userid=event.sender.id, up=False)
+                        result = majsoul.drawcards(userid=event.sender.id, up=False)
                         if result['error']:
                             return await bot.send(event,
                                                   MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
@@ -850,7 +854,7 @@ if __name__ == '__main__':
                         #     Plain(result['resultsmsg'])
                         # ]))
                 else:
-                    result = drawcards(userid=event.sender.id, up=False)
+                    result = majsoul.drawcards(userid=event.sender.id, up=False)
                     if result['error']:
                         return await bot.send(event, MessageChain([At(event.sender.id), Plain(result['resultsmsg'])]))
                     mergeimgs(
@@ -873,7 +877,7 @@ if __name__ == '__main__':
         if m:
             if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'thpt')):
                 return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
-            await bot.send(event, getthpt(m.group(2)))
+            await bot.send(event, tenhou.getthpt(m.group(2)))
 
 
     @bot.on(GroupMessage)
@@ -882,7 +886,7 @@ if __name__ == '__main__':
         m = re.match(fr"^{commandpre}{commands_map['tenhou']['addwatch']}", msg.strip())
         if m:
             if is_havingadmin(event):
-                await bot.send(event, addthwatch(m.group(2), event.group.id))
+                await bot.send(event, tenhou.addthwatch(m.group(2), event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
@@ -894,9 +898,10 @@ if __name__ == '__main__':
         if m:
             if is_havingadmin(event):
                 await bot.send(event,
-                               removethwatch(playername=m.group(2), groupid=event.group.id))
+                               tenhou.removethwatch(playername=m.group(2), groupid=event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+
 
     @bot.on(GroupMessage)
     async def cleartenhouwatcher(event: GroupMessage):
@@ -904,9 +909,10 @@ if __name__ == '__main__':
         m = re.match(fr"^{commandpre}{commands_map['tenhou']['clearwatch']}", msg.strip())
         if m:
             if is_havingadmin(event):
-                await bot.send(event,clearthwatch(groupid=event.group.id))
+                await bot.send(event, tenhou.clearthwatch(groupid=event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+
 
     @bot.on(GroupMessage)
     async def gettenhouwatcher(event: GroupMessage):
@@ -914,7 +920,7 @@ if __name__ == '__main__':
         # 匹配指令
         m = re.match(fr"^{commandpre}{commands_map['tenhou']['getwatch']}", msg.strip())
         if m:
-            await bot.send(event, getthwatch(event.group.id))
+            await bot.send(event, tenhou.getthwatch(event.group.id))
 
 
     '''通用功能'''
@@ -1311,18 +1317,21 @@ if __name__ == '__main__':
         scheduler.shutdown(True)  # 结束定时器
 
 
-    # 雀魂对局记录轮询器
+    # 定时任务
+    # 设定为每分钟执行一次
 
     @scheduler.scheduled_job(CronTrigger(hour='*', minute=f'*'))
-    async def paiputimer():
+    async def allscheduledtask():
+        # 时分秒
         minute_now = datetime.datetime.now().minute
         hour_now = datetime.datetime.now().hour
         second_now = datetime.datetime.now().second
         if minute_now == 0:
             if hour_now == 0:
-                global rootLogger, qqlogger
-                rootLogger = create_logger(config['loglevel'])
-                qqlogger = getQQlogger()
+                cleaner.do_clean() # 每天0点清理所有pil生成的图片
+                # global rootLogger, qqlogger
+                # rootLogger = create_logger(config['loglevel'])
+                # qqlogger = getQQlogger()
 
             if 7 < hour_now < 23:
                 for groupid in alarmclockgroup:

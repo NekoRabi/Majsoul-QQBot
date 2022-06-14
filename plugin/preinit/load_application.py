@@ -2,6 +2,7 @@ import yaml
 import os
 import json
 from utils.text_to_img import text_to_image
+from utils.cfg_loader import loadcfg_from_file
 
 config = {}
 replydata = {}
@@ -72,20 +73,24 @@ def load_config() -> dict:
 
 def load_replydata() -> dict:
     if os.path.exists(r"./data/reply/commonreply.json"):
-        with open(r"./data/reply/commonreply.json", 'r', encoding="utf-8") as commonreply:
-            replydata['common'] = json.load(commonreply)
+        # with open(r"./data/reply/commonreply.json", 'r', encoding="utf-8") as commonreply:
+        #     replydata['common'] = json.load(commonreply)
+        replydata['common'] =  loadcfg_from_file(r"./data/reply/commonreply.json",filetype='json')
+
     else:
         print("回复文本不存在")
         replydata['common'] = {"你好": ["你好"]}
 
     if os.path.exists(r"./data/reply/hyperreply.json"):
-        with open(r"./data/reply/hyperreply.json", 'r', encoding="utf-8") as r18reply:
-            replydata['r18'] = json.load(r18reply)
+        replydata['r18'] = loadcfg_from_file(r"./data/reply/hyperreply.json",filetype='json')
+        # with open(r"./data/reply/hyperreply.json", 'r', encoding="utf-8") as r18reply:
+        #     replydata['r18'] = json.load(r18reply)
     else:
         print("r18回复文本不存在")
         replydata['r18'] = {"你好": ["爱你"]}
 
     if os.path.exists(r"./data/reply/black_user_reply.yml"):
+        replydata['blackuser'] = loadcfg_from_file(r"./data/reply/black_user_reply.yml")
         with open(r"./data/reply/black_user_reply.yml", encoding="utf-8") as blackreply:
             replydata['blackuser'] = yaml.safe_load(blackreply)
     else:
@@ -93,15 +98,17 @@ def load_replydata() -> dict:
         replydata['blackuser'] = {"你好": ["不好"]}
 
     if os.path.exists(r"./data/reply/nudgedata.yml"):
-        with open(r'./data/reply/nudgedata.yml', encoding="utf-8") as nudegfile:
-            replydata['nudgedata'] = yaml.safe_load(nudegfile)
+        replydata['nudgedata'] = loadcfg_from_file(r'./data/reply/nudgedata.yml')
+        # with open(r'./data/reply/nudgedata.yml', encoding="utf-8") as nudegfile:
+        #     replydata['nudgedata'] = yaml.safe_load(nudegfile)
     else:
         print("摸头文本不存在")
         replydata['nudgedata'] = ["摸摸"]
 
     if os.path.exists(r"./data/reply/mismatch.yml"):
-        with open(r'./data/reply/mismatch.yml', encoding="utf-8") as mismatch:
-            replydata['mismatch'] = yaml.safe_load(mismatch)
+        replydata['mismatch'] = loadcfg_from_file(r'./data/reply/mismatch.yml')
+        # with open(r'./data/reply/mismatch.yml', encoding="utf-8") as mismatch:
+        #     replydata['mismatch'] = yaml.safe_load(mismatch)
     else:
         print("摸头文本不存在")
         replydata['mismatch'] = dict(admin=["主人有事吗?"], common=['你在叫我吗?'])
@@ -120,9 +127,10 @@ def load_replydata() -> dict:
 def load_commands() ->dict:
 
     try:
-        with open(r'./config/command.yml', encoding='utf-8') as f:
-            all_commands = yaml.safe_load(f)
-            return all_commands
+        # with open(r'./config/command.yml', encoding='utf-8') as f:
+        #     all_commands = yaml.safe_load(f)
+        all_commands =loadcfg_from_file(r'./config/command.yml')
+        return all_commands
     except Exception as e:
         print(f"发生未知错误{e}")
 

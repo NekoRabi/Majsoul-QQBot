@@ -1,6 +1,7 @@
-from plugin.MajSoulInfo.majsoulinfo import *
+from plugin.MajSoulInfo.majsoulinfo import majsoulobj as majsoul
 from plugin.MajSoulInfo.mergeimgs import *
 import os
+import sqlite3
 
 if not os.path.exists("./database/MajSoulInfo"):
     os.mkdir("./database/MajSoulInfo")

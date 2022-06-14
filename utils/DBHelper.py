@@ -44,20 +44,31 @@ import sqlite3
 
 class DBHelper:
 
-    def __init__(self, dbpath: str):
-        if dbpath.strip() == "":
-            return
-        self.cx = sqlite3.connect(f'./database/{dbpath}')
-        self.cursor = self.cx.cursor()
+    def __init__(self):
+        self.cx = None
+        self.cursor = None
 
     def __del__(self):
         self.closeconnection()
         super().__del__()
 
+    def testconnect(self):
+        if self.cx or self.cursor:
+            return False, "请先建立数据库链接"
+        else:
+            return True, "Connected!"
+
+    def openconnection(self, dbpath: str):
+        if dbpath.strip() == "":
+            return
+        self.cx = sqlite3.connect(f'./database/{dbpath}')
+        self.cursor = self.cx.cursor()
+
     def createtable(self, tablename: str, col_param: dict, fk: dict = None):
+        if not self.testconnect()[0]:
+            return self.testconnect()[1]
         if tablename.strip():
-            raise ""
-            return False
+            return False, "请输入表名"
         elif len(col_param) == 0:
             return False
         sql = f'''create table if not exists {tablename}('''
@@ -89,9 +100,11 @@ class DBHelper:
 
         cx = self.cx
         cursor = self.cursor
-        cursor.execute(sql)
-        cx.commit()
-
+        try:
+            cursor.execute(sql)
+            cx.commit()
+        except Exception as e:
+            return False, str(e)
         return True
 
     def selecttable(self, tablename: str, columns: list = None, selection: dict = None, orderby: list = None,
@@ -99,7 +112,7 @@ class DBHelper:
                     groupby: list = None):
         if tablename.strip() == '':
             print(f'请指定要查询的表名')
-            return
+            return False, '请指定要查询的表名'
         sql = 'select '
         if columns:
             for column in columns:
@@ -124,18 +137,21 @@ class DBHelper:
             else:
                 sql += ' desc'
         cursor = self.cursor
-        cursor.execute(sql)
-        fetchresult = cursor.fetchall()
-        result = []
-        if not columns:
-            return fetchresult
-        for fetchone in fetchresult:
-            one_dict = {}
-            for i in range(len(columns)):
-                one_dict[columns[i]] = fetchone[i]
-            result.append(one_dict)
+        try:
+            cursor.execute(sql)
+            fetchresult = cursor.fetchall()
+            result = []
+            if not columns:
+                return fetchresult
+            for fetchone in fetchresult:
+                one_dict = {}
+                for i in range(len(columns)):
+                    one_dict[columns[i]] = fetchone[i]
+                result.append(one_dict)
+        except Exception as e:
+            return False, str(e)
 
-        return result
+        return True, result
 
     def closeconnection(self):
         if self.cursor:
@@ -152,3 +168,6 @@ def sql_logic(sql: str, condition: str, pre_connect: str = None, index: int = 0)
     else:
         sql += f'{pre_connect.strip()} {condition.strip()} '
     return
+
+
+dbhelper = DBHelper()
