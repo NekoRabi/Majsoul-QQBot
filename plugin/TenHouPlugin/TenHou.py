@@ -213,19 +213,17 @@ async def asyautoget_th_matching() -> list:
     msglist = forwardmessage(eligible_Matches)
     return msglist
 
+
 class tenhou:
 
     def __init__(self):
         self.template = bordercast_temple
 
     def asygetTH(self):
-        return finish_all_asytasks([asyautoget_th_match(), asyautoget_th_matching()], mergelist=True)
+        return finish_all_asytasks([asyautoget_th_matching(), asyautoget_th_match()], mergelist=True)
 
-
-
-
-# 添加关注
-    def addthwatch(self,playername: str, groupid: int):
+    # 添加关注
+    def addthwatch(self, playername: str, groupid: int):
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(f'select * from QQgroup where groupid = {groupid}')
@@ -289,8 +287,7 @@ class tenhou:
         cx.close()
         return "添加成功"
 
-
-    def removethwatch(self,playername: str, groupid: int):
+    def removethwatch(self, playername: str, groupid: int):
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -315,18 +312,19 @@ class tenhou:
             print("未关注该用户")
             return ("删除成功")
 
-    def clearthwatch(self,groupid: int) :
+    def clearthwatch(self, groupid: int):
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         print(f'开始执行清除群聊{groupid}的天凤关注')
-        cursor.execute(f"update watchedplayer set watchedgroupcount = watchedgroupcount -1 where watchedgroupcount > 0 and playername in (select playername from group2player where groupid = {groupid} and iswatching = 1)")
+        cursor.execute(
+            f"update watchedplayer set watchedgroupcount = watchedgroupcount -1 where watchedgroupcount > 0 and playername in (select playername from group2player where groupid = {groupid} and iswatching = 1)")
         cursor.execute(f'update group2player set iswatching = 0 where groupid = {groupid}')
         cx.commit()
         cursor.close()
         cx.close()
         return "清除成功"
 
-    def getthwatch(self,groupid: int) -> str:
+    def getthwatch(self, groupid: int) -> str:
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
 
@@ -340,7 +338,7 @@ class tenhou:
         cx.close()
         return msg
 
-    def getthpt(self,playername: str) -> str:
+    def getthpt(self, playername: str) -> str:
         ptmsg = ptcalculation(playername)
         return ptmsg
 
@@ -404,7 +402,6 @@ def get_gaming_thplayers() -> list:
     return gamingplayer
 
 
-
 # 转发消息，封装为 向 groupid 群聊 发送 msg 的格式
 #  {playername,msg} -> {groupids,msg,playername}
 def forwardmessage(msglist: list) -> list:
@@ -424,5 +421,6 @@ def forwardmessage(msglist: list) -> list:
     cursor.close()
     cx.close()
     return messageChainList
+
 
 tenhouobj = tenhou()
