@@ -774,7 +774,7 @@ class majsoul:
         return dict(msg=prtmsg, error=False)
 
 
-def getinfo(username: str, selecttype: str = "4", selectindex: int = 0):
+def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) ->dict:
     muti3 = False
     muti4 = False
     headers = {
@@ -792,24 +792,28 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0):
             headers=headers, timeout=10)
         if xhr3.status_code == 503:
             return dict(error=True, offline=True)
-        pl3 = eval(xhr3.text)
+        pl3 = json.loads(xhr3.text)
 
         xhr4 = s4.get(
             f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
             headers=headers, timeout=10)
-        pl4 = eval(xhr4.text)
+        pl4 = json.loads(xhr4.text)
         if len(pl3) > 0:
             if len(pl4) > 1:
                 muti3 = True
             pl3 = pl3[0]
+        else:
+            pl3 = None
         if len(pl4) > 0:
             if len(pl4) > 1:
                 muti4 = True
             pl4 = pl4[0]
-        if type(pl3) == dict:
+        else:
+            pl4 = None
+        if pl3:
             playerid = pl3['id']
             playername = pl3['nickname']
-        elif type(pl4) == dict:
+        elif pl4:
             playerid = pl4['id']
             playername = pl4['nickname']
         else:

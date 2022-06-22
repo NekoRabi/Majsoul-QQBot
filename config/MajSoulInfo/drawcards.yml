@@ -251,7 +251,22 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直-恋之箭矢.jpg
-    length: 50
+    - index: 50
+      name: 立直棒-陨石法杖
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-陨石法杖.jpg
+    - index: 51
+      name: 立直-雷电环锁
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-雷电环锁.jpg
+    - index: 52
+      name: 和牌-天罚
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-天罚.jpg
+    length: 53
   gift:
     item:
     - index: 0
@@ -522,16 +537,16 @@ lottery:
       rare: 4
       type: person
       url: ./Images/person/白银圭.png
-    length: 29
+    - index: 29
+      name: 柚
+      rare: 4
+      type: person
+      url: ./Images/person/柚.png
+    length: 30
 up:
   decoration:
-  - 桌布-恋之见证
-  - 立直-恋之箭矢
-  - 牌背-恋之背影
-  - 和牌-恋之降临
-  - 立直棒-恋之反省
+  - 立直棒-陨石法杖
+  - 和牌-天罚
+  - 立直-雷电环锁
   person:
-  - 白银圭
-  - 白银御行
-  - 早坂爱
-  - 四宫辉夜
+  - 柚
