@@ -750,7 +750,12 @@ if __name__ == '__main__':
                 if report['error']:
                     await bot.send(event, report['msg'])
                 else:
-                    await bot.send(event, MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
+                    try:
+                        res_id = await bot.send(event, MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
+                        # print(res_id)
+                    except Exception as e:
+                        print(e)
+                        await bot.send_friend_message(master,getreply(text=f"消息发送出现问题了,快看看后台.群聊id:{event.group.id}"))
                     # await bot.send(event,getreply(imgbase64=report['imgbase64']))
         return
 
@@ -867,6 +872,37 @@ if __name__ == '__main__':
                 return await bot.send(event, getreply(text="此群已禁用模拟抽卡"))
         return
 
+    @bot.on(GroupMessage)
+    async def clearmajsoulwatcher(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['clearwatch']}", msg.strip())
+        if m:
+            if is_havingadmin(event):
+                await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
+            else:
+                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+
+# 添加昵称
+    @bot.on(GroupMessage)
+    async def addnickname(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagon']}", msg.strip())
+        if m:
+            if is_havingadmin(event):
+                await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
+            else:
+                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+
+# 删除昵称
+    @bot.on(GroupMessage)
+    async def delnickname(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagon']}", msg.strip())
+        if m:
+            if is_havingadmin(event):
+                await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
+            else:
+                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
     # 天凤相关
 

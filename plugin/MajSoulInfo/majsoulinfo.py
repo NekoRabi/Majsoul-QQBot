@@ -63,21 +63,11 @@ aiotimeout = aiohttp.ClientTimeout(total=10)
 serverErrorHTML = '<html><body><h1>503 Service Unavailable</h1>'
 serverErrorCode = 503  # 牌谱屋炸了
 
+
 class majsoul:
 
     def __init__(self):
         self.template = loadcfg_from_file(r"./config/MajSoulInfo/config.yml")
-
-    async def asysearchqh(self, url, type="3"):
-        try:
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
-                async with session.get(url) as response:
-                    text = await response.text()
-                    return dict(msg=json.loads(text), error=False)
-        except asyncio.exceptions.TimeoutError as e:
-            print(f"查询超时,{e}")
-            return dict(msg="查询超时，请再试一次", error=True)
 
     # qhpt
     def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = None):
@@ -459,7 +449,6 @@ class majsoul:
         playerid = playerid[0][0]
         cursor.execute(f'select * from QQgroup where groupid = {groupid}')
         groups = cursor.fetchall()
-        newplayer = False
         if len(groups) > 0:
             print("该群已注册进雀魂观战数据库")
         else:
@@ -470,21 +459,9 @@ class majsoul:
             f'select * from watchedplayer where playerid = {playerid}')
         watchedplayers = cursor.fetchall()
         if len(watchedplayers) == 0:
-            #     if watchedplayers[0][1] != 1:
-            #         cursor.execute(
-            #             f'update watchedplayer set iswatching = 1 where playername = "{playername}"')
-            #         cx.commit()
-            #         print("已更新雀魂关注")
-            #     else:
-            #         print("该用户已添加进关注列表")
-            # else:
-            newplayer = True
             cursor.execute(
                 f'insert into watchedplayer(playerid,playername) values({playerid},"{playername}")')
             cx.commit()
-            cursor.execute(
-                f'select * from watchedplayer where playerid = {playerid}')
-            watchedplayers = cursor.fetchall()
             print(f"已将{playername}添加到雀魂关注数据库")
         cursor.execute(
             f'select * from group2player where groupid = {groupid} and playerid = "{playerid}"')
@@ -683,7 +660,7 @@ class majsoul:
             return "删除成功"
         else:
             print("未关注该用户")
-            return ("删除成功")
+            return "删除成功"
 
     def getallwatcher(self, groupid: int) -> str:
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
@@ -773,8 +750,33 @@ class majsoul:
         text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
         return dict(msg=prtmsg, error=False)
 
+    def tagonplayer(self,playername,tagname,userid,groupid):
+        cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+        cursor = cx.cursor()
+        cursor.execute(
+            f"select id from group2player where groupid = {groupid} and playername = '{playername}'")
+        gpid = cursor.fetchall()
+        if len(gpid) > 0:
+            gpid = gpid[0][0]
+            cursor.execute(
+                f"select * from tagnames where gpid = {gpid}")
+            gptag = cursor.fetchall()
+            if len(gptag) > 0:
+                cursor.execute(f"update tagnames set tagname = '{tagname}' and userid = {userid} where gpid = {gpid} ")
+            else:
+                cursor.execute(f"insert into tagnames(tagname,userid,gpid) values('{tagname}',{userid},{gpid})")
+            cx.commit()
+            cursor.close()
+            cx.close()
+            return f"操作成功,{userid}已为玩家{playername}添加标记{tagname}"
+        else:
+            cx.commit()
+            cursor.close()
+            cx.close()
+            return "添加失败，请先对该玩家添加关注"
 
-def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) ->dict:
+
+def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
     muti3 = False
     muti4 = False
     headers = {
@@ -1100,6 +1102,18 @@ def msganalysis(infos: list) -> list:
             # print(f"存在uuid={item['uuid']}的记录")
             pass
     return forwardmessage(content)
+
+
+async def asysearchqh(url, type="3"):
+    try:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
+                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with session.get(url) as response:
+                text = await response.text()
+                return dict(msg=json.loads(text), error=False)
+    except asyncio.exceptions.TimeoutError as e:
+        print(f"查询超时,{e}")
+        return dict(msg="查询超时，请再试一次", error=True)
 
 
 majsoulobj = majsoul()

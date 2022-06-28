@@ -56,6 +56,17 @@ cursor.execute("create table if not exists playerdrawcard("
                "itemlevel int not null,"
                "itemname TEXT not null"
                ")")
+
+cursor.execute("create table if not exists tagnames("
+               "id integer primary key,"
+               "tagname TEXT not null,"
+               "userid integer not null,"
+               "gpid integer not null,"
+               "constraint gp_nickname "
+               "foreign key (gpid) "
+               "references group2player(id)"
+               ")")
+
 cursor.execute("create view if not exists groupwatches as "
                "select groupid,"
                "group_concat(playername) as watchedplayers,"
