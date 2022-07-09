@@ -612,26 +612,6 @@ class majsoul:
     def removewatch(self, playername: str, groupid: int) -> str:
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
-        # cursor.execute(
-        #     f"select * from group2player where playername = '{playername}'")
-        # player = cursor.fetchall()
-        # if len(player) == 0:
-        #     return '本群未关注该玩家'
-        # if player[0][4] == 1:
-        #     cursor.execute(
-        #         f"update group2player set iswatching = 0 where playername = '{playername}' and groupid = {groupid}")
-        # cx.commit()
-        # cursor.execute(
-        #     f"select * from group2player where playername = '{playername}' and iswatching = 1")
-        # groupplayers = cursor.fetchall()
-        # if len(groupplayers) == 0:
-        #     cursor.execute(
-        #         f"update watchedplayer set watchedgroupcount = 0 where playername = '{playername}'")
-        #     cx.commit()
-        # cursor.close()
-        # cx.close()
-        # return "删除成功"
-
         cursor.execute(
             f"select playerid from qhplayer where playername = '{playername}'")
         playerid = cursor.fetchall()
@@ -674,6 +654,18 @@ class majsoul:
         cursor.close()
         cx.close()
         return msg
+
+    def clearallwatch(self, groupid: int):
+        cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+        cursor = cx.cursor()
+        print(f'开始执行清除群聊{groupid}的雀魂关注')
+        cursor.execute(
+            f"update watchedplayer set watchedgroupcount = watchedgroupcount -1 where watchedgroupcount > 0 and playername in (select playername from group2player where groupid = {groupid} and iswatching = 1)")
+        cursor.execute(f'update group2player set iswatching = 0 where groupid = {groupid}')
+        cx.commit()
+        cursor.close()
+        cx.close()
+        return "清除成功"
 
     def asygetqhpaipu(self):
         nowtime = time.time()
@@ -813,9 +805,11 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
         else:
             pl4 = None
         if pl3:
+        # if pl3 and pl3['nickname'] == username:
             playerid = pl3['id']
             playername = pl3['nickname']
         elif pl4:
+        # elif pl4 and pl4['nickname'] == username :
             playerid = pl4['id']
             playername = pl4['nickname']
         else:

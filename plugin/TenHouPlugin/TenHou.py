@@ -73,7 +73,7 @@ async def asyautoget_th_match() -> list:
 
     msglist = []
     for usetime in timelist:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False), timeout=timeout,
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=timeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
             async with session.get(url=f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
                                    allow_redirects=True) as response:

@@ -1,5 +1,5 @@
 from plugin.LeisurePlugin.leisure import *
-from plugin.LeisurePlugin.tarot import TarotCards, TarotCard
+from plugin.LeisurePlugin.tarot import cards as tarotcards
 import os
 
 if not os.path.exists("./database/LeisurePlugin"):
@@ -18,7 +18,6 @@ cursor.execute('create table IF NOT EXISTS userinfo('
                'keepsigndays integer not null default 1'
                ')')
 
-cursor.execute('drop table if exists tarot')
 
 cursor.execute('create table IF NOT EXISTS tarot ('
                'id integer primary key,'
@@ -33,5 +32,16 @@ cursor.execute("create table if not exists playerdrawcard("
                "cardid integer not null,"
                "cardposition integer not null"
                ")")
+
+cursor.execute("create table if not exists drawtarots("
+               "id integer primary key,"
+               "userid integer not null,"
+               "drawtime varchar(50) not null,"
+               "cardname text not null,"
+               "cardposition text not null"
+               ")")
+
+cursor.execute("create view if not exists tarotcollections as select userid,cardname,count(cardname) as drawcounts from drawtarots group by userid")
+
 cx.commit()
 cx.close()

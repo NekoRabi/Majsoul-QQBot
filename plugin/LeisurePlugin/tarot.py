@@ -1,5 +1,7 @@
 import random
 import base64
+import sqlite3
+import time
 from io import BytesIO
 
 import yaml
@@ -15,7 +17,7 @@ def addfont(img: Image, text: str, position: tuple = (0, 0), textcolor=(0, 0, 0)
     temptext0 = ''
     temptext1 = ''
     for item in textlist:
-        temptext0 += item.strip()+';'
+        temptext0 += item.strip() + ';'
         if font.getsize(temptext0)[0] > img.width:
             linetext.append(temptext1.strip())
             temptext0 = item
@@ -34,7 +36,7 @@ def calculate_allfont_height(text, fontsize, maxwidth=948):
     temptext0 = ''
     temptext1 = ''
     for item in textlist:
-        temptext0 += item.strip()+';'
+        temptext0 += item.strip() + ';'
         if font.getsize(temptext0)[0] > maxwidth:
             linetext.append(temptext1.strip())
             temptext0 = item
@@ -47,6 +49,7 @@ def calculate_allfont_height(text, fontsize, maxwidth=948):
 class TarotCard:
 
     def __init__(self, config):
+        self.imgcontent = None
         self.position = config['position']
         self.imageName = config['imageName']
         if self.position == 'positive':
@@ -60,7 +63,7 @@ class TarotCard:
     def buildcard(self, path=None):
         if not path:
             path = f'./images/tarot/{self.imageName}'
-        source_card = Image.open(f'./data/Tarot/Images/{self.imageName}').convert("RGBA")
+        source_card = Image.open(path).convert("RGBA")
         width, height = source_card.size
         if self.position == 'negative':
             source_card = source_card.rotate(180)
@@ -87,16 +90,63 @@ class TarotCards:
             tarotdata = yaml.safe_load(cfg)
         self.imgdata = tarotdata['tarot']
 
-    def drawcards(self, count=1):
+    def drawcards(self, count=1, userid=None):
         cardslist = []
         for i in range(count):
             cardinfo = random.choice(self.imgdata)
-            # percent = random.random()
-            # print(percent)
             if random.random() < 0.5:
                 position = 'negative'
             else:
                 position = 'positive'
             cardinfo['position'] = position
+            if userid:
+                self.dboperation(
+                    f'''insert into drawtarots(userid,drawtime,cardname,cardposition) values({userid},"{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}","{cardinfo['name']}","{cardinfo['position']}")''')
             cardslist.append(TarotCard(cardinfo))
         return cardslist
+
+    def getdrawcardsinfo(self, userid):
+        result = self.dboperation(f'''select * from tarotcollections where userid = {userid}''')
+        return result
+
+    @staticmethod
+    def dboperation(sql, update=False, colindex=None, sep=" ", optsource=False):
+        try:
+            opt = None
+            cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
+            cursor = cx.cursor()
+            cursor.execute(sql)
+            if update:
+                cx.commit()
+                opt = "操作成功"
+            else:
+                fetchall = cursor.fetchall()
+                if optsource:
+                    opt = fetchall
+                else:
+                    opt = ""
+                    if colindex is None:
+                        colindex = -1
+                    elif colindex is int:
+                        colindex = [colindex]
+                    elif colindex is list:
+                        pass
+                    else:
+                        colindex = -1
+                        print(f'colindex输入有误,自动变为获取所有')
+                    for item in fetchall:
+                        if colindex == -1:
+                            for i in item:
+                                opt += i + sep
+                        else:
+                            for index in colindex:
+                                opt += item[index] + sep
+            cursor.close()
+            cx.close()
+            return opt
+        except Exception as e:
+            print(e)
+            return f'{e}'
+
+
+cards = TarotCards()

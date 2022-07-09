@@ -41,7 +41,6 @@ if __name__ == '__main__':
     nudgeconfig = config['nudgeconfig']
     stfinder = SetuFinder(botname)
     vc = None
-    tc = TarotCards()
 
     if settings['voice']:
         vc = VoiceCreater(setting=config['voicesetting'])
@@ -542,7 +541,7 @@ if __name__ == '__main__':
         if m:
             success, signmsg = signup(event.sender.id)
             if success:
-                card = tc.drawcards()[0]
+                card = tarotcards.drawcards()[0]
                 return await bot.send(event, getreply(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
             else:
                 return await bot.send(event, getreply(at=event.sender.id, text=signmsg, rndimg=True))
@@ -751,11 +750,12 @@ if __name__ == '__main__':
                     await bot.send(event, report['msg'])
                 else:
                     try:
-                        res_id = await bot.send(event, MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
+                        res_id = await bot.send(event,
+                                                MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
                         # print(res_id)
                     except Exception as e:
                         print(e)
-                        await bot.send_friend_message(master,getreply(text=f"消息发送出现问题了,快看看后台.群聊id:{event.group.id}"))
+                        await bot.send_friend_message(master, getreply(text=f"消息发送出现问题了,快看看后台.群聊id:{event.group.id}"))
                     # await bot.send(event,getreply(imgbase64=report['imgbase64']))
         return
 
@@ -872,37 +872,42 @@ if __name__ == '__main__':
                 return await bot.send(event, getreply(text="此群已禁用模拟抽卡"))
         return
 
+
     @bot.on(GroupMessage)
     async def clearmajsoulwatcher(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['majsoul']['clearwatch']}", msg.strip())
         if m:
             if is_havingadmin(event):
-                await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
+                await bot.send(event, majsoul.clearallwatch(groupid=event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
-# 添加昵称
+
+    # 添加昵称
     @bot.on(GroupMessage)
     async def addnickname(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagon']}", msg.strip())
         if m:
             if is_havingadmin(event):
-                await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
+                await bot.send(event,
+                               majsoul.tagonplayer(playername=m.group(1), tagname=m.group(2), userid=event.sender.id,
+                                                   groupid=event.group.id))
             else:
                 await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
-# 删除昵称
-    @bot.on(GroupMessage)
-    async def delnickname(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagon']}", msg.strip())
-        if m:
-            if is_havingadmin(event):
-                await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
-            else:
-                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+
+    # 删除昵称
+    # @bot.on(GroupMessage)
+    # async def delnickname(event: GroupMessage):
+    #     msg = "".join(map(str, event.message_chain[Plain]))
+    #     m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagoff']}", msg.strip())
+    #     if m:
+    #         if is_havingadmin(event):
+    #             await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
+    #         else:
+    #             await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
 
     # 天凤相关
 
@@ -1256,7 +1261,7 @@ if __name__ == '__main__':
             if m.group(1):
                 num = int(m.group(1))
                 if 0 < num < 10:
-                    cards = tc.drawcards(count=num)
+                    cards = tarotcards.drawcards(count=num, userid=event.sender.id)
                     msgC = []
                     for card in cards:
                         fmn = ForwardMessageNode(
@@ -1273,7 +1278,7 @@ if __name__ == '__main__':
                 else:
                     return bot.send(event, getreply(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
             else:
-                card = tc.drawcards()[0]
+                card = tarotcards.drawcards(userid=event.sender.id)[0]
                 return await bot.send(event, Image(base64=card.imgcontent))
 
 
@@ -1364,7 +1369,7 @@ if __name__ == '__main__':
         second_now = datetime.datetime.now().second
         if minute_now == 0:
             if hour_now == 0:
-                cleaner.do_clean() # 每天0点清理所有pil生成的图片
+                cleaner.do_clean()  # 每天0点清理所有pil生成的图片
                 # global rootLogger, qqlogger
                 # rootLogger = create_logger(config['loglevel'])
                 # qqlogger = getQQlogger()
