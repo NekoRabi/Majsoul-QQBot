@@ -18,13 +18,6 @@ cursor.execute('create table IF NOT EXISTS userinfo('
                'keepsigndays integer not null default 1'
                ')')
 
-
-cursor.execute('create table IF NOT EXISTS tarot ('
-               'id integer primary key,'
-               'cardsid integer,'
-               'cardname varchar(40) not null,'
-               'cardexpress TEXT not null)')
-
 cursor.execute("create table if not exists playerdrawcard("
                "id integer primary key,"
                "userid integer not null,"
@@ -40,8 +33,6 @@ cursor.execute("create table if not exists drawtarots("
                "cardname text not null,"
                "cardposition text not null"
                ")")
-
-cursor.execute("create view if not exists tarotcollections as select userid,cardname,count(cardname) as drawcounts from drawtarots group by userid")
 
 cx.commit()
 cx.close()

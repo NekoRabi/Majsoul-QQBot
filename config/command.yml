@@ -21,6 +21,7 @@ sys:
   signin: \s*签到\s*$
   getscore: \s*获取当前积分\s*$
   tarot: \s*(\d)?张?(([tT][Aa][Rr][oO][Tt])|(塔罗牌))
+  getmytarot: \s*我的塔罗牌
 
 setu:
   enable: (open|enable|开启)\s*(涩图|色图|setu)\s*$
@@ -36,6 +37,7 @@ majsoul:
   qhinfo: (qhinfo|雀魂玩家详情)\s*(\S+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$
   qhyb: (qhyb|雀魂月报)\s*(\S+)\s*([34])?\s*([0-9]{4})?[-]?([0-9]{1,2})?\s*$
   qhsl: (qhsl|雀魂十连)\s*(\w+)*\s*$
+  getmyqhsl: (getmyqhsl|我的雀魂十连)\s*$
   getwatch: (qhgetwatch|雀魂获取本群关注)\s*$
   addwatch: (qhadd|雀魂添加关注)\s*(\S+)\s*$
   delwatch: (qhdel|雀魂删除关注)\s*(\S+)\s*$

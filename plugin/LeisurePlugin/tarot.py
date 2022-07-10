@@ -62,14 +62,11 @@ class TarotCard:
 
     def buildcard(self, path=None):
         if not path:
-            path = f'./images/tarot/{self.imageName}'
+            path = f'./data/Tarot/Images/{self.imageName}'
         source_card = Image.open(path).convert("RGBA")
         width, height = source_card.size
         if self.position == 'negative':
             source_card = source_card.rotate(180)
-        # width = width // 2
-        # height = height // 2
-        # source_card = source_card.resize((width, height))
         new_height = calculate_allfont_height(self.effective, 20, width) + calculate_allfont_height(self.name, 20,
                                                                                                     width) + 20
         bgk = Image.new('RGB', (width, height + new_height), (255, 255, 255))
@@ -101,16 +98,18 @@ class TarotCards:
             cardinfo['position'] = position
             if userid:
                 self.dboperation(
-                    f'''insert into drawtarots(userid,drawtime,cardname,cardposition) values({userid},"{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}","{cardinfo['name']}","{cardinfo['position']}")''')
+                    sql=f'''insert into drawtarots(userid,drawtime,cardname,cardposition) values({userid},"{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}","{cardinfo['name']}","{cardinfo['position']}")''',
+                    update=True)
             cardslist.append(TarotCard(cardinfo))
         return cardslist
 
-    def getdrawcardsinfo(self, userid):
-        result = self.dboperation(f'''select * from tarotcollections where userid = {userid}''')
-        return result
+    def getmydrawcardsinfo(self, userid):
+        result = self.dboperation(sql=f'''select count(cardname),cardname as drawcounts from drawtarots where userid = {userid} group by cardname''',
+                                 colsep='张')
+        msg = f"你总共抽了{result}"
+        return msg
 
-    @staticmethod
-    def dboperation(sql, update=False, colindex=None, sep=" ", optsource=False):
+    def dboperation(self, sql, update=False, colindex=None, colsep="",rowsep=",", optsource=False):
         try:
             opt = None
             cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
@@ -137,10 +136,11 @@ class TarotCards:
                     for item in fetchall:
                         if colindex == -1:
                             for i in item:
-                                opt += i + sep
+                                opt += f'{i}{colsep}'
                         else:
                             for index in colindex:
-                                opt += item[index] + sep
+                                opt += f'{item[index]}{colsep}'
+                        opt = opt[:-1] + f'{rowsep}'
             cursor.close()
             cx.close()
             return opt

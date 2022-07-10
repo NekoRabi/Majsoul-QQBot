@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     if master not in admin:
         admin.append(master)
-    print(f"机器人{botname}启动中\tQQ : {bot.qq}\nadapter : {bot.adapter_info}")
+    print(f"机器人{botname}启动中\tQQ : {bot.qq}")
 
 
     async def asyqh_autopaipu():
@@ -541,7 +541,7 @@ if __name__ == '__main__':
         if m:
             success, signmsg = signup(event.sender.id)
             if success:
-                card = tarotcards.drawcards()[0]
+                card = tarotcards.drawcards(userid=event.sender.id)[0]
                 return await bot.send(event, getreply(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
             else:
                 return await bot.send(event, getreply(at=event.sender.id, text=signmsg, rndimg=True))
@@ -871,6 +871,14 @@ if __name__ == '__main__':
             else:
                 return await bot.send(event, getreply(text="此群已禁用模拟抽卡"))
         return
+
+
+    @bot.on(GroupMessage)
+    async def getmyqhdrawcards(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['getmyqhsl']}", msg.strip())
+        if m:
+            return await bot.send(event,majsoul.getmycard(event.sender.id))
 
 
     @bot.on(GroupMessage)
@@ -1280,6 +1288,16 @@ if __name__ == '__main__':
             else:
                 card = tarotcards.drawcards(userid=event.sender.id)[0]
                 return await bot.send(event, Image(base64=card.imgcontent))
+
+
+     # 获取塔罗牌抽卡记录
+    @bot.on(GroupMessage)
+    async def getmytarots(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['sys']['getmytarot']}", msg.strip())
+        if m:
+            msg = tarotcards.getmydrawcardsinfo(event.sender.id)
+            return await bot.send(event, getreply(text=msg))
 
 
     # 戳一戳 出发摸头

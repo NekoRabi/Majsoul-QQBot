@@ -245,39 +245,6 @@ class majsoul:
         # s.mount('http://', HTTPAdapter(max_retries=3))
         # s.mount('https://', HTTPAdapter(max_retries=3))
 
-    #    headers = {'User-Agent': random.choice(user_agent_list), "Connection": "close"}
-    # try:
-    #     if type == '3':
-    #         url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=21,22,23,24,25,26&descending=true"
-    #     else:
-    #         url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={counts}&mode=8,9,11,12,15,16&descending=true"
-    #     xhr = s.get(url=url, headers=headers, timeout=3)
-    #     content = eval(xhr.text)
-    #     if len(content) == 0:
-    #         return "未查询到对局信息"
-    #     for item in content:
-    #         paipuurl = f'https://game.maj-soul.net/1/?paipu={item["uuid"]}'
-    #         startTime = time.strftime(
-    #             '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
-    #         endTime = time.strftime('%Y-%m-%d %H:%M:%S',
-    #                                 time.localtime(item["endTime"]))
-    #         players = item['players']
-    #         paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
-    #         paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-    #         for player in players:
-    #             if player['nickname'].strip() == playername.strip():
-    #                 ptupdate += int(player['gradingScore'])
-    #             paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
-    #         paipuInfo += "\n"
-    #     paipuInfo += f"\n总PT变化 : {ptupdate}"
-    #     return paipuInfo
-    # except requests.exceptions.ConnectionError as e:
-    #     print(f"查询发生了错误:\t{e}\n")
-    #     return "连接失败，请稍后重试 ConnectionError"
-    # except requests.exceptions.ReadTimeout as e:
-    #     print(f'读取超时:\t{e}\n')
-    #     return "读取超时，请稍后重试 ReadTimeOut"
-
     def getpaipu(self, playerid: str) -> dict:
         nowtime = time.time()
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
@@ -368,71 +335,114 @@ class majsoul:
             decoration = lottery['decoration']
             gift = lottery['gift']
             person = lottery['person']
-            for count in range(10):
-                luck = random.random() * 100
-                if count == 9 and drawcounts['2gift'] == 0:
-                    print("出保底喽")
-                    gift_index = random.randint(0, 5) * 3 + 2
-                    gf = gift['item'][gift_index]['name']
-                    gfrare = gift['item'][gift_index]['rare']
-                    drawcounts[str(gfrare) + 'gift'] += 1
-                    results.append(gift['item'][gift_index]['url'])
-                    resultsmsg += gf
-                    resultsmsg += '\n\n已触发保底。'
-                    break
-                if luck < 5:
-                    if up:
-                        if random.random() * 100 < 59:
-                            person_name = random.choice(up_person)
-                            ps = person_name + '\n'
-                            drawcounts['person'] += 1
-                            results.append(f'./Images/person/{person_name}.png')
-                            resultsmsg += ps
-                            continue
 
-                    person_index = random.randint(0, person['length'] - 1)
-                    ps = person['item'][person_index]['name']
-                    drawcounts['person'] += 1
-                    results.append(person['item'][person_index]['url'])
-                    resultsmsg += ps
-                elif luck < 15:
-                    if up:
-                        if random.random() * 100 < 49:
-                            decoration_name = random.choice(up_decoration)
-                            dec = decoration_name + '\n'
-                            drawcounts['decoration'] += 1
-                            results.append(
-                                f'./Images/decoration/{decoration_name}.jpg')
-                            resultsmsg += dec
-                            continue
-                    dec_index = random.randint(0, decoration['length'] - 1)
-                    dec = decoration['item'][dec_index]['name']
-                    drawcounts['decoration'] += 1
-                    results.append(decoration['item'][dec_index]['url'])
-                    resultsmsg += dec
+        for count in range(10):
+            luck = random.random() * 100
+            if count == 9 and drawcounts['2gift'] == 0:
+                print("出保底喽")
+                gift_index = random.randint(0, 5) * 3 + 2
+                gf = gift['item'][gift_index]['name']
+                gfrare = gift['item'][gift_index]['rare']
+                drawcounts[str(gfrare) + 'gift'] += 1
+                results.append(gift['item'][gift_index]['url'])
+                resultsmsg += gf
+                resultsmsg += '\n\n已触发保底。'
+                cursor.execute(
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',{gfrare},'{gf}')''')
+
+                break
+            if luck < 5:
+                if up:
+                    if random.random() * 100 < 59:
+                        person_name = random.choice(up_person)
+                        ps = person_name + '\n'
+                        drawcounts['person'] += 1
+                        cursor.execute(
+                            f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',4,'{ps}')''')
+                        results.append(f'./Images/person/{person_name}.png')
+                        resultsmsg += ps
+                        continue
+
+                person_index = random.randint(0, person['length'] - 1)
+                ps = person['item'][person_index]['name']
+                drawcounts['person'] += 1
+                psrare = person['item'][person_index]['rare']
+                results.append(person['item'][person_index]['url'])
+                resultsmsg += ps
+                cursor.execute(
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',4,'{ps}')''')
+            elif luck < 15:
+                if up:
+                    if random.random() * 100 < 49:
+                        decoration_name = random.choice(up_decoration)
+                        dec = decoration_name + '\n'
+                        drawcounts['decoration'] += 1
+                        cursor.execute(
+                            f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',3,'{dec}')''')
+                        results.append(
+                            f'./Images/decoration/{decoration_name}.jpg')
+                        resultsmsg += dec
+                        continue
+                dec_index = random.randint(0, decoration['length'] - 1)
+                dec = decoration['item'][dec_index]['name']
+                cursor.execute(
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',3,'{dec}')''')
+                drawcounts['decoration'] += 1
+                results.append(decoration['item'][dec_index]['url'])
+                resultsmsg += dec
+            else:
+                gift_index = random.randint(0, 7) * 3
+                gifttype = random.randint(0, 10)
+                if gifttype < 3:
+                    gift_index += 2
+                # elif gifttype < 9:
                 else:
-                    gift_index = random.randint(0, 7) * 3
-                    gifttype = random.randint(0, 10)
-                    if gifttype < 3:
-                        gift_index += 2
-                    # elif gifttype < 9:
+                    gift_index += 1
+                if count == 9 and drawcounts['2gift'] == 0:
+                    if gift['item'][gift_index]['rare'] == 2:
+                        break
                     else:
-                        gift_index += 1
-                    if count == 9 and drawcounts['2gift'] == 0:
-                        if gift['item'][gift_index]['rare'] == 2:
-                            break
-                        else:
-                            print("出保底喽")
-                            gift_index = random.randint(0, 5) * 3 + 2
-                            resultsmsg += '\n\n已触发保底。'
-                    gf = gift['item'][gift_index]['name']
-                    gfrare = gift['item'][gift_index]['rare']
-                    drawcounts[str(gfrare) + 'gift'] += 1
-                    results.append(gift['item'][gift_index]['url'])
-                    resultsmsg += gf
-                if not count == 9:
-                    resultsmsg += '\n'
+                        print("出保底喽")
+                        gift_index = random.randint(0, 5) * 3 + 2
+                        resultsmsg += '\n\n已触发保底。'
+                gf = gift['item'][gift_index]['name']
+                gfrare = gift['item'][gift_index]['rare']
+                drawcounts[str(gfrare) + 'gift'] += 1
+                results.append(gift['item'][gift_index]['url'])
+                cursor.execute(
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',{gfrare},'{gf}')''')
+                resultsmsg += gf
+            if not count == 9:
+                resultsmsg += '\n'
+        cx.commit()
+        cursor.close()
+        cx.close()
         return dict(drawcounts=drawcounts, results=results, resultsmsg=resultsmsg, baodi=baodi, error=False)
+
+    def getmycard(self, userid):
+        cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+        cursor = cx.cursor()
+        cursor.execute(
+            f"select itemlevel,count(itemlevel) from playerdrawcard where userid = {userid} group by itemlevel order by itemlevel")
+        result = cursor.fetchall()
+        msg = "你总共抽到了这些\:\n"
+        if len(result) > 0:
+            for row in result:
+                if row[0] == 0:
+                    msg += f"{row[1]}个绿礼物,"
+                elif row[0] == 1:
+                    msg += f"{row[1]}个蓝礼物,"
+                elif row[0] == 2:
+                    msg += f"{row[1]}个紫礼物,"
+                elif row[0] == 3:
+                    msg += f"{row[1]}个饰品,"
+                elif row[0] == 4:
+                    msg += f"{row[1]}个人物,"
+        else:
+            msg = "你还没有抽过卡哦~"
+        cursor.close()
+        cx.close()
+        return msg
 
     def addwatch(self, playername: str, groupid: int):
         print(f'groupid= {groupid},playername= {playername}')
@@ -742,7 +752,7 @@ class majsoul:
         text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
         return dict(msg=prtmsg, error=False)
 
-    def tagonplayer(self,playername,tagname,userid,groupid):
+    def tagonplayer(self, playername, tagname, userid, groupid):
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -793,7 +803,7 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
             headers=headers, timeout=10)
         pl4 = json.loads(xhr4.text)
         if len(pl3) > 0:
-            if len(pl4) > 1:
+            if len(pl3) > 1:
                 muti3 = True
             pl3 = pl3[0]
         else:
@@ -804,17 +814,20 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
             pl4 = pl4[0]
         else:
             pl4 = None
+
+        playerid = None
+        playername = None
         if pl3:
-        # if pl3 and pl3['nickname'] == username:
-            playerid = pl3['id']
-            playername = pl3['nickname']
+            if pl3['nickname'] == username:
+                playerid = pl3['id']
+                playername = pl3['nickname']
         elif pl4:
-        # elif pl4 and pl4['nickname'] == username :
-            playerid = pl4['id']
-            playername = pl4['nickname']
+            if pl4['nickname'] == username :
+                playerid = pl4['id']
+                playername = pl4['nickname']
         else:
-            playerid = None
-            playername = None
+            muti3 = False
+            muti4 = False
         return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
                     offline=False)
     except requests.exceptions.ConnectionError:
@@ -824,6 +837,95 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
         print("查询玩家时读取超时")
         return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
 
+# 异步的qhpt
+
+# async def asygetpt(username: str, selecttype: str = "4", selectindex: int = 0):
+#
+#     try:
+#         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
+#                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
+#             async with session.get(f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20") as response:
+#                 if response.status == 503:
+#                     return dict(error=True, offline=True)
+#                 pl3 = await response.json()
+#         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
+#                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
+#             async with session.get(f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",) as response:
+#                 if response.status == 503:
+#                     return dict(error=True, offline=True)
+#                 pl4 = await response.json()
+#
+#         if len(pl3) > 0:
+#             if len(pl3) > 1:
+#                 muti3 = True
+#             pl3 = pl3[0]
+#         else:
+#             pl3 = None
+#         if len(pl4) > 0:
+#             if len(pl4) > 1:
+#                 muti4 = True
+#             pl4 = pl4[0]
+#         else:
+#             pl4 = None
+#         if pl3:
+#             # if pl3 and pl3['nickname'] == username:
+#             playerid = pl3['id']
+#             playername = pl3['nickname']
+#         elif pl4:
+#             # elif pl4 and pl4['nickname'] == username :
+#             playerid = pl4['id']
+#             playername = pl4['nickname']
+#         else:
+#             playerid = None
+#             playername = None
+#     except asyncio.exceptions.TimeoutError as e:
+#         print(f"qhpt查询超时,{e}")
+#
+#     muti3 = False
+#     muti4 = False
+#     headers = {
+#         'User-Agent': random.choice(user_agent_list), "Connection": "close"}
+#     s3 = requests.Session()
+#     s3.mount('http://', HTTPAdapter(max_retries=3))
+#     s4 = requests.Session()
+#     s4.mount('https://', HTTPAdapter(max_retries=3)
+#
+#     try:
+#         xhr4 = s4.get(
+#             f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
+#             headers=headers, timeout=10)
+#         pl4 = json.loads(xhr4.text)
+#         if len(pl3) > 0:
+#             if len(pl4) > 1:
+#                 muti3 = True
+#             pl3 = pl3[0]
+#         else:
+#             pl3 = None
+#         if len(pl4) > 0:
+#             if len(pl4) > 1:
+#                 muti4 = True
+#             pl4 = pl4[0]
+#         else:
+#             pl4 = None
+#         if pl3:
+#             # if pl3 and pl3['nickname'] == username:
+#             playerid = pl3['id']
+#             playername = pl3['nickname']
+#         elif pl4:
+#             # elif pl4 and pl4['nickname'] == username :
+#             playerid = pl4['id']
+#             playername = pl4['nickname']
+#         else:
+#             playerid = None
+#             playername = None
+#         return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
+#                     offline=False)
+#     except requests.exceptions.ConnectionError:
+#         print("查询玩家信息时连接超时")
+#         return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+#     except requests.exceptions.ReadTimeout:
+#         print("查询玩家时读取超时")
+#         return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
 
 async def paipu_pl3(playeridlist, nowtime):
     contentlist = []
