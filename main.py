@@ -1099,7 +1099,7 @@ if __name__ == '__main__':
 
     @bot.on(GroupMessage)
     async def diyreply(event: GroupMessage):
-        if not settings['silence']:
+        if not settings['silence'] and settings['autoreply']:
             if event.group.id not in silencegroup:
                 msg = "".join(map(str, event.message_chain[Plain]))
                 m = re.match(fr"^{commandpre}{commands_map['reply']['jida']}", msg.strip())
