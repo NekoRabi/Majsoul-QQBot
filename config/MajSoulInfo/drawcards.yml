@@ -266,7 +266,22 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/和牌-天罚.jpg
-    length: 53
+    - index: 53
+      name: 和牌-无间契印
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-无间契印.jpg
+    - index: 54
+      name: 立直-灵魂契约
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-灵魂契约.jpg
+    - index: 55
+      name: 立直棒-虚无传送门
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-虚无传送门.jpg
+    length: 56
   gift:
     item:
     - index: 0
@@ -545,8 +560,9 @@ lottery:
     length: 30
 up:
   decoration:
-  - 立直棒-陨石法杖
-  - 和牌-天罚
-  - 立直-雷电环锁
+  - 和牌-无间契印
+  - 立直棒-虚无传送门
+  - 立直-灵魂契约
   person:
-  - 柚
+  - 森川绫子
+  - 藤本绮罗

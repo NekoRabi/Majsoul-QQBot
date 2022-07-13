@@ -128,6 +128,6 @@ def load_commands() ->dict:
 def create_helpimg():
     help = loadcfg_from_file(r'./data/sys/help.yml')
     grouphelp = help['grouphelp']
-    privatehelp = help['adminhelp']
+    privatehelp = help['privatehelp']
     text_to_image(path='grouphelp.png', text=grouphelp)
     text_to_image(path='adminhelp.png', text=privatehelp)
