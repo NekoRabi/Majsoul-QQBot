@@ -5,7 +5,7 @@ moviepy
 requests
 PyYAML
 APScheduler
-yiri-mirai
+yiri-mirai = 0.2.6.2
 nest_asyncio
 uvicorn
 tencentcloud-sdk-python

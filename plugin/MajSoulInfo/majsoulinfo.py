@@ -616,7 +616,7 @@ class majsoul:
             print(f'\n玩家详情读取超时:\t{e}\n')
             return dict(msg="查询超时,请再试一次", error=True)
         text_to_image(path=f"MajsoulInfo/yb{playername}.png", text=msg)
-        return dict(msg=msg, error=False, )
+        return dict(msg=msg, error=False)
         # return dict(msg=msg, error=False, imgbase64=text_to_image(text=msg, needtobase64=True))
 
     def removewatch(self, playername: str, groupid: int) -> str:
@@ -647,6 +647,7 @@ class majsoul:
             cx.commit()
             cursor.close()
             cx.close()
+            self.tagoffplayer(playername=playername, groupid=groupid)
             return "删除成功"
         else:
             print("未关注该用户")
@@ -675,6 +676,7 @@ class majsoul:
         cx.commit()
         cursor.close()
         cx.close()
+        self.tagoffplayer(groupid=groupid)
         return "清除成功"
 
     def asygetqhpaipu(self):
@@ -753,29 +755,76 @@ class majsoul:
         return dict(msg=prtmsg, error=False)
 
     def tagonplayer(self, playername, tagname, userid, groupid):
+        opertaionMsg = '添加成功'
+        if len(tagname) > 10:
+            return 'Tag太长啦，短一点短一点'
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cursor.execute(
-            f"select id from group2player where groupid = {groupid} and playername = '{playername}'")
+            f"select id from group2player where groupid = {groupid} and playername = '{playername}' and iswatching = 1")
         gpid = cursor.fetchall()
         if len(gpid) > 0:
             gpid = gpid[0][0]
             cursor.execute(
-                f"select * from tagnames where gpid = {gpid}")
+                f"select * from tagnames where gpid = {gpid} and tagname = '{tagname}'")
             gptag = cursor.fetchall()
             if len(gptag) > 0:
-                cursor.execute(f"update tagnames set tagname = '{tagname}' and userid = {userid} where gpid = {gpid} ")
+                # cursor.execute(f"update tagnames set tagname = '{tagname}' and userid = {userid} where gpid = {gpid} ")
+                pass
             else:
                 cursor.execute(f"insert into tagnames(tagname,userid,gpid) values('{tagname}',{userid},{gpid})")
-            cx.commit()
-            cursor.close()
-            cx.close()
-            return f"操作成功,{userid}已为玩家{playername}添加标记{tagname}"
+                cx.commit()
+                opertaionMsg = f"操作成功,{userid} 已为玩家 {playername} 添加tag: {tagname}"
         else:
-            cx.commit()
-            cursor.close()
-            cx.close()
-            return "添加失败，请先对该玩家添加关注"
+            opertaionMsg = "添加失败，请先在本群内对该玩家添加关注"
+        cursor.close()
+        cx.close()
+        return opertaionMsg
+
+    def tagoffplayer(self, groupid, playername=None, userid=None, tagname=None):
+        deletemsg = '删除成功'
+        cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+        cursor = cx.cursor()
+        if playername:
+            cursor.execute(
+                f"select id from group2player where groupid = {groupid} and playername = '{playername}'")
+            gpid = cursor.fetchall()
+            if len(gpid) > 0:
+                gpid = gpid[0][0]
+                if tagname:
+                    deletemsg = f"操作成功,已成功删除玩家 {playername} 的tag: {tagname}"
+                    cursor.execute(f"delete from tagnames where tagname = '{tagname}' and gpid = {gpid} ")
+                else:
+                    cursor.execute(
+                        f"delete from tagnames where gpid = {gpid} ")
+                    deletemsg = f"操作成功,已成功删除玩家 {playername} 的所有tag"
+            # return "删除失败，本群未关注该玩家"  # 其实应该有有一个else，用来处理没有本群关注人的情况
+        else:
+            cursor.execute(
+                f"delete from tagnames where gpid in (select id from group2player where groupid = {groupid} ) ")
+            deletemsg = f"操作成功,已成功删除群 {groupid} 的所有tag"
+        cx.commit()
+        cursor.close()
+        cx.close()
+        return deletemsg
+
+    def getalltags(self, groupid, target=None, searchtype='playername'):
+        querytable = f'''{'玩家名':^10}|{'tag':^10}\n'''
+        cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+        cursor = cx.cursor()
+        sql = f'select playername,tagname from tagnameview where groupid = {groupid}'
+        if target:
+            sql += f' and {searchtype} = "{target}"'
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        if len(result) > 0:
+            for row in result:
+                querytable += f'''{row[0]:^10} {row[1]}\n'''
+        else:
+            querytable = '本群没有为任何玩家添加tag'
+        cursor.close()
+        cx.close()
+        return querytable
 
 
 def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
@@ -817,17 +866,17 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
 
         playerid = None
         playername = None
-        if pl3:
-            if pl3['nickname'] == username:
-                playerid = pl3['id']
-                playername = pl3['nickname']
-        elif pl4:
-            if pl4['nickname'] == username :
-                playerid = pl4['id']
-                playername = pl4['nickname']
-        else:
-            muti3 = False
-            muti4 = False
+        # if pl3:
+        #     if pl3['nickname'] == username:
+        #         playerid = pl3['id']
+        #         playername = pl3['nickname']
+        # elif pl4:
+        #     if pl4['nickname'] == username :
+        #         playerid = pl4['id']
+        #         playername = pl4['nickname']
+        # else:
+        #     muti3 = False
+        #     muti4 = False
         return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
                     offline=False)
     except requests.exceptions.ConnectionError:
@@ -836,6 +885,7 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
     except requests.exceptions.ReadTimeout:
         print("查询玩家时读取超时")
         return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+
 
 # 异步的qhpt
 

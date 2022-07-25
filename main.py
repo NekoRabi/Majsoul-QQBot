@@ -52,6 +52,36 @@ if __name__ == '__main__':
     print(f"机器人{botname}启动中\tQQ : {bot.qq}")
 
 
+    async def sendMsgChain(msgC: MessageChain, event: MessageEvent = None, grouptarget: int = None,
+                           friendtarget: int = None):
+        res = 0
+        errtext = "有消息发送失败。"
+        onlyImg = False
+        imgSendErrText = f"图片发送失败,这肯定不是{botname}的问题!"
+        gt = None
+        msgComponentTypeList = []
+        for component in msgC:
+            msgComponentTypeList.append(component.type)
+        if msgComponentTypeList == ['Image']:
+            onlyImg = True
+        if event:
+            res = await bot.send(event, msgC)
+            gt = event.group.id
+            errtext += f'消息类型:{event.type},消息目标:{event.group.id}'
+        elif grouptarget:
+            res = await bot.send_group_message(grouptarget, msgC)
+            gt = grouptarget
+            errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
+        elif friendtarget:
+            res = await bot.send_friend_message(friendtarget, msgC)
+            errtext += f'消息类型:FriendMessageEvent,消息目标:{friendtarget}'
+        if res == -1:
+            await bot.send_friend_message(master, getreply(text=errtext))
+            if onlyImg:
+                await bot.send_group_message(gt, getreply(text=imgSendErrText, rndimg=True))
+        return
+
+
     async def asyqh_autopaipu():
         print("开始查询雀魂信息")
         result = majsoul.asygetqhpaipu()
@@ -571,7 +601,7 @@ if __name__ == '__main__':
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(fr"^{commandpre}{commands_map['majsoul']['disable']}", msg.strip())
             if m:
-                commandname = m.group(1)
+                commandname = m.group(2)
                 group = event.group.id
                 if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group not in qhsettings['disptgroup']:
@@ -607,6 +637,8 @@ if __name__ == '__main__':
                     return await bot.send(event, '无此功能,请重新输入参数')
 
 
+    # 启用功能
+
     @bot.on(GroupMessage)
     async def enableqhplugin(event: GroupMessage):
         # 匹配指令
@@ -614,7 +646,7 @@ if __name__ == '__main__':
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(fr"^{commandpre}{commands_map['majsoul']['enable']}", msg.strip())
             if m:
-                commandname = m.group(1)
+                commandname = m.group(2)
                 group = event.group.id
                 if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group in qhsettings['disptgroup']:
@@ -728,7 +760,9 @@ if __name__ == '__main__':
                     if detail['error']:
                         await bot.send(event, detail['msg'])
                     else:
-                        await bot.send(event, Image(path=f'./images/MajsoulInfo/detail{playername}.png'))
+                        res = await bot.send(event, Image(path=f'./images/MajsoulInfo/detail{playername}.png'))
+                        if res == -1:
+                            await bot.send(event, detail['msg'])
         return
 
 
@@ -753,6 +787,9 @@ if __name__ == '__main__':
                         res_id = await bot.send(event,
                                                 MessageChain([Image(path=f'./images/MajsoulInfo/yb{playername}.png')]))
                         # print(res_id)
+                        if res_id == -1:
+                            print(f"图片yb{playername}.png发送失败，尝试发送文本")
+                            await bot.send(event, report['msg'])
                     except Exception as e:
                         print(e)
                         await bot.send_friend_message(master, getreply(text=f"消息发送出现问题了,快看看后台.群聊id:{event.group.id}"))
@@ -878,7 +915,7 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['majsoul']['getmyqhsl']}", msg.strip())
         if m:
-            return await bot.send(event,majsoul.getmycard(event.sender.id))
+            return await bot.send(event, majsoul.getmycard(event.sender.id))
 
 
     @bot.on(GroupMessage)
@@ -898,24 +935,47 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagon']}", msg.strip())
         if m:
+            if not m.group(3):
+                return await bot.send(event, getreply(text='请输入你要添加tag哦'))
             if is_havingadmin(event):
                 await bot.send(event,
-                               majsoul.tagonplayer(playername=m.group(1), tagname=m.group(2), userid=event.sender.id,
+                               majsoul.tagonplayer(playername=m.group(2), tagname=m.group(3), userid=event.sender.id,
                                                    groupid=event.group.id))
             else:
-                await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+                await bot.send(event, getreply(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
 
 
     # 删除昵称
-    # @bot.on(GroupMessage)
-    # async def delnickname(event: GroupMessage):
-    #     msg = "".join(map(str, event.message_chain[Plain]))
-    #     m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagoff']}", msg.strip())
-    #     if m:
-    #         if is_havingadmin(event):
-    #             await bot.send(event, majsoul.clearthwatch(groupid=event.group.id))
-    #         else:
-    #             await bot.send(event, MessageChain([At(event.sender.id), Plain(" 抱歉，只有管理员才能这么做哦")]))
+    @bot.on(GroupMessage)
+    async def delnickname(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['tagoff']}", msg.strip())
+        if m:
+            if is_havingadmin(event):
+                tagnames = None
+                if m.group(3):
+                    tagnames = m.group(3)
+                await bot.send(event, majsoul.tagoffplayer(playername=m.group(2), groupid=event.group.id,
+                                                           userid=event.sender.id, tagname=tagnames))
+            else:
+                await bot.send(event, getreply(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
+
+
+    # 获取所有tag
+
+    @bot.on(GroupMessage)
+    async def delnickname(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"^{commandpre}{commands_map['majsoul']['taglist']}", msg.strip())
+        if m:
+            target = m.group(2)
+            searchtype = 'playername'
+            if target:
+                if target.startswith('tag=') or target.startswith('tagname='):
+                    target = target.split('=', 2)[1]
+                    searchtype = 'tagname'
+            await bot.send(event, majsoul.getalltags(event.group.id, target=target, searchtype=searchtype))
+
 
     # 天凤相关
 
@@ -1290,7 +1350,8 @@ if __name__ == '__main__':
                 return await bot.send(event, Image(base64=card.imgcontent))
 
 
-     # 获取塔罗牌抽卡记录
+    # 获取塔罗牌抽卡记录
+
     @bot.on(GroupMessage)
     async def getmytarots(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -1403,8 +1464,8 @@ if __name__ == '__main__':
             if settings['autogetpaipu']:
                 print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
                 try:
-                    await asyqh_autopaipu()
                     await asyth_all()
+                    await asyqh_autopaipu()
                 except sqlite3.OperationalError as e:
                     logging.warning("自动查询失败,可能是数据库不存在或者表不存在,牌谱查询将关闭")
                     logging.warning(f'{e}')
