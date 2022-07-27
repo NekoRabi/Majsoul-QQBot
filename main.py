@@ -986,7 +986,18 @@ if __name__ == '__main__':
         if m:
             if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'thpt')):
                 return bot.send(event, getreply(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
-            await bot.send(event, tenhou.getthpt(m.group(2)))
+            reset = True
+            if m.group(3):
+                reset = m.group(3)
+                if reset.lower().startswith('reset=') and len(reset) > 6:
+                    reset = reset[6:-1]
+                    if reset.lower() == 'true':
+                        reset = True
+                    else:
+                        reset = False
+                else:
+                    reset = False
+            await bot.send(event, tenhou.getthpt(m.group(2), reset))
 
 
     @bot.on(GroupMessage)

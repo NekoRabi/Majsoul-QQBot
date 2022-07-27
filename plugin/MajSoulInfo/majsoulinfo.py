@@ -866,17 +866,17 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
 
         playerid = None
         playername = None
-        # if pl3:
-        #     if pl3['nickname'] == username:
-        #         playerid = pl3['id']
-        #         playername = pl3['nickname']
-        # elif pl4:
-        #     if pl4['nickname'] == username :
-        #         playerid = pl4['id']
-        #         playername = pl4['nickname']
-        # else:
-        #     muti3 = False
-        #     muti4 = False
+        if pl3:
+            # if pl3['nickname'] == username:
+            playerid = pl3['id']
+            playername = pl3['nickname']
+        elif pl4:
+            # if pl4['nickname'] == username :
+            playerid = pl4['id']
+            playername = pl4['nickname']
+        else:
+            muti3 = False
+            muti4 = False
         return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
                     offline=False)
     except requests.exceptions.ConnectionError:

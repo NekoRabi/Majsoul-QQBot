@@ -175,9 +175,46 @@ qhyb / 雀魂月报 [玩家名] ({3/4}) ([YYYY-m])
 
 
 ```
-disable/enable majsoul qhpt/qhsl/qhyb ......
+qhdisable/enable qhpt/qhsl/qhyb ......
 ```
 禁用 / 启用 该群指令 `qhpt/qhsl/qhyb` 等等指令的使用
+
+----
+ <font size=5>Tag相关</font>
+```
+qhtagon [玩家名] [Tag]
+```
+
+在本群内给某个玩家打上Tag，方便将账号和群友进行对应
+
+```
+qhtagoff [玩家名] {Tag}
+```
+
+当 Tag 给定时，删除 玩家a 的 b Tag
+
+当没有 Tag 时，删除 玩家a的所有Tag
+
+```
+qhtaglist {target}
+```
+返回本群的 <font color="green">玩家名-Tag 表</font>  
+
+当没有指定target的时候，默认输出全部; 
+
+```
+例: qhtaglist
+```
+
+当 target 存在时，输出 <font color="blue">玩家名 = target</font> 的对应表;
+
+```
+例: qhtaglist  xyshu
+```
+
+当 target 存在 且 以<font color="red"> tag= </font>或 <font color="red">tagname=</font>开头时(不区分大小写),输出 <font color="blue">Tag = target</font> 的对应表```例: qhtaglist  TaG=NekoRabi```
+
+---
 
 ```
 freshqh
@@ -190,9 +227,9 @@ freshqh
 ## 天凤相关
 
 ```
-thpt / 天凤分数 / 天凤pt   [玩家名]
+thpt / 天凤分数 / 天凤pt   [玩家名] {reset=True}
 ```
-查天凤分数 **该功能存在bug，是实验性功能，算法还有点问题**
+查天凤分数 **该功能存在小问题,无法判断是否是付费账号,如果是付费账号请追加 'reset=false' **
 ```
 thadd [玩家名]
 ```
@@ -213,7 +250,7 @@ thgetwatch
 
 ## 系统命令
 
-```markdown
+```
 silence on/true
 ```
 开启该群的沉默模式，尽可能减少信息输出
@@ -221,14 +258,14 @@ silence on/true
 其他参数时为关闭改群沉默模式
 
 
-```markdown
+```
 norepeat on/true/任意
 ```
 禁用该群的复读相关功能，尽可能减少信息输出
 
 其他参数时为关闭 ( 即允许复读 )
 
-<hr>
+---
 
 ## 其他命令
 
@@ -242,6 +279,8 @@ norepeat on/true/任意
 ```
 
 私聊bot，向群聊发送语音
+
+<font color='FF0000'>以上功能需要填写腾讯云密钥</font>
 
 ```
 举牌 [内容] 
@@ -303,7 +342,9 @@ bw [文字] [图片]
 ```
 发送一段内容主体为A的文字 **( 不要漏掉 '点' `.`)**
 
-<hr>
+---
+
+仅有机器人管理员有权限控制色图开启
 
 ```
 open/enable/开启    涩图/色图/setu    
@@ -326,3 +367,5 @@ close|disable|关闭   涩图 / 色图 / setu
 简单来说 `来张拉克丝色图`
 
 **<font color='red'>色图功能默认关闭</font>**
+
+**<font color='red'>由于各种原因，本功能不会再开启</font>**

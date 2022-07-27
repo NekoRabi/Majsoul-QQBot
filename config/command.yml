@@ -50,7 +50,7 @@ majsoul:
   tagopeartion: (qhtag)\s*(on|off|list|clear|copy|cut)s*(\S+)\s*(\S*)?\s*
 
 tenhou:
-  thpt: (thpt|天凤pt|天凤分数)\s*(\S+)\s*$
+  thpt: (thpt|天凤pt|天凤分数)\s*(\S+)\s*(\S+)?\s*$
   addwatch: (thadd|天凤添加关注)\s*(\S+)\s*$
   delwatch: (thdel|天凤删除关注)\s*(\S+)\s*$
   getwatch: (thgetwatch|天凤获取本群关注)\s*$

@@ -75,8 +75,10 @@ class playerscore:
         self.playername = playername
         self.maxrk = {3: 0, 4: 0}
         self.maxsc = {3: 0, 4: 0}
-        self.maxsctime = {3: '', 4: ''}
+        self.maxsctime = {3: 0, 4: 0}
         self.playtimes = {3: 0, 4: 0}
+        self.poslist = {3: [], 4: []}
+        self.lastplaytime = 0
 
     def scorechange(self, playernum: int, sc: int):
         rk = self.rank[playernum]
@@ -84,10 +86,11 @@ class playerscore:
 
         return
 
-    def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=''):
+    def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=0):
         rk = self.rank[playernum]
         mxsc = levelmap[rk]['maxscore']
-        self.score[playernum] = self.score[playernum] + score * magnification
+        self.lastplaytime = matchtime
+        self.score[playernum] = self.score[playernum] + int(score * magnification)
         if self.score[playernum] >= mxsc:
             self.rank[playernum] += 1
             if 9 < self.rank[playernum] < 21:
@@ -114,9 +117,10 @@ class playerscore:
         #         if self.maxsc[4] < self.score[4]:
         #             self.maxsc[4] = self.score[4]
 
-    def reducescore(self, playernum: int, magnification: int = 1):
+    def reducescore(self, playernum: int, magnification: int = 1, matchtime=0):
         rk = self.rank[playernum]
-        reducescore = levelmap[rk]['losescore'] * magnification
+        self.lastplaytime = matchtime
+        reducescore = int(levelmap[rk]['losescore'] * magnification)
         self.score[playernum] = self.score[playernum] - reducescore
         if self.score[playernum] <= 0:
             if 9 < self.rank[playernum] < 20:
@@ -125,21 +129,64 @@ class playerscore:
             else:
                 self.score[playernum] = 0
 
+    def reset(self):
+        self.rank = {3: 0, 4: 0}
+        self.score = {3: 0, 4: 0}
+        self.maxrk = {3: 0, 4: 0}
+        self.maxsc = {3: 0, 4: 0}
+        self.maxsctime = {3: 0, 4: 0}
+        self.playtimes = {3: 0, 4: 0}
+        self.lastplaytime = 0
+        self.poslist = {3: [], 4: []}
+
     def showrank(self):
         playername = self.playername
         if self.rank[3] == 20:
             p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]}'
         else:
-            p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]} [{int(self.score[3])}/{levelmap[self.rank[3]]["maxscore"]}]'
+            p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]} [{self.score[3]}/{levelmap[self.rank[3]]["maxscore"]}]'
         if self.rank[4] == 20:
             p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]}'
         else:
-            p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]} [{int(self.score[4])}/{levelmap[self.rank[4]]["maxscore"]}]'
-        p3 += f' 历史最高:{levelmap[self.maxrk[3]]["name"]} [{int(self.maxsc[3])}/{levelmap[self.maxrk[3]]["maxscore"]}]'
-        p3 += f'\n达成时间: {self.maxsctime[3]}'
-        p4 += f' 历史最高:{levelmap[self.maxrk[4]]["name"]} [{int(self.maxsc[4])}/{levelmap[self.maxrk[4]]["maxscore"]}]'
-        p4 += f'\n达成时间: {self.maxsctime[4]}'
-        return f'{playername}\n{p3}\n{p4}'
+            p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]} [{self.score[4]}/{levelmap[self.rank[4]]["maxscore"]}]'
+
+        if self.rank[3] <= 9 or self.rank[3] != 20:
+            p3 += f' 历史最高:{levelmap[self.maxrk[3]]["name"]} [{self.maxsc[3]}/{levelmap[self.maxrk[3]]["maxscore"]}]'
+            p3 += f'\n达成时间: {time.strftime("%Y-%m-%d %H:%M", time.localtime(self.maxsctime[3]))}'
+        if self.rank[4] <= 9 or self.rank[4] != 20:
+            p4 += f' 历史最高:{levelmap[self.maxrk[4]]["name"]} [{self.maxsc[4]}/{levelmap[self.maxrk[4]]["maxscore"]}]'
+            p4 += f'\n达成时间: {time.strftime("%Y-%m-%d %H:%M", time.localtime(self.maxsctime[4]))}'
+
+        return f'{playername:^10}\n{p3}\n{p4}\n{self.recentXposition(returnErr=False)}'
+
+    def recentXposition(self, num=5, returnErr=True):
+        """
+        返回一个玩家最近 num 场对局的顺位
+        """
+        success = 0
+        msg = f'玩家 {self.playername} 最近 {num} 局顺位如下:\n'
+        if self.rank[3] != 0 or self.score[3] != 0:
+            msg += '三麻顺位: '
+            if num > len(self.poslist.get(3)):
+                msg += f'{self.poslist.get(3)}'
+            else:
+                msg += f'{self.poslist.get(3)[-num - 1:]}'
+        else:
+            success += 1
+        if self.rank[4] != 0 or self.score[4] != 0:
+            msg += '四麻顺位: '
+            if num > len(self.poslist.get(4)):
+                msg += f'{self.poslist.get(4)}'
+            else:
+                msg += f'{self.poslist.get(4)[-num - 1:]}'
+        else:
+            success += 1
+        if success == 2:
+            if returnErr:
+                msg = f'玩家 {self.playername}没有进行过对局'
+            else:
+                msg = ''
+        return msg
 
 
 async def getthpt(playername: str):
@@ -154,23 +201,33 @@ async def getthpt(playername: str):
     return listenerjson
 
 
-def readlevel(listenerjson: dict, playername: str) -> str:
-    dt = time.mktime(time.strptime('2017:10:24', '%Y:%m:%d'))
+def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
+    dt = int(time.mktime(time.strptime('2017-10-24', '%Y-%m-%d')))
+    deadtime = 86400 * 180
     ps = playerscore(playername)
     matches = listenerjson.get('list')
+    matchcount = 0
     if len(matches) == 0:
         return "未查询到该玩家"
     for item in matches:
+
+        starttime = int(item['starttime'])
+        if starttime - ps.lastplaytime > deadtime:  # 超过180天未打则重置
+            # if ps.maxrk[3] > 16 or ps.maxrk[4] > 16:  # 判断不了这个账号是否收费，因此我把7段以下的召唤会进行重置
+            if reset:  # 还是手动决定是否重置
+                ps.reset()
+                matchcount = 0
+
         if item.get('lobby'):
             # print("个室对战")
             continue
-        playernameList = [item.get('player1'), item.get('player2'), item.get('player3'), item.get('player4')]
-        if 'NoName' in playernameList:
-            continue
+        # playernameList = [item.get('player1'), item.get('player2'), item.get('player3'), item.get('player4')]
+        # if 'NoName' in playernameList:
+        #     continue
         magnification = 1  # 倍率,南风场的倍率乘1.5
         oldP = False
         position = 1
-        # print(time.strftime('%Y:%m:%d %H:%M', time.localtime(int(item['starttime']))), end='\t')
+        # print(time.strftime('%Y:%m:%d %H:%M', time.localtime(starttime)), end='\t')
         if item['playlength'] == '2':
             magnification = 1.5
         # print(magnification, end='\t')
@@ -179,41 +236,45 @@ def readlevel(listenerjson: dict, playername: str) -> str:
             for i in range(1, 5):
                 if item[f'player{i}'] == ps.playername:
                     position = i
+            ps.poslist.get(4).append(position)
             # print(f'posi_{position}', end='\t')
-            if int(item['starttime']) >= int(dt):
+            if starttime >= dt:
                 # print('new 牌谱')
                 pass
             else:
                 # print('old 牌谱')
                 oldP = True
             if oldP:
-                useptrull = ptchange['old4']
+                useptrule = ptchange['old4']
             else:
-                useptrull = ptchange['new4']
+                useptrule = ptchange['new4']
             if position == 4:
-                ps.reducescore(4, magnification=magnification)
+                ps.reducescore(4, magnification=magnification, matchtime=starttime)
             else:
-                ps.addscore(4, useptrull[f"{item['playerlevel']}"][position - 1], magnification=magnification,
-                            matchtime=time.strftime('%Y:%m:%d %H:%M', time.localtime(int(item['starttime']))))
+                ps.addscore(4, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
+                            matchtime=starttime)
         else:
             # print('3麻', end='\t')
-            useptrull = ptchange['3']
+            useptrule = ptchange['3']
             for i in range(1, 4):
                 if item[f'player{i}'] == ps.playername:
                     position = i
+            ps.poslist.get(3).append(position)
             if position == 3:
-                ps.reducescore(3, magnification=magnification)
+                ps.reducescore(3, magnification=magnification, matchtime=starttime)
             else:
-                ps.addscore(3, useptrull[f"{item['playerlevel']}"][position - 1], magnification=magnification,
-                            matchtime=time.strftime('%Y:%m:%d %H:%M', time.localtime(int(item['starttime']))))
+                ps.addscore(3, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
+                            matchtime=starttime)
+        matchcount += 1
+    print(matchcount)
 
     return ps.showrank()
 
 
-def ptcalculation(playername) -> str:
+def ptcalculation(playername, reset) -> str:
     try:
         results = finish_all_asytasks([getthpt(playername)])[0]
-        content = readlevel(results, playername)
+        content = readlevel(results, playername, reset=reset)
         return content
     except asyncio.exceptions.TimeoutError as e:
         print(f'天凤PT查询超时{e}')

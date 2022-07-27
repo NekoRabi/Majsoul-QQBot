@@ -52,5 +52,5 @@ websocket通道异常关闭，当前版本来说，一般是由异步爬虫引�
 # config乱码
 utf-8格式文件以gbk保存 或者反过来了，重写一次配置文件 
 
-# KeyError、ImportError，FileNotExistError 等
+# KeyError、ImportError、FileNotExistError 等
 截图直接发我，一般都是我代码有问题，出现这种问题真的很抱歉
