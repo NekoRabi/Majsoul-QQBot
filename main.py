@@ -55,21 +55,21 @@ if __name__ == '__main__':
 
 
     async def sendMsgChain(msg: Union[MessageChain, str, MessageComponent], event: MessageEvent = None,
-                           grouptarget: int = None,
-                           friendtarget: int = None):
+                           grouptarget: int = None, friendtarget: int = None, errortext: str = None):
         res = 0
-        if msg is str:
-            msg = MessageChain(Plain(msg))
-        elif msg is MessageComponent:
+        if msg is not MessageChain:
             msg = MessageChain(msg)
         errtext = "消息发送失败"
-        onlyImg = False
         imgSendErrText = f"图片发送失败,这肯定不是{botname}的问题!"
-        msgComponentTypeList = set()
+        if errortext:
+            errtext = errortext
+            imgSendErrText = errortext
+        onlyImg = False
+        msgComponentTypeList = []
 
         for component in msg:
-            msgComponentTypeList.add(component.type)
-        if msgComponentTypeList == set('Image'):
+            msgComponentTypeList.append(component.type)
+        if msgComponentTypeList == ['Image']:
             onlyImg = True
         if event:
             res = await bot.send(event, msg)
@@ -101,22 +101,25 @@ if __name__ == '__main__':
 
     async def asyqh_autopaipu():
         print("开始查询雀魂信息")
-        result = majsoul.asygetqhpaipu()
+        result = await majsoul.asygetqhpaipu()
         print(result)
         for msgobj in result:
             for group in msgobj['groups']:
-                await bot.send_group_message(group, msgobj['msg'])
+                b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                # await bot.send_group_message(group, msgobj['msg'])
+                await sendMsgChain(grouptarget=group, msg=makeMsgChain(imgbase64=b64))
         return
 
 
     async def asyth_all():
         print("开始查询天凤信息")
-        result = tenhou.asygetTH()
+        result = await tenhou.asygetTH()
         print(result)
         for msgobj in result:
             for group in msgobj['groups']:
-                # await bot.send_group_message(group,makeMsgChain()(imgbase64=msgobj['imgbase']))
-                await bot.send_group_message(group, msgobj['msg'])
+                b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                # await bot.send_group_message(group, msgobj['msg'])
+                await sendMsgChain(grouptarget=group, msg=makeMsgChain(imgbase64=b64))
         return
 
 
@@ -383,12 +386,11 @@ if __name__ == '__main__':
                     if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
                         return bot.send(event, makeMsgChain(text="你冲的频率太频繁了,休息一下吧", rndimg=True, at=event.sender.id))
                     try:
-                        imginfo = stfinder.getsetu(
+                        imginfo = await stfinder.getsetu(
                             m1.group(2), groupid=event.group.id)
                         if imginfo['FoundError']:
                             return await sendMsgChain(event=event,
                                                       msg=makeMsgChain(at=event.sender.id, text=imginfo['ErrorMsg']))
-                        # await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
                         await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
                     except Exception as e:
                         print(f"色图请求失败:{e}")
@@ -404,7 +406,7 @@ if __name__ == '__main__':
                         return bot.send(event, makeMsgChain(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧", rndimg=True))
 
                     try:
-                        imginfo = stfinder.getsetu(
+                        imginfo = await stfinder.getsetu(
                             m2.group(2), event.group.id, m2.group(1))
                         if imginfo['FoundError']:
                             return await bot.send(event, makeMsgChain(at=event.sender.id, text=imginfo['ErrorMsg']))
@@ -720,15 +722,19 @@ if __name__ == '__main__':
                     return bot.send(event, makeMsgChain(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 if m.group(3):
                     if m.group(4):
-                        await bot.send(event, majsoul.getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
+                        await sendMsgChain(event=event,
+                                           msg=majsoul.getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
                     else:
-                        await bot.send(event, majsoul.getcertaininfo(m.group(2), m.group(3)))
+                        await sendMsgChain(msg=majsoul.getcertaininfo(m.group(2), m.group(3)), event=event)
                 else:
                     result = majsoul.query(m.group(2))
                     if result['error']:
-                        await bot.send(event, result['msg'])
+                        # await bot.send(event, result['msg'])
+                        await sendMsgChain(msg=result['msg'], event=event)
                     else:
-                        await bot.send(event, Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
+                        await sendMsgChain(msg=Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'), event=event,
+                                           errortext=result['msg'])
+                        # await bot.send(event, Image(path=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
             return
 
 
@@ -740,25 +746,26 @@ if __name__ == '__main__':
             if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
 
                 if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhpaipu')):
-                    return bot.send(event, makeMsgChain(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+                    return sendMsgChain(event=event,
+                                        msg=makeMsgChain(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
                 playername = m.group(2)
                 searchtype = m.group(3)
+                searchnumber = 5
                 if searchtype:
                     if searchtype not in ['3', '4']:
-                        await bot.send(event, '牌局参数有误，请输入 3 或 4')
-                        return
+                        return await sendMsgChain(event=event, msg='牌局参数有误，请输入 3 或 4')
+
                     if m.group(4):
                         searchnumber = int(m.group(4))
-                        if 0 < searchnumber < 11:
-                            await bot.send(event,
-                                           majsoul.getsomeqhpaipu(playername=playername, type=searchtype,
-                                                                  counts=searchnumber))
-                            return
-                        else:
-                            await bot.send(event, "牌局数量有误，最多支持10场牌局")
-                            return
+                        if not 0 < searchnumber < 11:
+                            return await bot.send(event, "牌局数量有误，最多支持10场牌局")
+                    result = await majsoul.getsomeqhpaipu(playername=playername, type=searchtype,
+                                                          counts=searchnumber)
+                    if not result['err']:
+                        await sendMsgChain(event=event,
+                                           msg=makeMsgChain(imgbase64=result['img64']), errortext=result['msg'])
                     else:
-                        await bot.send(event, majsoul.getsomeqhpaipu(playername=playername, type=searchtype))
+                        await sendMsgChain(event=event, msg=result['msg'])
 
 
     @bot.on(GroupMessage)
@@ -1049,7 +1056,7 @@ if __name__ == '__main__':
                         reset = False
                 else:
                     reset = False
-            await sendMsgChain(makeMsgChain(text=tenhou.getthpt(m.group(2), reset)), event=event)
+            await sendMsgChain(makeMsgChain(text=await tenhou.getthpt(m.group(2), reset)), event=event)
             # await bot.send(event, tenhou.getthpt(m.group(2), reset))
 
 
@@ -1367,7 +1374,9 @@ if __name__ == '__main__':
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
                 await petpet(target)
-                await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+                if await bot.send(event,
+                                  MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif'))) == -1:
+                    print('摸头发送失败')
             # else:
             #     target = m.group(2)
             #     await petpet(target)
@@ -1525,8 +1534,8 @@ if __name__ == '__main__':
                             await petpet(target)
                             await bot.send_group_message(event.subject.id,
                                                          MessageChain(
-                                                             Image(
-                                                                 path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+                                                             await Image.from_local(
+                                                                 filename=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
                         else:
                             if random.random() < nudgeconfig['sendnudgechance']:
                                 if random.random() < nudgeconfig['supersendnudgechance']:

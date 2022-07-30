@@ -271,9 +271,9 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
     return ps.showrank()
 
 
-def ptcalculation(playername, reset) -> str:
+async def ptcalculation(playername, reset) -> str:
     try:
-        results = finish_all_asytasks([getthpt(playername)])[0]
+        results = await getthpt(playername)
         content = readlevel(results, playername, reset=reset)
         return content
     except asyncio.exceptions.TimeoutError as e:

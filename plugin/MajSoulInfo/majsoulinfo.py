@@ -191,11 +191,11 @@ class majsoul:
         text_to_image(path=f"MajsoulInfo/detail{playername}.png", text=msg)
         return dict(msg=msg, error=False)
 
-    def getsomeqhpaipu(self, playername: str, type="4", counts=5):
+    async def getsomeqhpaipu(self, playername: str, type="4", counts=5):
         nowtime = time.time()
         ptupdate = 0
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
-
+        ERROR = False
         async def asyrecordsrequest(playerid, type, counts) -> list:
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                              headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -223,27 +223,33 @@ class majsoul:
             return "查询失败,数据库中无此用户,请先用 qhpt 查询该用户。"
         playerid = playerid[0][0]
         paipuInfo = f"最近{counts}场对局信息如下："
-        content = finish_all_asytasks(
-            [asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
-        for item in content:
-            paipuurl = f'https://game.maj-soul.net/1/?paipu={item["uuid"]}'
-            startTime = time.strftime(
-                '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
-            endTime = time.strftime('%Y-%m-%d %H:%M:%S',
-                                    time.localtime(item["endTime"]))
-            players = item['players']
-            paipuInfo += f"\n牌谱链接 : {paipuurl}\n"
-            paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
-            for player in players:
-                if player['nickname'].strip() == playername.strip():
-                    ptupdate += int(player['gradingScore'])
-                paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
-            paipuInfo += "\n"
-        paipuInfo += f"\n总PT变化 : {ptupdate}"
-        return paipuInfo
-        # s = requests.Session()
-        # s.mount('http://', HTTPAdapter(max_retries=3))
-        # s.mount('https://', HTTPAdapter(max_retries=3))
+        # content = finish_all_asytasks(
+        #     [asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
+        try:
+            content = await asyrecordsrequest(playerid=playerid, type=type, counts=counts)
+            for item in content:
+                # paipuurl = f'https://game.maj-soul.net/1/?paipu={item["uuid"]}'
+                paipuurl = f'{item["uuid"]}'
+                startTime = time.strftime(
+                    '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
+                endTime = time.strftime('%Y-%m-%d %H:%M:%S',
+                                        time.localtime(item["endTime"]))
+                players = item['players']
+                paipuInfo += f"\n牌谱UID: {paipuurl}\n开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
+                for player in players:
+                    if player['nickname'].strip() == playername.strip():
+                        ptupdate += int(player['gradingScore'])
+                    paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
+                paipuInfo += "\n"
+            paipuInfo += f"\n总PT变化 : {ptupdate}"
+        except asyncio.TimeoutError as e:
+            print(e)
+            ERROR = True
+            paipuInfo = '牌谱查询超时'
+        result = dict(msg=paipuInfo,err=ERROR)
+        if not ERROR:
+            result['img64'] = text_to_image(text=paipuInfo, needtobase64=True)
+        return result
 
     def getpaipu(self, playerid: str) -> dict:
         nowtime = time.time()
@@ -679,7 +685,7 @@ class majsoul:
         self.tagoffplayer(groupid=groupid)
         return "清除成功"
 
-    def asygetqhpaipu(self):
+    async def asygetqhpaipu(self):
         nowtime = time.time()
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
@@ -692,11 +698,15 @@ class majsoul:
         content = []
         for item in res:
             playeridlist.append(item[0])
-        results = finish_all_asytasks(
-            [paipu_pl3(playeridlist, nowtime), paipu_pl4(playeridlist, nowtime)])
-        for result in results:
-            content.extend(msganalysis(result))
-        return content
+        # results = finish_all_asytasks(
+        #     [paipu_pl3(playeridlist, nowtime), paipu_pl4(playeridlist, nowtime)])
+        results = await paipu_pl3(playeridlist, nowtime) + await paipu_pl4(playeridlist, nowtime)
+        # for result in results:
+        #     content.extend(msganalysis(result))
+        return msganalysis(results)
+        # content.extend(msganalysis(results))
+
+        # return content
 
     def query(self, username: str, selecttype: str = "", selectindex: int = 0) -> dict:
         userinfo = getinfo(username)
@@ -1002,7 +1012,7 @@ def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
 #         print("查询玩家时读取超时")
 #         return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
 
-async def paipu_pl3(playeridlist, nowtime):
+async def paipu_pl3(playeridlist, nowtime) -> list:
     contentlist = []
     if len(playeridlist) >= 25:
         timeout = aiohttp.ClientTimeout(total=15)
@@ -1015,7 +1025,7 @@ async def paipu_pl3(playeridlist, nowtime):
                 async with session.get(
                         f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
                         "?limit=1&mode=21,22,23,24,25,26&descending=true") as response:
-                    text: list = eval(await response.text())
+                    text: list = json.loads(await response.text())
                     if len(text) > 0:
                         contentlist.append(
                             dict(playerid=playerid, content=text[0]))
@@ -1044,7 +1054,7 @@ async def paipu_pl4(playeridlist, nowtime) -> list:
                 async with session.get(
                         f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
                         "?limit=1&mode=8,9,11,12,15,16&descending=true") as response:
-                    text: list = eval(await response.text())
+                    text: list = json.loads(await response.text())
                     if len(text) > 0:
                         contentlist.append(
                             dict(playerid=playerid, content=text[0]))
@@ -1239,7 +1249,8 @@ def msganalysis(infos: list) -> list:
         if len(msgitem) == 0:
             continue
         paipuInfo = ""
-        paipuurl = f'https://game.maj-soul.net/1/?paipu={msgitem["uuid"]}'
+        # paipuurl = f'https://game.maj-soul.net/1/?paipu={msgitem["uuid"]}'
+        paipuurl = f'{msgitem["uuid"]}'
         startTime = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.localtime(msgitem["startTime"]))
         endTime = time.strftime('%Y-%m-%d %H:%M:%S',

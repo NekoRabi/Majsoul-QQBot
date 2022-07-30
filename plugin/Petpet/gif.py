@@ -1,6 +1,6 @@
 from PIL import Image as IMG
 from PIL import ImageOps
-from moviepy.editor import ImageSequenceClip as imageclip
+from moviepy.editor import ImageSequenceClip
 import numpy
 import aiohttp
 from io import BytesIO
@@ -11,8 +11,8 @@ __name__ = "PetPet"
 __description__ = "生成摸头gif"
 __usage__ = "在群内发送 摸@目标 即可"
 
-async def petpet_generator(qqnumber: int):
 
+async def petpet_generator(qqnumber: int):
     if not os.path.exists("./images/PetPet"):
         os.mkdir("./images/PetPet")
     if not os.path.exists("./images/PetPet/temp"):
@@ -56,9 +56,11 @@ async def save_gif(gif_frames, dest, fps=10):
     None
     但是会输出一个符合参数的 gif
     """
-    clip = imageclip(gif_frames, fps=fps)
-    clip.write_gif(dest)  # 使用 imageio
-    clip.close()
+    # clip = ImageSequenceClip(gif_frames, fps=fps)
+    # clip.write_gif(dest, program='ffmpeg', logger=None, logger=None)  # 使用 imageio
+    # clip.close()
+    with ImageSequenceClip(gif_frames, fps=fps) as clip:
+        clip.write_gif(dest, program='ffmpeg', logger=None)
 
 
 # 生成函数（非数学意味）
@@ -99,7 +101,7 @@ async def make_frame(avatar, i, squish=0, flip=False):
     return numpy.array(gif_frame)
 
 
-async def petpet(member_id, flip=False, squish=0, fps=20) -> None:
+async def petpet(member_id, flip=False, squish=0.1, fps=15) -> None:
     """生成PetPet
     将输入的头像生成为所需的 PetPet 并输出
     参数
@@ -118,6 +120,8 @@ async def petpet(member_id, flip=False, squish=0, fps=20) -> None:
 
     if not os.path.exists("./images/PetPet/temp"):
         os.mkdir("./images/PetPet/temp")
+    if os.path.exists(f'./images/PetPet/temp/tempPetPet-{member_id}.gif'):
+        os.remove(f'./images/PetPet/temp/tempPetPet-{member_id}.gif')
     url = f'http://q1.qlogo.cn/g?b=qq&nk={str(member_id)}&s=640'
     gif_frames = []
     # 打开头像
@@ -135,14 +139,14 @@ async def petpet(member_id, flip=False, squish=0, fps=20) -> None:
     if size[0] != size[1]:
         ima = avatar.resize((r2, r2), IMG.ANTIALIAS)
     # 最后生成圆的半径
-    r3 = int(r2 / 2)
+    r3 = r2 // 2
     imb = IMG.new('RGBA', (r3 * 2, r3 * 2), (255, 255, 255, 1))
     pima = ima.load()  # 像素的访问对象
     pimb = imb.load()
     r = float(r2 / 2)  # 圆心横坐标
 
-    for i in range(r2):
-        for j in range(r2):
+    for i in range(2 * r3):
+        for j in range(2 * r3):
             lx = abs(i - r)  # 到圆心距离的横坐标
             ly = abs(j - r)  # 到圆心距离的纵坐标
             l = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径

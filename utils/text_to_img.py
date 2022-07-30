@@ -40,7 +40,12 @@ def text_to_image(text: Iterable = None, path: str = None, fontsize: int = 20,
         bgimg = Image.open(BytesIO(imgbytes)).convert("RGB")
     else:
         bgimg = Image.new('RGB', (maxwidth + 2 * (fontsize + 5), (len(texts) + 2) * (fontsize + 5)), bgkcolor)
+    bx,by = bgimg.size
     textdraw = ImageDraw.Draw(bgimg)
+    textdraw.line((1, 1, 1, 1), 'black',1)
+    textdraw.line((bx-1, by-1, bx-1, by-1), 'black', 1)
+    textdraw.line((1, by-1, 1, by-1), 'black', 1)
+    textdraw.line((bx-1, 1, bx-1, 1), 'black', 1)
     for i in range(len(texts)):
         textdraw.text((fontsize, i * (fontsize + 5) + fontsize), text=f'{texts[i].strip()}',
                       font=font, fill=fontcolor)

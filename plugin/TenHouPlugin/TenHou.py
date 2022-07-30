@@ -219,8 +219,9 @@ class tenhou:
     def __init__(self):
         self.template = bordercast_temple
 
-    def asygetTH(self):
-        return finish_all_asytasks([asyautoget_th_matching(), asyautoget_th_match()], mergelist=True)
+    async def asygetTH(self):
+        return await asyautoget_th_matching() + await asyautoget_th_match()
+        # return finish_all_asytasks([asyautoget_th_matching(), asyautoget_th_match()], mergelist=True)
 
     # 添加关注
     def addthwatch(self, playername: str, groupid: int):
@@ -338,9 +339,8 @@ class tenhou:
         cx.close()
         return msg
 
-    def getthpt(self, playername: str, reset) -> str:
-        ptmsg = ptcalculation(playername, reset)
-        return ptmsg
+    async def getthpt(self, playername: str, reset) -> str:
+        return await ptcalculation(playername, reset)
 
 
 def get_matchorder(playerlist: list, playername: str) -> int:

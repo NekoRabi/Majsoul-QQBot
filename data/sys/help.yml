@@ -24,7 +24,7 @@ grouphelp:
   - "我的塔罗牌 : 获取你的塔罗牌记录"
   - "项目地址 : 获取项目链接\n"
 
-privatehelp:
+friendhelp:
   - "私聊指令:\n"
   - "addadmin / deladmin QQ号 :添加或者删除机器人管理员\n"
   - "addwhitelist /delwhitelist QQ号 :修改白名单\n"

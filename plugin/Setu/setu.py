@@ -56,8 +56,8 @@ async def getsetuinfo(description: str, num: int) -> dict:
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         async with session.get(f"{url}") as response:
             text = await response.text()
-    print(text)
     text = json.loads(text)
+    print('色图结果:', text.get('data'))
     return text
 
 
@@ -80,7 +80,7 @@ class SetuFinder:
                 tag += f"{v}"
             return tag
 
-    def getsetu(self, description, groupid, num=1) -> dict:
+    async def getsetu(self, description, groupid, num=1) -> dict:
         if not num:
             num = 1
         if description:
@@ -91,8 +91,10 @@ class SetuFinder:
             if self.botname in description and not self.allowsearchself:
                 return dict(FoundError=True, ErrorMsg="不许搜咱的图")
 
-        content = finish_all_asytasks([getsetuinfo(description, num)])
-        response = content[0]
+        # content = finish_all_asytasks([getsetuinfo(description, num)])
+        content = await getsetuinfo(description, num)
+        # response = content[0]
+        response = content
         if len(response['data']) == 0:
             # imginfo = dict(FoundError=True, ErrorMsg="没找到这样的图片呢")
             imginfo = dict(FoundError=True, ErrorMsg="你的XP太奇怪了")
