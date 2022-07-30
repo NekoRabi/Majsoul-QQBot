@@ -808,6 +808,31 @@ class majsoul:
         cx.close()
         return deletemsg
 
+    def tag_C_operation(self, groupid, source_playername, target_playername, operation_type: str = 'COPY'):
+        opertaionMsg = '操作成功!'
+        operation_type = operation_type.lower()
+        if operation_type in ['cut', 'copy']:
+            cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+            cursor = cx.cursor()
+            source_id = cursor.execute(
+                f"select id from group2player where groupid = {groupid} and playername = '{source_playername}'").fetchall()
+            target_id = cursor.execute(
+                f"select id from group2player where groupid = {groupid} and playername = '{target_playername}'").fetchall()
+            if len(source_id) == 0 or len(target_id) == 0:
+                opertaionMsg = "操作失败，请先在本群内对该玩家添加关注"
+            else:
+                target_id = target_id[0][0]
+                source_id = source_id[0][0]
+                cursor.execute(
+                    f"insert into tagnames(tagname,userid,gpid) select tagname,userid,{target_id} from tagnames where gpid = {source_id}")
+                if operation_type == 'cut':
+                    cursor.execute(
+                        f"delete from tagnames where gpid = {source_id} ")
+                cx.commit()
+            cursor.close()
+            cx.close()
+        return opertaionMsg
+
     def getalltags(self, groupid, target=None, searchtype='playername'):
         querytable = f'''{'玩家名':^10}|{'tag':^10}\n'''
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')

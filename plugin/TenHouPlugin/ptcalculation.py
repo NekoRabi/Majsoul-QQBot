@@ -150,35 +150,35 @@ class playerscore:
         else:
             p4 = f'四麻段位:{levelmap[self.rank[4]]["name"]} [{self.score[4]}/{levelmap[self.rank[4]]["maxscore"]}]'
 
-        if self.rank[3] <= 9 or self.rank[3] != 20:
+        if 9 <= self.rank[3] < 20:
             p3 += f' 历史最高:{levelmap[self.maxrk[3]]["name"]} [{self.maxsc[3]}/{levelmap[self.maxrk[3]]["maxscore"]}]'
             p3 += f'\n达成时间: {time.strftime("%Y-%m-%d %H:%M", time.localtime(self.maxsctime[3]))}'
-        if self.rank[4] <= 9 or self.rank[4] != 20:
+        if 9 <= self.rank[4] < 20:
             p4 += f' 历史最高:{levelmap[self.maxrk[4]]["name"]} [{self.maxsc[4]}/{levelmap[self.maxrk[4]]["maxscore"]}]'
             p4 += f'\n达成时间: {time.strftime("%Y-%m-%d %H:%M", time.localtime(self.maxsctime[4]))}'
 
-        return f'{playername:^10}\n{p3}\n{p4}\n{self.recentXposition(returnErr=False)}'
+        return f'{playername}\n{p3}\n{p4}\n{self.recentXposition(returnErr=False)}'
 
     def recentXposition(self, num=5, returnErr=True):
         """
         返回一个玩家最近 num 场对局的顺位
         """
         success = 0
-        msg = f'玩家 {self.playername} 最近 {num} 局顺位如下:\n'
-        if self.rank[3] != 0 or self.score[3] != 0:
+        msg = f'{self.playername} 最近 {num} 局顺位如下:\n'
+        if self.rank[3] > 0:
             msg += '三麻顺位: '
             if num > len(self.poslist.get(3)):
-                msg += f'{self.poslist.get(3)}'
+                msg += f'{self.poslist.get(3)}'[1:-1]
             else:
-                msg += f'{self.poslist.get(3)[-num - 1:]}'
+                msg += f'{self.poslist.get(3)[-num:]}'[1:-1]+'\n'
         else:
             success += 1
-        if self.rank[4] != 0 or self.score[4] != 0:
+        if self.rank[4] > 0:
             msg += '四麻顺位: '
             if num > len(self.poslist.get(4)):
-                msg += f'{self.poslist.get(4)}'
+                msg += f'{self.poslist.get(4)}'[1:-1]
             else:
-                msg += f'{self.poslist.get(4)[-num - 1:]}'
+                msg += f'{self.poslist.get(4)[-num:]}'[1:-1]
         else:
             success += 1
         if success == 2:

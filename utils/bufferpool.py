@@ -102,8 +102,8 @@ class commandcache:
 
     def showallcmdincache(self) -> list:
         commandlist = []
-        for id, cmd in self.groupbuffer.items():
-            commandlist.append(cmd)
+        for k, v in self.groupbuffer.items():
+            commandlist.append(v)
         return commandlist
 
     def getallcache(self):
@@ -132,19 +132,11 @@ class commandcache:
     def pushcmd(self, command: groupcommand):
         self.groupbuffer[command.id] = command
 
+    def clearcache(self):
+        self.groupbuffer = dict()
+
     def __str__(self):
         cmdstr = 'exist cmd :\n'
         for cmd in self.groupbuffer.values():
             cmdstr += f'{cmd}\n'
         return cmdstr
-
-# c = command(586468489, 1215791340, 'help')
-# d = command(586468489, 1215791340, 'help')
-# cmdcache = commandcache()
-# print(c)
-# print(d)
-# print(time.time())
-# cmdcache.updatecache(c)
-# cmdcache.updatecache(d)
-# print(c == d)
-# print(cmdcache)

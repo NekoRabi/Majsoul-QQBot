@@ -37,10 +37,10 @@ async def getsetuinfo(description: str, num: int) -> dict:
     if tag:
         tag = tag.replace('的', '')
         if 'r18' in tag:
-            tag = tag.replace('r18', '').strip()
+            tag = tag.replace('r18', '', 1).strip()
             r18 = True
         elif 'R18' in tag:
-            tag = tag.replace('R18', '').strip()
+            tag = tag.replace('R18', '', 1).strip()
             r18 = True
     keyword = {}
     url = f"https://api.lolicon.app/setu/v2?num={num}"
@@ -94,7 +94,8 @@ class SetuFinder:
         content = finish_all_asytasks([getsetuinfo(description, num)])
         response = content[0]
         if len(response['data']) == 0:
-            imginfo = dict(FoundError=True, ErrorMsg="没找到这样的图片呢")
+            # imginfo = dict(FoundError=True, ErrorMsg="没找到这样的图片呢")
+            imginfo = dict(FoundError=True, ErrorMsg="你的XP太奇怪了")
         else:
             imginfo: dict = response['data'][0]
             imginfo['FoundError'] = False

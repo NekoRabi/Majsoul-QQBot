@@ -338,8 +338,8 @@ class tenhou:
         cx.close()
         return msg
 
-    def getthpt(self, playername: str) -> str:
-        ptmsg = ptcalculation(playername)
+    def getthpt(self, playername: str, reset) -> str:
+        ptmsg = ptcalculation(playername, reset)
         return ptmsg
 
 

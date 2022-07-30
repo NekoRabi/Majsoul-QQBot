@@ -26,8 +26,8 @@ sys:
 setu:
   enable: (open|enable|开启)\s*(涩图|色图|setu)\s*$
   disable: (close|disable|关闭)\s*(涩图|色图|setu)\s*$
-  getsetu1: (色图|涩图|setu)\s*([\S\|]+)?\s*$
-  getsetu2: 来(\d)*[张份点]?([\S\|]+)?\s*(的)?\s*[色涩涉]图\s*$
+  getsetu1: (色图|涩图|setu)\s*(\S+)?\s*$
+  getsetu2: 来(\d)*[张份点]?(\S+)*\s*(的)?\s*[色涩涉]图\s*$
 
 majsoul:
   disable: (qhdisable)\s*(\w+)\s*$
@@ -47,7 +47,7 @@ majsoul:
   tagoff: (qhtagoff|雀魂删除标记)\s*(\S+)\s*(\S*)?\s*$
   taglist: (qhtaglist)\s*(\S+)?\s*$
 
-  tagopeartion: (qhtag)\s*(on|off|list|clear|copy|cut)s*(\S+)\s*(\S*)?\s*
+  tagopeartion: (qhtag)\s*(\S+)\s*(\S+)\s*(\S*)?\s*
 
 tenhou:
   thpt: (thpt|天凤pt|天凤分数)\s*(\S+)\s*(\S+)?\s*$
