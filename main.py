@@ -1056,7 +1056,8 @@ if __name__ == '__main__':
                         reset = False
                 else:
                     reset = False
-            await sendMsgChain(makeMsgChain(text=await tenhou.getthpt(m.group(2), reset)), event=event)
+            result = await tenhou.getthpt(m.group(2), reset)
+            await sendMsgChain(makeMsgChain(imgbase64=result['img64']), event=event,errortext=result['msg'])
             # await bot.send(event, tenhou.getthpt(m.group(2), reset))
 
 

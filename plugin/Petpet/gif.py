@@ -101,7 +101,7 @@ async def make_frame(avatar, i, squish=0, flip=False):
     return numpy.array(gif_frame)
 
 
-async def petpet(member_id, flip=False, squish=0.1, fps=15) -> None:
+async def petpet(member_id, flip=False, squish=0, fps=15) -> None:
     """生成PetPet
     将输入的头像生成为所需的 PetPet 并输出
     参数

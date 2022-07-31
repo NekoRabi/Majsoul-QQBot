@@ -339,8 +339,9 @@ class tenhou:
         cx.close()
         return msg
 
-    async def getthpt(self, playername: str, reset) -> str:
-        return await ptcalculation(playername, reset)
+    async def getthpt(self, playername: str, reset) -> dict:
+        result = await ptcalculation(playername, reset)
+        return dict(msg=result, img64=text_to_image(text=result, needtobase64=True))
 
 
 def get_matchorder(playerlist: list, playername: str) -> int:
