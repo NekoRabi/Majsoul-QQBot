@@ -517,7 +517,7 @@ class majsoul:
         if not year or not month:
             year, month = time.strftime("%Y-%m", time.localtime()).split('-')
         rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
-        paipumsg = f"玩家{playername}在{year}年{month}月"
+        paipumsg = f"{playername} {year}-{month} 的对局报告\n"
         selectmonth = f"{year}-{month}"
         playerslist = []
         if month == "12":
@@ -560,7 +560,7 @@ class majsoul:
             paipuresponse = eval(paipuresponse.text)
             if len(paipuresponse) == 0:
                 return dict(msg='该玩家这个月似乎没有进行过该类型的对局呢', error=True)
-            paipumsg += f"总共进行了{len(paipuresponse)}场对局\n共计"
+            paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
             for players in paipuresponse:
                 temp: list = players['players']
                 temp.sort(key=getrank)
@@ -581,12 +581,12 @@ class majsoul:
             averagerank = (rankdict['1'] + rankdict['2'] * 2 +
                            rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
             if selecttype == "4":
-                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}\n"
+                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}"
             else:
-                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,平均顺位:{averagerank:1.2f}\n"
+                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,平均顺位:{averagerank:1.2f}"
             if rankdict['fly'] > 0:
-                paipumsg += f"其中被飞了{rankdict['fly']}次,"
-            paipumsg += f"PT总得失: {ptchange}\n\n"
+                paipumsg += f"被飞了{rankdict['fly']}次,"
+            paipumsg += f"\nPT总得失: {ptchange}\n\n"
             msg += paipumsg
         except requests.exceptions.ConnectionError as e:
             print(f"\n牌谱查询超时:\t{e}\n")
@@ -1275,8 +1275,8 @@ def msganalysis(infos: list) -> list:
                      f"{players[2]['nickname']}:{players[2]['score']}",
                      f"{players[3]['nickname']}:{players[3]['score']}"))
             cx.commit()
-            paipuInfo += f"牌谱链接 : {paipuurl}\n"
-            paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
+            paipuInfo += f"{paipuurl}\n"
+            paipuInfo += f"{startTime} ~ {endTime}\n对局玩家:\n"
             for player in players:
                 paipuInfo += f"{player['nickname']}:{player['score']} ({player['gradingScore']})\n"
             content.append(dict(playerid=item['playerid'], msg=paipuInfo))

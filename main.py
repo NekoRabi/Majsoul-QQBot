@@ -1,5 +1,5 @@
+import asyncio
 import logging
-from typing import Union
 
 import nest_asyncio
 import re
@@ -19,7 +19,6 @@ from mirai.models import MemberJoinEvent, NudgeEvent, Forward, ForwardMessageNod
 if __name__ == '__main__':
 
     nest_asyncio.apply()
-    create_folders()
     config = load_config()
     replydata = load_replydata()
     create_helpimg()
@@ -55,7 +54,7 @@ if __name__ == '__main__':
 
 
     async def sendMsgChain(msg: Union[MessageChain, str, MessageComponent], event: MessageEvent = None,
-                           grouptarget: int = None, friendtarget: int = None, errortext: str = None):
+                           grouptarget: int = None, friendtarget: int = None, errortext: str = None) -> int:
         res = 0
         if msg is not MessageChain:
             msg = MessageChain(msg)
@@ -96,7 +95,7 @@ if __name__ == '__main__':
             elif friendtarget:
                 await bot.send_friend_message(friendtarget, makeMsgChain(text=imgSendErrText, rndimg=True))
 
-        return
+        return res
 
 
     async def asyqh_autopaipu():
@@ -391,7 +390,10 @@ if __name__ == '__main__':
                         if imginfo['FoundError']:
                             return await sendMsgChain(event=event,
                                                       msg=makeMsgChain(at=event.sender.id, text=imginfo['ErrorMsg']))
-                        await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
+                        res = await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
+                        if res != -1 and stfinder.recalltime != -1:
+                            await asyncio.sleep(stfinder.recalltime)
+                            await bot.recall(res)
                     except Exception as e:
                         print(f"色图请求失败:{e}")
                         await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
@@ -410,8 +412,11 @@ if __name__ == '__main__':
                             m2.group(2), event.group.id, m2.group(1))
                         if imginfo['FoundError']:
                             return await bot.send(event, makeMsgChain(at=event.sender.id, text=imginfo['ErrorMsg']))
-                        await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
+                        res = await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
                         # await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
+                        if res != -1 and stfinder.recalltime != -1:
+                            await asyncio.sleep(stfinder.recalltime)
+                            await bot.recall(res)
                     except Exception as e:
                         print(f"色图请求失败:{e}")
                         await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
@@ -582,7 +587,6 @@ if __name__ == '__main__':
         if m:
             return await bot.send(event, MessageChain([Plain(
                 "Github : https://github.com/NekoRabi/Majsoul-QQBot\n"
-                "Gitee : https://gitee.com/Syaro/Majsoul-QQBot\n"
                 "如果觉得好可以点个star⭐")]))
 
             # 与机器人互动

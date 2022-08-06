@@ -7,3 +7,6 @@ allowsearchself: false
 # 开启r18的群聊
 r18groups:
   - 586468489
+
+# 撤回时间,-1为不撤回,单位为 秒
+recalltime: 50

@@ -138,22 +138,11 @@ async def petpet(member_id, flip=False, squish=0, fps=15) -> None:
     ima = avatar
     if size[0] != size[1]:
         ima = avatar.resize((r2, r2), IMG.ANTIALIAS)
-    # 最后生成圆的半径
-    r3 = r2 // 2
-    imb = IMG.new('RGBA', (r3 * 2, r3 * 2), (255, 255, 255, 1))
-    pima = ima.load()  # 像素的访问对象
-    pimb = imb.load()
-    r = float(r2 / 2)  # 圆心横坐标
-
-    for i in range(2 * r3):
-        for j in range(2 * r3):
-            lx = abs(i - r)  # 到圆心距离的横坐标
-            ly = abs(j - r)  # 到圆心距离的纵坐标
-            l = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径
-            if l < r3:
-                pimb[i - (r - r3), j - (r - r3)] = pima[i, j]
+    bgk = IMG.open('./plugin/Petpet/baseimg.png').convert('RGBA').resize((r2, r2))
+    r, g, b, a = bgk.split()
+    ima.paste(bgk, (0, 0, r2, r2), mask=a)
     # 生成每一帧
     for i in range(5):
-        gif_frames.append(await make_frame(imb, i, squish=squish, flip=flip))
+        gif_frames.append(await make_frame(ima, i, squish=squish, flip=flip))
     # 输出
     await save_gif(gif_frames, f'./images/PetPet/temp/tempPetPet-{member_id}.gif', fps=fps)

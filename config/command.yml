@@ -43,8 +43,8 @@ majsoul:
   delwatch: (qhdel|雀魂删除关注)\s*(\S+)\s*$
   clearwatch: (qhclearwatch|雀魂清除本群关注)\s*$
 
-  tagon:  (qhtagon|雀魂添加标记)\s*(\S+)\s*(\S*)\s*$
-  tagoff: (qhtagoff|雀魂删除标记)\s*(\S+)\s*(\S*)?\s*$
+  tagon:  (qhtagon|雀魂添加标记)\s*(\S+)\s*(\S+)\s*$
+  tagoff: (qhtagoff|雀魂删除标记)\s*(\S+)\s*(\S+)?\s*$
   taglist: (qhtaglist)\s*(\S+)?\s*$
 
   tagopeartion: (qhtag)\s*(\S+)\s*(\S+)\s*(\S*)?\s*
@@ -57,8 +57,9 @@ tenhou:
   clearwatch: (thclearwatch|天凤清除本群关注)\s*$
 
 
-  tagon:  (thtagon|天凤添加标记)\s*(\S+)\s*$
-  tagoff: (thtagoff|天凤删除标记)\s*(\S+)\s*$
+  tagon:  (thtagon|天凤添加标记)\s*(\S+)\s*(\S+)\s*$
+  tagoff: (thtagoff|天凤删除标记)\s*(\S+)\s*(\S+)?\s*$
+  taglist: (qhtaglist)\s*(\S+)?\s*$
 
 jupai:
   jupai: 举牌\s*(\S+)\s*$

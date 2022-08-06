@@ -63,6 +63,8 @@ async def getsetuinfo(description: str, num: int) -> dict:
 
 class SetuFinder:
 
+    recalltime = 30
+
     def __init__(self, botname):
         with open(r'./config/Setu/config.yml', 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
@@ -70,6 +72,7 @@ class SetuFinder:
             self.r18groups = config['r18groups']
             self.allowsearchself = config['allowsearchself']
             self.botname = botname
+            self.recalltime = config['recalltime']
 
     def keyword_transform(self, keywords: str, value):
         if keywords in ["r18", "num", "uid", "keyword", "size"]:
