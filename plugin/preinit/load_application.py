@@ -1,3 +1,5 @@
+import sys
+
 import yaml
 import os
 from utils.text_to_img import text_to_image
@@ -11,42 +13,7 @@ syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmcl
 
 
 def load_config() -> dict:
-    try:
-        with open(r'./config/config.yml', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        for key in syskey:
-            if key not in config.keys():
-                print(f"缺少关键字 {key}，尝试生成初始文件中...")
-                create_init_config()
-                print("默认文件生成完成，请重新启动")
-                exit(0)
-        for k, v in config.items():
-            print(k, v)
-        settings = config['settings']
-        welcomeinfo = config['welcomeinfo']
-        botconfig = config['botconfig']
-        botname = botconfig['botname']
-        voicesetting = config['voicesetting']
-        master = config['master']
-        replydata['replyimgpath'] = config['replyimgpath']
-        if master == 0:
-            print('请输入机器人主人 ( master )')
-        if settings['voice']:
-            if voicesetting['secretId'].strip() == '' or voicesetting['secretKey'] == '':
-                print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
-                settings['voice'] = False
-                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                    yaml.dump(config, file, allow_unicode=True)
-        if len(welcomeinfo) == 0:
-            print("入群欢迎文本不存在，该功能将关闭")
-            config['settings']['autowelcome'] = False
-        return config
-    except Exception as e:
-        print(f'{e}')
-        print("文件打开错误，尝试生成初始文件中...")
-        create_init_config()
-        print("默认文件生成完成，请重新启动")
-        exit(0)
+    return config
 
 
 def load_replydata() -> dict:
@@ -135,3 +102,46 @@ def create_init_config():
                                        disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
                                        dispaipugroup=[0])),
                   f, allow_unicode=True)
+
+
+try:
+    config = loadcfg_from_file(r'./config/config.yml')
+    if not config:
+        print("生成初始文件中...")
+        create_init_config()
+        print("默认文件生成完成，请重新启动")
+        sys.exit(0)
+    for key in syskey:
+        if key not in config.keys():
+            print(f"缺少关键字 {key}，尝试生成初始文件中...")
+            create_init_config()
+            print("默认文件生成完成，请重新启动")
+            sys.exit(0)
+    for k, v in config.items():
+        print(k, v)
+    settings = config['settings']
+    welcomeinfo = config['welcomeinfo']
+    botconfig = config['botconfig']
+    botname = botconfig['botname']
+    voicesetting = config['voicesetting']
+    master = config['master']
+    replydata['replyimgpath'] = config['replyimgpath']
+    if master == 0:
+        print('请输入机器人主人 ( master )')
+    if settings['voice']:
+        if voicesetting['secretId'].strip() == '' or voicesetting['secretKey'] == '':
+            print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
+            settings['voice'] = False
+            with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                yaml.dump(config, file, allow_unicode=True)
+    if len(welcomeinfo) == 0:
+        print("入群欢迎文本不存在，该功能将关闭")
+        config['settings']['autowelcome'] = False
+except Exception as e:
+    print(f'{e}')
+    print("文件打开错误，尝试生成初始文件中...")
+    create_init_config()
+    print("默认文件生成完成，请重新启动")
+    sys.exit(0)
+
+commandpre = config['commandpre']

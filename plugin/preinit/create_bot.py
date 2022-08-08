@@ -1,5 +1,6 @@
 from mirai import WebSocketAdapter
 from mirai.bot import Mirai
+from plugin.preinit.load_application import load_config
 
 
 def create_bot(config):
@@ -9,3 +10,5 @@ def create_bot(config):
             verify_key=config['adapter']['verify_key'], host=config['adapter']['host'], port=config['adapter']['port']
         )
     )
+
+bot = create_bot(load_config())

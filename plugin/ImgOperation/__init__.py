@@ -1,4 +1,5 @@
 from plugin.ImgOperation.bwimg import *
+from plugin.ImgOperation.groupmember_imgoperation import daiburen, xka
 
 import os
 

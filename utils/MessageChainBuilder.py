@@ -1,21 +1,38 @@
-from mirai.models import MessageChain, Plain, Voice, Image,At,AtAll
+import random
+
+from mirai import MessageChain, At, Plain, AtAll, Image
+
+from utils.cfg_loader import loadcfg_from_file
+
+config = loadcfg_from_file(r'./config/config.yml')
 
 
-def buildmessagechain(text=None, imgpath=None, at: int = None, atall=False,voice=None):
-    msglist = []
+def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, imgurl: str = None, imgbase64=None,
+                 at: int = None, atall=False) -> MessageChain:
+    msgchain = []
     if at:
-        msglist.append(At(at))
-        msglist.append(Plain(" "))
+        msgchain.append(At(at))
+        msgchain.append(Plain(" "))
     elif atall:
-        msglist.append(AtAll())
-        msglist.append(Plain(" "))
-    if text:
-        msglist.append(Plain(text))
+        msgchain.append(AtAll())
+        msgchain.append(Plain(" "))
+    if reply_choices:
+        msgchain.append(Plain(random.choice(reply_choices)))
+    elif text:
+        msgchain.append(Plain(text))
+    if reply_choices or text:
+        msgchain.append(Plain(' '))
     if imgpath:
-        msglist.append(Plain("\n"))
-        msglist.append(Image(path=imgpath))
-    if len(msglist) > 0:
-        msgC = MessageChain(msglist)
-        return msgC
-    else:
-        return None
+        if reply_choices or text:
+            msgchain.append(Plain("\n"))
+        msgchain.append(
+            Image(path=f"{imgpath}"))
+    if imgbase64:
+        if reply_choices or text:
+            msgchain.append(Plain("\n"))
+        msgchain.append(Image(base64=imgbase64))
+    if imgurl:
+        if reply_choices or text:
+            msgchain.append(Plain("\n"))
+        msgchain.append(Image(url=imgurl))
+    return MessageChain(msgchain)

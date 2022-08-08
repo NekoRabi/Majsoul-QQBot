@@ -1,15 +1,7 @@
+from plugin.MajSoulInfo.folder_init import *
 from plugin.MajSoulInfo.majsoulinfo import majsoulobj as majsoul
 from plugin.MajSoulInfo.mergeimgs import *
-import os
 import sqlite3
-
-if not os.path.exists("./database/MajSoulInfo"):
-    os.mkdir("./database/MajSoulInfo")
-if not os.path.exists("./config/MajSoulInfo"):
-    os.mkdir("./config/MajSoulInfo")
-
-if not os.path.exists("./images/MajSoulInfo"):
-    os.mkdir("./images/MajSoulInfo")
 
 cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 cursor = cx.cursor()

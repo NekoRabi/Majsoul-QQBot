@@ -2,7 +2,7 @@ import sqlite3
 import time, datetime
 import os
 from mirai import MessageChain
-from utils.MessageChainBuilder import buildmessagechain
+from utils.MessageChainBuilder import messagechain_builder
 from plugin.LeisurePlugin.tarot import TarotCards
 
 if not os.path.exists("./database/LeisurePlugin"):

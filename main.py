@@ -1,6 +1,6 @@
 import asyncio
 import logging
-
+from typing import Union
 import nest_asyncio
 import re
 import requests
@@ -33,7 +33,6 @@ if __name__ == '__main__':
     master = config['master']
     settings = config['settings']
     botname = config['botconfig']['botname']
-    commandpre = config['commandpre']
     alarmclockgroup = config['alarmclockgroup']
     silencegroup = config['silencegroup']
     repeatconfig = config['repeatconfig']
@@ -46,7 +45,7 @@ if __name__ == '__main__':
     if settings['voice']:
         vc = VoiceCreater(setting=config['voicesetting'])
 
-    bot = create_bot(config)
+    # bot = create_bot(config)
 
     if master not in admin:
         admin.append(master)
@@ -200,12 +199,13 @@ if __name__ == '__main__':
             personid = event.member.id
             personname = event.member.member_name
             groupname = event.member.group.name
+            groupid = event.member.group.id
             info: str = random.choice(config['welcomeinfo'])
             info = info.replace('%ps%', personname).replace('%gn%', groupname)
             await petpet(personid)
             await sendMsgChain(
                 makeMsgChain(text=info, at=personid), grouptarget=event.member.group.id)
-            await bot.send(event, Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif'))
+            await bot.send_group_message(groupid, Image(path=f'./images/PetPet/temp/tempPetPet-{personid}.gif'))
             # await sendMsgChain(makeMsgChain(imgpath=f'./images/PetPet/temp/tempPetPet-{personid}.gif'),
             #                    grouptarget=event.member.group.id)
             return
@@ -306,6 +306,16 @@ if __name__ == '__main__':
                 await bot.send(event, "pong!")
         return
 
+    @bot.on(GroupMessage)
+    async def guan_wang(event: GroupMessage):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(fr"(雀魂|天凤)官网", msg.strip())
+        if m:
+            if m.group(1) == '雀魂':
+                await bot.send(event, "www.maj-soul.net")
+            elif m.group(2) == '天凤':
+                await bot.send(event,'https://tenhou.net/')
+        return
 
     # 强制复读
 
@@ -731,7 +741,7 @@ if __name__ == '__main__':
                     else:
                         await sendMsgChain(msg=majsoul.getcertaininfo(m.group(2), m.group(3)), event=event)
                 else:
-                    result = majsoul.query(m.group(2))
+                    result = await majsoul.query(m.group(2))
                     if result['error']:
                         # await bot.send(event, result['msg'])
                         await sendMsgChain(msg=result['msg'], event=event)
@@ -790,7 +800,7 @@ if __name__ == '__main__':
                 else:
                     if model is None:
                         model = '基本'
-                    detail = majsoul.getplayerdetail(
+                    detail = await majsoul.getplayerdetail(
                         playername=playername, selecttype=selecttype, model=model)
                     if detail['error']:
                         await bot.send(event, detail['msg'])
@@ -802,7 +812,7 @@ if __name__ == '__main__':
 
 
     @bot.on(GroupMessage)
-    async def getmondetails(event: GroupMessage):
+    async def getqhmonthreport(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhyb']}", msg.strip())
         if m:
@@ -813,7 +823,7 @@ if __name__ == '__main__':
                 selecttype = m.group(3)
                 year = m.group(4)
                 month = m.group(5)
-                report = majsoul.getmonthreport(
+                report = await majsoul.getmonthreport(
                     playername=playername, selecttype=selecttype, year=year, month=month)
                 if report['error']:
                     await bot.send(event, report['msg'])
