@@ -17,6 +17,8 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
     击杀图片生成消息链
     """
     gun_file = random.choice(os.listdir(f'./plugin/ImgOperation/image/cs/')).replace('.png', '')
+    while gun_file in ['headshot', 'penetrate']:
+        gun_file = random.choice(os.listdir(f'./plugin/ImgOperation/image/cs/')).replace('.png', '')
     # gun_file = random.choice(['ak47', 'awp', 'knife', 'm4a1', 'p90', 'deagle', 'fn57', 'hegrenade', 'usp'])
     gun = f'./plugin/ImgOperation/image/cs/{gun_file}.png'
     font = ImageFont.truetype('./plugin/ImgOperation/MiSans-Bold.ttf', 30)
