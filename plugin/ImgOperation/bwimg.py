@@ -8,13 +8,13 @@ def makebwimg(imgname, text: str = ""):
     suffixname = os.path.splitext(imgname)[-1]
     if suffixname == '.jpg':
         suffixname = '.jpeg'
-    img = Image.open(f'./images/tempimg/{filename}{suffixname}').convert('L')
+    img = Image.open(f'./images/ImgOperation/{filename}{suffixname}').convert('L')
     width = img.width
     height = img.height
     if width > height:
-        fontsize = height//10
+        fontsize = height // 10
     else:
-        fontsize = width//10
+        fontsize = width // 10
     textlength = len(text)
     if textlength == 0:
         textlength = 1
@@ -25,8 +25,8 @@ def makebwimg(imgname, text: str = ""):
     bgimg = Image.new('RGB', (width, height + 30 + fontsize), (0, 0, 0))
     bgimg.paste(img, (0, 0, width, height))
     textdraw = ImageDraw.Draw(bgimg)
-    textdraw.text(((width - font.getsize(text)[0]) / 2, height + 10), text=f'{text}', font=font, fill=(255,255,255))
-    bgimg.save(f'./images/tempimg/{filename}{os.path.splitext(imgname)[-1]}')
+    textdraw.text(((width - font.getsize(text)[0]) / 2, height + 10), text=f'{text}', font=font, fill=(255, 255, 255))
+    bgimg.save(f'./images/ImgOperation/{filename}{os.path.splitext(imgname)[-1]}')
 
 
 def deletesource(imgname):
@@ -34,7 +34,7 @@ def deletesource(imgname):
     suffixname = os.path.splitext(imgname)[-1]
     if suffixname == '.jpg':
         suffixname = '.jpeg'
-    if os.path.exists(f'./images/tempimg/{filename}{suffixname}'):
-        os.remove(f'./images/tempimg/{filename}{suffixname}')
-    if os.path.exists(f'./images/tempimg/{imgname}'):
-        os.remove(f'./images/tempimg/{imgname}')
+    if os.path.exists(f'./images/ImgOperation/{filename}{suffixname}'):
+        os.remove(f'./images/ImgOperation/{filename}{suffixname}')
+    if os.path.exists(f'./images/ImgOperation/{imgname}'):
+        os.remove(f'./images/ImgOperation/{imgname}')

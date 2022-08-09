@@ -1,5 +1,5 @@
 # Majsoul-QQBot
-一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等
+一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等。有python基础的也可以自己写插件
 
 # [指令帮助](./docs/command_help.md)
 
@@ -47,6 +47,8 @@
 
 # 如何使用
 
+### 下载代码使用
+
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
 
 如果Mirai安装了`chat-command`，建议在Mirai控制台界面中输入 `/perm permit u* console:command.help`，来禁用Mirai的帮助输出。
@@ -62,6 +64,14 @@
 
 配置文件填写好后就可以启动了。双击 `start.bat` 或者打开命令行(cmd)，执行`python main.py`
 
+
+### 下载编译好的exe使用
+
+exe不包含资源文件，需要另外下载，下载好后需要放到对应文件夹中
+
+下载好后，双击exe启动，会自动生成一些配置文件，填好文件应该就能使用。
+
+
 # 环境
 
 我自己环境是 Python 3.9  和 Java 17.
@@ -69,6 +79,12 @@
 **建议使用 Python 3.9 和 Java 17**
 
 已知Python 3.10 可能有问题跑不起来，如已安装并报错，请降级安装python 3.8-9 *以后会去解决3.10的问题*
+
+# 自定义插件 <font size=4>(仅支持code版本)</font>
+
+有python基础的人可以尝试参考 [这个程序](./plugin/ImgOperation/groupmember_imgoperation.py) 自己编写插件
+
+编写好后记得要 <font color='red'>import</font>
 
 # 关于风控
 
@@ -294,9 +310,9 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
   [ ] 增加何切支持
 
-  [?] 将所有功能都写进配置文件，提供高度自定义
+  [x] 将所有功能都写进配置文件，提供高度自定义
 
-  [ ] 打包成exe,或者一键启动与更新
+  [x] 打包成exe,或者一键启动与更新
 
   [ ] 做一份完整的说明书
 

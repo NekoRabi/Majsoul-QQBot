@@ -65,7 +65,7 @@ def text_to_image(text: Union[str, dict, set, list, tuple] = None, path: str = N
         bgimg.save(f'./images/{path}')
     if needtobase64:
         img_bytes = BytesIO()
-        bgimg.save(img_bytes, format='JPEG')
+        bgimg.save(img_bytes, format='PNG')
 
         b_content = img_bytes.getvalue()
         imgcontent = base64.b64encode(b_content)

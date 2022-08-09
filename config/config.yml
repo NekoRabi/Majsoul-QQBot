@@ -95,6 +95,7 @@ qhsettings: # 是否启用
     - 0
   dispaipugroup:
     - 0
+  borderimg: true
 
 
 #语音设置

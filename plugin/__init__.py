@@ -9,3 +9,5 @@ from plugin.Setu import *
 from plugin.Remake import *
 from plugin.TenHouPlugin import *
 from plugin.ImgOperation import *
+from plugin.draw_wife import *
+from plugin.paili_analysis import *

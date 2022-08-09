@@ -312,7 +312,7 @@ if __name__ == '__main__':
         m = re.match(fr"(雀魂|天凤)官网", msg.strip())
         if m:
             if m.group(1) == '雀魂':
-                await bot.send(event, "www.maj-soul.net")
+                await bot.send(event, "https://game.maj-soul.net/1/")
             elif m.group(2) == '天凤':
                 await bot.send(event,'https://tenhou.net/')
         return
@@ -604,8 +604,8 @@ if __name__ == '__main__':
 
     # 签到获取积分
 
-    @bot.on(MessageEvent)
-    async def signUp(event: MessageEvent):
+    @bot.on(GroupMessage)
+    async def signUp(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['sys']['signin']}", msg.strip())
         if m:
@@ -619,8 +619,8 @@ if __name__ == '__main__':
 
     # 查询积分
 
-    @bot.on(MessageEvent)
-    async def getuserscore(event: MessageEvent):
+    @bot.on(GroupMessage)
+    async def getuserscore(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['sys']['getscore']}", msg.strip())
         if m:
@@ -1231,8 +1231,8 @@ if __name__ == '__main__':
     '''创建举牌文字'''
 
 
-    @bot.on(MessageEvent)
-    async def jupai(event: MessageEvent):
+    @bot.on(GroupMessage)
+    async def jupai(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr'''^{commandpre}{commands_map['jupai']['jupai']}''', msg.strip())
@@ -1398,8 +1398,8 @@ if __name__ == '__main__':
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
 
 
-    @bot.on(MessageEvent)
-    async def imgoperate(event: MessageEvent):
+    @bot.on(GroupMessage)
+    async def imgoperate(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr"^{commandpre}{commands_map['imgoperation']['bw']}", msg.strip())
@@ -1480,16 +1480,17 @@ if __name__ == '__main__':
 
     @bot.on(MessageEvent)
     async def saveFlashImage(event: MessageEvent):
-        if FlashImage in event.message_chain and settings['saveflashimg']:
-            flashimg = event.message_chain.get_first(FlashImage)
-            try:
-                await flashimg.download(directory='./data/flashimages')
-            except Exception as e:
-                print(f'闪照保存发生错误: {e}')
+        if event is GroupMessage or FriendMessage:
+            if FlashImage in event.message_chain and settings['saveflashimg']:
+                flashimg = event.message_chain.get_first(FlashImage)
+                try:
+                    await flashimg.download(directory='./data/flashimages')
+                except Exception as e:
+                    print(f'闪照保存发生错误: {e}')
 
 
-    @bot.on(MessageEvent)
-    async def getsometarots(event: MessageEvent):
+    @bot.on(GroupMessage)
+    async def getsometarots(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{commands_map['sys']['tarot']}", msg.strip())
         if m:

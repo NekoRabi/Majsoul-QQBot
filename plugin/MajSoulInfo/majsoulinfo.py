@@ -171,7 +171,7 @@ class majsoul:
             print(f'读取超时:\t{e}\n')
             return dict(msg="读取超时，请稍后再试。\tReadTimeOut", error=True)
         except asyncio.exceptions.TimeoutError as e:
-            print(f"查询发生了错误:\t{e}\n")
+            print(f"查询超时:\t{e}\n")
             return dict(msg="查询超时,请稍后再试", error=True)
         # text = xhr.text.replace("null", "0.0")
         # content: dict = eval(text)
@@ -625,10 +625,14 @@ class majsoul:
                 async with session.get(url) as response:
                     if response.status == 503:
                         return dict(error=True, offline=True)
-                    inforesponse = await response.json()
+                    inforesponse:dict = await response.json()
             infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\t 副露率: {inforesponse['副露率'] * 100 :2.2f}%\t " \
-                      f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}%\t " \
-                      f" 默听率: {inforesponse['默听率'] * 100 :2.2f}%\n 平均打点: {inforesponse['平均打点']}\t 平均铳点 : {inforesponse['平均铳点']}"
+              f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}% "
+            if inforesponse.get('默听率'):
+                infomsg += f"\t 默听率: {inforesponse.get('默听率',0) * 100 :2.2f}%\n"
+            else:
+                infomsg += '\t'
+            infomsg += f" 平均打点: {inforesponse['平均打点']}\t 平均铳点 : {inforesponse['平均铳点']}"
             msg += infomsg
         except requests.exceptions.ConnectionError as e:
             print(f"\n玩家详情查询超时:\t{e}\n")

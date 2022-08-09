@@ -12,12 +12,14 @@ import base64
 if not os.path.exists("./images/ImgOperation"):
     os.mkdir("./images/ImgOperation")
 
+
 def img_to_base64(img: Image):
     img_bytes = BytesIO()
     img.save(img_bytes, format='PNG')
     b_content = img_bytes.getvalue()
     imgcontent = base64.b64encode(b_content)
     return imgcontent
+
 
 def addfont(img: Image, text, position=(0, 0), fontcolor=(0, 0, 0), fontsize=None, maxsize: tuple = None, center=True):
     pos_x, pos_y = position
@@ -50,17 +52,24 @@ async def makedaibu(userid):
     bgk = Image.open('./plugin/ImgOperation/image/daibu.png').convert("RGBA")
     bgk.paste(ima, (68, 85, 68 + ima.width, 85 + ima.height))
     return img_to_base64(bgk)
-    # bgk.save(fp=f'./images/ImgOperation/daibu_{userid}.png')
 
 
-async def makesmalllove(userid, nickname):
+async def makesmalllove(userid, username, sex: str = None):
     avatar = await get_head_sculpture(userid)
     userimg = avatar.resize((200, 200), Image.ANTIALIAS)
 
     bgk = Image.new('RGB', (300, 300), (255, 255, 255))
     bgk.paste(userimg, (50, 50, 50 + userimg.width, 50 + userimg.height))
-    fontsize = addfont(bgk, text=f'你们看到{nickname}了吗', maxsize=(50, 50))
-    addfont(bgk, text=f'没什么事,但ta真是小可爱', position=(0, 260))
+    if sex == 'MALE':
+        sex = '他'
+    else:
+        sex = '她'
+    if random.random() < 0.5:
+        addfont(bgk, text=f'你们看到{sex}了吗?', maxsize=(300, 30))
+    else:
+        addfont(bgk, text=f'你们看到{username}了吗?', maxsize=(300, 30))
+    addfont(bgk, text=f'非常可爱,简直就是小天使', maxsize=(50, 20), position=(0, 250))
+    addfont(bgk, text=f'{sex}没失踪也没怎么样,我只是觉得你们都该看一下', position=(0, 280))
     bgk.save(fp=f'./images/ImgOperation/xiaokeai_{userid}.png')
 
 
@@ -79,7 +88,7 @@ async def daiburen(event: GroupMessage):
         if userid:
             # await makedaibu(userid)
             # return bot.send(event, messagechain_builder(imgpath=f'./images/ImgOperation/daibu_{userid}.png'))
-            return bot.send(event, messagechain_builder(imgbase64=await makedaibu(userid)))
+            return await bot.send(event, messagechain_builder(imgbase64=await makedaibu(userid)))
 
 
 @bot.on(GroupMessage)
@@ -88,14 +97,21 @@ async def xka(event: GroupMessage):
     m = re.match(
         fr"^(我是)?小可爱$", msg.strip())
     userid = None
-    nickname = None
     if m:
         if m.group(1):
             userid = event.sender.id
-            nickname = event.sender.member_name
         elif At in event.message_chain:
             userid = event.message_chain.get_first(At).target
-            nickname = userid
         if userid:
-            await makesmalllove(userid, nickname)
-            return bot.send(event, messagechain_builder(imgpath=f'./images/ImgOperation/xiaokeai_{userid}.png'))
+            try:
+                member_profile = await bot.member_profile.get(event.group.id, userid)
+                memberinfo = await bot.get_group_member(group=event.group.id, id_=userid)
+                if memberinfo:
+                    await makesmalllove(userid, memberinfo.member_name, member_profile.sex)
+                else:
+                    await makesmalllove(userid, member_profile.nickname, member_profile.sex)
+                await bot.send(event, messagechain_builder(imgpath=f'./images/ImgOperation/xiaokeai_{userid}.png'))
+            except Exception as e:
+                print(e)
+                pass
+            return

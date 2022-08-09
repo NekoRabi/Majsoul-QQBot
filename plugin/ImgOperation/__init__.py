@@ -1,7 +1,8 @@
 from plugin.ImgOperation.bwimg import *
 from plugin.ImgOperation.groupmember_imgoperation import daiburen, xka
+from plugin.ImgOperation.csgokill import cskill
 
 import os
 
-if not os.path.exists("./images/tempimg"):
-    os.mkdir("./images/tempimg")
+if not os.path.exists("./images/ImgOperation"):
+    os.mkdir("./images/ImgOperation")
