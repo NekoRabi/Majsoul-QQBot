@@ -281,7 +281,32 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-虚无传送门.jpg
-    length: 56
+    - index: 56
+      name: 和牌-泰山鸭顶
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-泰山鸭顶.jpg
+    - index: 57
+      name: 桌布-小黄鸭冲浪里
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-小黄鸭冲浪里.jpg
+    - index: 58
+      name: 牌背-鸭鸭牌背
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-鸭鸭牌背.jpg
+    - index: 59
+      name: 立直棒-波子汽水
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-波子汽水.jpg
+    - index: 60
+      name: 立直-立直鸭
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-立直鸭.jpg
+    length: 61
   gift:
     item:
     - index: 0
@@ -557,12 +582,18 @@ lottery:
       rare: 4
       type: person
       url: ./Images/person/柚.png
-    length: 30
+    - index: 30
+      name: 北原莉莉
+      rare: 4
+      type: person
+      url: ./Images/person/北原莉莉.png
+    length: 31
 up:
   decoration:
-  - 和牌-无间契印
-  - 立直棒-虚无传送门
-  - 立直-灵魂契约
+  - 牌背-鸭鸭牌背
+  - 立直棒-波子汽水
+  - 立直-立直鸭
+  - 桌布-小黄鸭冲浪里
+  - 和牌-泰山鸭顶
   person:
-  - 森川绫子
-  - 藤本绮罗
+  - 北原莉莉
