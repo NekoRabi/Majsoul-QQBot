@@ -6,12 +6,10 @@ import time
 import logging
 
 import aiohttp
-import requests
 import sqlite3
 import random
 import json
 import yaml
-from requests.adapters import HTTPAdapter
 from PIL import Image
 from utils.text_to_img import text_to_image
 from utils.cfg_loader import loadcfg_from_file
@@ -69,63 +67,6 @@ class majsoul:
         self.template = loadcfg_from_file(r"./config/MajSoulInfo/template.yml")
         self.config = loadcfg_from_file(r"./config/MajSoulInfo/config.yml")
 
-    # qhpt
-    def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = None):
-        s = requests.Session()
-        s.mount('http://', HTTPAdapter(max_retries=3))
-        s.mount('https://', HTTPAdapter(max_retries=3))
-        if not selectindex:
-            selectindex = 0
-        try:
-            if selecttype == "3":
-                url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
-                typename = "三麻"
-            else:
-                url = f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20"
-                typename = "四麻"
-            xhr = s.get(url=url,
-                        headers={'User-Agent': random.choice(user_agent_list), "Connection": "close"}, timeout=10)
-            # searchresult = finish_all_asytasks([asysearchqh(url)])[0]
-            # if searchresult['error']:
-            #     return searchresult['msg']
-            if xhr.status_code == 503:
-                return "牌谱屋似乎离线了"
-                # return dict(error=True, offline=True)
-            playerinfo = eval(xhr.text)
-            if len(playerinfo) == 0:
-                return "不存在该玩家"
-            elif len(playerinfo) < selectindex:
-                return f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo) - 1}"
-            else:
-                playerinfo = playerinfo[selectindex]
-                if type(playerinfo) == dict:
-                    playerid = playerinfo['id']
-                    playername = playerinfo['nickname']
-                    prtmsg = f"玩家名: {playername}"
-                    levelinfo = playerinfo.get("level")
-                    level = levelinfo.get("id")
-                    score = int(levelinfo.get("score")) + \
-                            int(levelinfo.get("delta"))
-                    prtmsg += levelswitch(level, score, typename)
-                    cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
-                    cursor = cx.cursor()
-                    cursor.execute(
-                        f"select * from qhplayer where playername = '{username}'")
-                    if len(cursor.fetchall()) == 0:
-                        cursor.execute(
-                            "insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
-                    else:
-                        cursor.execute(
-                            f"update qhplayer set playerid = {playerid} where playername = '{username}'")
-                    cx.commit()
-                    cx.close()
-                    return prtmsg
-        except requests.exceptions.ConnectionError as e:
-            print(f"查询玩家信息时连接超时\t {e}")
-            return "查询玩家信息时连接超时"
-        except requests.exceptions.ReadTimeout as e:
-            print(f"读取超时\t {e}")
-            return "读取超时"
 
     async def getplayerdetail(self, playername: str, selecttype: str, selectlevel: list = None, model='基本') -> dict:
         if model not in ['基本', '更多', '立直', '血统', 'all']:
@@ -138,15 +79,10 @@ class majsoul:
         playerid = cursor.fetchall()
         cursor.close()
         cx.close()
-        # s = requests.Session()
         if len(playerid) == 0:
             print("数据库中无此用户，请先查询该用户。")
             return dict(msg="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。", error=True)
         playerid = playerid[0][0]
-        # s.mount('http://', HTTPAdapter(max_retries=3))
-        # s.mount('https://', HTTPAdapter(max_retries=3))
-        # headers = {
-        #     'User-Agent': random.choice(user_agent_list), "Connection": "close"}
         nowtime = time.time()
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         rule = "三麻"
@@ -156,7 +92,6 @@ class majsoul:
                 url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8 "
             else:
                 url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26"
-            # xhr = s.get(url,timeout=5,headers=headers)
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                              headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
@@ -164,17 +99,9 @@ class majsoul:
                         print('牌谱屋似乎离线了')
                         return dict(msg="牌谱屋似乎离线了", error=True)
                     content = await response.json()
-        except requests.exceptions.ConnectionError as e:
-            print(f"查询发生了错误:\t{e}\n")
-            return dict(msg="查询时发生错误,请稍后再试。\tConnectionError", error=True)
-        except requests.exceptions.ReadTimeout as e:
-            print(f'读取超时:\t{e}\n')
-            return dict(msg="读取超时，请稍后再试。\tReadTimeOut", error=True)
         except asyncio.exceptions.TimeoutError as e:
             print(f"查询超时:\t{e}\n")
             return dict(msg="查询超时,请稍后再试", error=True)
-        # text = xhr.text.replace("null", "0.0")
-        # content: dict = eval(text)
         msg = f" 以下是玩家 {playername} 的{rule}数据:\n"
         for (k, v) in content.items():
             if type(v) not in [list, dict]:
@@ -205,6 +132,7 @@ class majsoul:
         ptupdate = 0
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         ERROR = False
+
         async def asyrecordsrequest(playerid, type, counts) -> list:
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                              headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -259,50 +187,6 @@ class majsoul:
             result['img64'] = text_to_image(text=paipuInfo, needtobase64=True)
         return result
 
-    def getpaipu(self, playerid: str) -> dict:
-        nowtime = time.time()
-        nowtime = math.floor(nowtime / 10) * 10000 + 9999
-        headers = {
-            'User-Agent': random.choice(user_agent_list), "Connection": "close"}
-        content = dict(p4=[], p3=[])
-        s = requests.Session()
-        s.mount('http://', HTTPAdapter(max_retries=3))
-        s.mount('https://', HTTPAdapter(max_retries=3))
-        '''四麻查询'''
-        # async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=asytimeout,
-        #                                  headers={'User-Agent': random.choice(user_agent_list)}) as session:
-        #     async with session.get(
-        #             f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-        #         "?limit=1&mode=8,9,11,12,15,16&descending=true") as response:
-        #         content['p4'] = eval(await response.text())
-        try:
-            xhr4 = s.get(
-                f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000"
-                "?limit=1&mode=8,9,11,12,15,16&descending=true", headers=headers, timeout=3)
-            content['p4'] = eval(xhr4.text)
-            # print(f'四麻对局信息:{eval(xhr.text)}')
-        except requests.exceptions.ConnectionError as e:
-            print(f"\n四麻查询发生了错误:\t{e}\n")
-            content['e4'] = True
-        except requests.exceptions.ReadTimeout as e:
-            print(f'\n读取超时:\t{e}\n')
-            content['e4'] = True
-
-        '''三麻查询'''
-        try:
-            xhr3 = s.get(
-                f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000"
-                "?limit=1&mode=21,22,23,24,25,26&descending=true", headers=headers, timeout=3)
-            content['p3'] = eval(xhr3.text)
-            # print(f'三麻对局信息:{eval(xhr.text)}')
-        except requests.exceptions.ConnectionError as e:
-            print(f"\n三麻查询发生了错误:\t{e}\n")
-            content['e3'] = True
-        except requests.exceptions.ReadTimeout as e:
-            print(f'\n读取超时:\t{e}\n')
-            content['e3'] = True
-        return content
-
     def drawcards(self, userid: int, up=False) -> dict:
         if not os.path.exists('./images/MajsoulInfo'):
             os.mkdir('./images/MajsoulInfo')
@@ -341,7 +225,6 @@ class majsoul:
         results = []
         resultsmsg = "\n您的抽卡结果依次为:\n"
         with open(r'./config/MajSoulInfo/drawcards.yml', 'r', encoding='utf-8') as f:
-
             config = yaml.safe_load(f)
             lottery = config['lottery']
             up_person = config['up']['person']
@@ -350,6 +233,7 @@ class majsoul:
             gift = lottery['gift']
             person = lottery['person']
 
+        drawtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for count in range(10):
             luck = random.random() * 100
             if count == 9 and drawcounts['2gift'] == 0:
@@ -362,8 +246,7 @@ class majsoul:
                 resultsmsg += gf
                 resultsmsg += '\n\n已触发保底。'
                 cursor.execute(
-                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',{gfrare},'{gf}')''')
-
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',{gfrare},'{gf}')''')
                 break
             if luck < 5:
                 if up:
@@ -372,11 +255,10 @@ class majsoul:
                         ps = person_name + '\n'
                         drawcounts['person'] += 1
                         cursor.execute(
-                            f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',4,'{ps}')''')
+                            f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
                         results.append(f'./Images/person/{person_name}.png')
                         resultsmsg += ps
                         continue
-
                 person_index = random.randint(0, person['length'] - 1)
                 ps = person['item'][person_index]['name']
                 drawcounts['person'] += 1
@@ -384,7 +266,7 @@ class majsoul:
                 results.append(person['item'][person_index]['url'])
                 resultsmsg += ps
                 cursor.execute(
-                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',4,'{ps}')''')
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
             elif luck < 15:
                 if up:
                     if random.random() * 100 < 49:
@@ -392,7 +274,7 @@ class majsoul:
                         dec = decoration_name + '\n'
                         drawcounts['decoration'] += 1
                         cursor.execute(
-                            f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',3,'{dec}')''')
+                            f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',3,'{dec}')''')
                         results.append(
                             f'./Images/decoration/{decoration_name}.jpg')
                         resultsmsg += dec
@@ -400,7 +282,7 @@ class majsoul:
                 dec_index = random.randint(0, decoration['length'] - 1)
                 dec = decoration['item'][dec_index]['name']
                 cursor.execute(
-                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',3,'{dec}')''')
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',3,'{dec}')''')
                 drawcounts['decoration'] += 1
                 results.append(decoration['item'][dec_index]['url'])
                 resultsmsg += dec
@@ -424,7 +306,7 @@ class majsoul:
                 drawcounts[str(gfrare) + 'gift'] += 1
                 results.append(gift['item'][gift_index]['url'])
                 cursor.execute(
-                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',{gfrare},'{gf}')''')
+                    f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',{gfrare},'{gf}')''')
                 resultsmsg += gf
             if not count == 9:
                 resultsmsg += '\n'
@@ -439,7 +321,7 @@ class majsoul:
         cursor.execute(
             f"select itemlevel,count(itemlevel) from playerdrawcard where userid = {userid} group by itemlevel order by itemlevel")
         result = cursor.fetchall()
-        msg = "你总共抽到了这些\:\n"
+        msg = "你总共抽到了这些:\n"
         if len(result) > 0:
             for row in result:
                 if row[0] == 0:
@@ -546,24 +428,12 @@ class majsoul:
         playerid = playerid[0][0]
         selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
         nextmontht = int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
-        # session_paipu = requests.session()
-        # session_paipu.mount('http://', HTTPAdapter(max_retries=3))
-        # session_paipu.mount('https://', HTTPAdapter(max_retries=3))
-        # session_info = requests.session()
-        # session_info.mount('http://', HTTPAdapter(max_retries=3))
-        # session_info.mount('https://', HTTPAdapter(max_retries=3))
-        # headers = {
-        #     'User-Agent': random.choice(user_agent_list), "Connection": "close"}
 
         try:
             if selecttype == "4":
                 url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nextmontht}/{selectmontht}?limit=599&mode=8,9,11,12,15,16&descending=true"
             else:
                 url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}?limit=599&mode=21,22,23,24,25,26&descending=true"
-            # paipuresponse = session_paipu.get(url, headers=headers, timeout=3)
-            # if paipuresponse.status_code == 503:
-            #     return dict(msg="牌谱屋服务器似乎离线了", error=True)
-            # paipuresponse = eval(paipuresponse.text)
 
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                              headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -602,12 +472,6 @@ class majsoul:
                 paipumsg += f"被飞了{rankdict['fly']}次,"
             paipumsg += f"\nPT总得失: {ptchange}\n\n"
             msg += paipumsg
-        except requests.exceptions.ConnectionError as e:
-            print(f"\n牌谱查询超时:\t{e}\n")
-            return dict(msg="查询超时,请再试一次", error=True)
-        except requests.exceptions.ReadTimeout as e:
-            print(f'\n牌谱读取超时:\t{e}\n')
-            return dict(msg="查询超时,请再试一次", error=True)
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n牌谱读取超时:\t{e}\n')
             return dict(msg="查询超时,请再试一次", error=True)
@@ -616,36 +480,25 @@ class majsoul:
                 url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=16.12.9.15.11.8"
             else:
                 url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=21.22.23.24.25.26"
-            # inforesponse = session_info.get(url, timeout=3, headers=headers)
-            # if inforesponse.status_code == 503:
-            #     return dict(msg="牌谱屋服务器似乎离线了", error=True)
-            # inforesponse = eval(inforesponse.text.replace("null", "0.0"))
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                              headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
                         return dict(error=True, offline=True)
-                    inforesponse:dict = await response.json()
+                    inforesponse: dict = await response.json()
             infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\t 副露率: {inforesponse['副露率'] * 100 :2.2f}%\t " \
-              f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}% "
+                      f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}% "
             if inforesponse.get('默听率'):
-                infomsg += f"\t 默听率: {inforesponse.get('默听率',0) * 100 :2.2f}%\n"
+                infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
             else:
                 infomsg += '\t'
             infomsg += f" 平均打点: {inforesponse['平均打点']}\t 平均铳点 : {inforesponse['平均铳点']}"
             msg += infomsg
-        except requests.exceptions.ConnectionError as e:
-            print(f"\n玩家详情查询超时:\t{e}\n")
-            return dict(msg="查询超时,请再试一次", error=True)
-        except requests.exceptions.ReadTimeout as e:
-            print(f'\n玩家详情读取超时:\t{e}\n')
-            return dict(msg="查询超时,请再试一次", error=True)
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n玩家详情读取超时:\t{e}\n')
             return dict(msg="查询超时,请再试一次", error=True)
         text_to_image(path=f"MajsoulInfo/yb{playername}.png", text=msg)
         return dict(msg=msg, error=False)
-        # return dict(msg=msg, error=False, imgbase64=text_to_image(text=msg, needtobase64=True))
 
     def removewatch(self, playername: str, groupid: int) -> str:
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
@@ -723,7 +576,6 @@ class majsoul:
         return msganalysis(results)
 
     async def query(self, username: str, selecttype: str = "", selectindex: int = 0) -> dict:
-        # userinfo = getinfo(username)
         userinfo = await asyqhpt(username)
         if userinfo['error']:
             if userinfo['offline']:
@@ -751,7 +603,7 @@ class majsoul:
             if userinfo['muti3']:
                 print("查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
                 prtmsg += f"\n\n查到多位同名三麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p3_levelinfo = userinfo['pl3']
+            user_p3_levelinfo = userinfo.get('pl3')
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
             p3_score = int(user_p3_levelinfo.get("score")) + \
@@ -778,6 +630,54 @@ class majsoul:
 
         text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
         return dict(msg=prtmsg, error=False)
+
+    async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = None):
+        if not selectindex:
+            selectindex = 0
+        if selecttype == "3":
+            url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
+            typename = "三麻"
+        else:
+            url = f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20"
+            typename = "四麻"
+        try:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
+                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+                async with session.get(url) as response:
+                    if response.status == 503:
+                        return "牌谱屋似乎离线了"
+                    playerinfo = await response.json()
+        except asyncio.exceptions.TimeoutError as e:
+            print(f"查询超时\t {e}")
+            return "查询超时"
+        if len(playerinfo) == 0:
+            return "不存在该玩家"
+        elif len(playerinfo) < selectindex:
+            return f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo) - 1}"
+        else:
+            playerinfo = playerinfo[selectindex]
+        if type(playerinfo) == dict:
+            playerid = playerinfo['id']
+            playername = playerinfo['nickname']
+            prtmsg = f"玩家名: {playername}"
+            levelinfo = playerinfo.get("level")
+            level = levelinfo.get("id")
+            score = int(levelinfo.get("score")) + \
+                    int(levelinfo.get("delta"))
+            prtmsg += levelswitch(level, score, typename)
+            cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+            cursor = cx.cursor()
+            cursor.execute(
+                f"select * from qhplayer where playername = '{username}'")
+            if len(cursor.fetchall()) == 0:
+                cursor.execute(
+                    "insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
+            else:
+                cursor.execute(
+                    f"update qhplayer set playerid = {playerid} where playername = '{username}'")
+            cx.commit()
+            cx.close()
+            return prtmsg
 
     def tagonplayer(self, playername, tagname, userid, groupid):
         opertaionMsg = '添加成功'
@@ -877,64 +777,6 @@ class majsoul:
         return querytable
 
 
-def getinfo(username: str, selecttype: str = "4", selectindex: int = 0) -> dict:
-    muti3 = False
-    muti4 = False
-    headers = {
-        'User-Agent': random.choice(user_agent_list), "Connection": "close"}
-    s3 = requests.Session()
-    s3.mount('http://', HTTPAdapter(max_retries=3))
-    s3.mount('https://', HTTPAdapter(max_retries=3))
-    s4 = requests.Session()
-    s4.mount('https://', HTTPAdapter(max_retries=3))
-    s4.mount('https://', HTTPAdapter(max_retries=3))
-
-    try:
-        xhr3 = s3.get(
-            f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20",
-            headers=headers, timeout=10)
-        if xhr3.status_code == 503:
-            return dict(error=True, offline=True)
-        pl3 = json.loads(xhr3.text)
-
-        xhr4 = s4.get(
-            f"https://ak-data-5.sapk.ch/api/v2/pl4/search_player/{username}?limit=20",
-            headers=headers, timeout=10)
-        pl4 = json.loads(xhr4.text)
-        if len(pl3) > 0:
-            if len(pl3) > 1:
-                muti3 = True
-            pl3 = pl3[0]
-        else:
-            pl3 = None
-        if len(pl4) > 0:
-            if len(pl4) > 1:
-                muti4 = True
-            pl4 = pl4[0]
-        else:
-            pl4 = None
-
-        playerid = None
-        playername = None
-        if pl3:
-            # if pl3['nickname'] == username:
-            playerid = pl3['id']
-            playername = pl3['nickname']
-        elif pl4:
-            # if pl4['nickname'] == username :
-            playerid = pl4['id']
-            playername = pl4['nickname']
-        else:
-            muti3 = False
-            muti4 = False
-        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
-                    offline=False)
-    except requests.exceptions.ConnectionError:
-        print("查询玩家信息时连接超时")
-        return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
-    except requests.exceptions.ReadTimeout:
-        print("查询玩家时读取超时")
-        return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
 
 
 # 异步的qhpt
@@ -1318,8 +1160,8 @@ async def asysearchqh(url, type="3"):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5), timeout=aiotimeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
             async with session.get(url) as response:
-                text = await response.text()
-                return dict(msg=json.loads(text), error=False)
+                text = await response.json()
+                return dict(msg=text, error=False)
     except asyncio.exceptions.TimeoutError as e:
         print(f"查询超时,{e}")
         return dict(msg="查询超时，请再试一次", error=True)

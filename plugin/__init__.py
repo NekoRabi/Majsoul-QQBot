@@ -11,3 +11,4 @@ from plugin.TenHouPlugin import *
 from plugin.ImgOperation import *
 from plugin.draw_wife import *
 from plugin.paili_analysis import *
+from plugin.prank_on_groupmember import *

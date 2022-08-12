@@ -7,7 +7,7 @@ import requests
 import websockets.exceptions
 
 from plugin import *
-from utils.bufferpool import *
+from utils.bufferpool import cmdbuffer, groupcommand
 from utils.text_to_voice import VoiceCreater
 from utils.file_cleaner import cleaner
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -22,8 +22,6 @@ if __name__ == '__main__':
     config = load_config()
     replydata = load_replydata()
     create_helpimg()
-    commands_map = load_commands()
-    cmdbuffer = commandcache()
     qqlogger = getQQlogger()
     rootLogger = create_logger(config['loglevel'])
 
@@ -39,13 +37,10 @@ if __name__ == '__main__':
     norepeatgroup = config['norepeatgroup']
     qhsettings = config['qhsettings']
     nudgeconfig = config['nudgeconfig']
-    stfinder = SetuFinder(botname)
     vc = None
 
     if settings['voice']:
         vc = VoiceCreater(setting=config['voicesetting'])
-
-    # bot = create_bot(config)
 
     if master not in admin:
         admin.append(master)
@@ -342,95 +337,6 @@ if __name__ == '__main__':
 
 
     # 色图
-    @bot.on(GroupMessage)
-    async def enablesetu(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr"^{commandpre}{commands_map['setu']['enable']}", msg.strip())
-        if m:
-            if event.sender.id in admin:
-                groupid = event.group.id
-                if groupid in config['setugroups']:
-                    await bot.send(event, makeMsgChain(text="本群已开启色图", rndimg=True))
-                else:
-                    config['setugroups'].append(groupid)
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
-                    await bot.send(event, makeMsgChain(text="色图开启成功", rndimg=True))
-
-
-    @bot.on(GroupMessage)
-    async def disablesetu(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-
-        m = re.match(
-            fr"^{commandpre}{commands_map['setu']['disable']}", msg.strip())
-        if m:
-            if event.sender.id in admin:
-                groupid = event.group.id
-                if groupid in config['setugroups']:
-                    config['setugroups'].remove(groupid)
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
-                    await bot.send(event, makeMsgChain(text="色图已关闭", rndimg=True))
-                else:
-                    await bot.send(event, makeMsgChain(text="本群色图已关闭", rndimg=True))
-
-
-    @bot.on(GroupMessage)
-    async def getsomesetu(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        # 匹配指令
-        m1 = re.match(
-            fr"^{commandpre}{commands_map['setu']['getsetu1']}", msg.strip())
-        m2 = re.match(
-            fr"^{commandpre}{commands_map['setu']['getsetu2']}", msg.strip())
-        if m1:
-            if random.random() * 100 < 10:
-                # print(f"发出对{event.sender.id}的少冲提醒")
-                # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
-                pass
-            else:
-                if settings['setu'] and event.group.id in config['setugroups']:
-                    if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
-                        return bot.send(event, makeMsgChain(text="你冲的频率太频繁了,休息一下吧", rndimg=True, at=event.sender.id))
-                    try:
-                        imginfo = await stfinder.getsetu(
-                            m1.group(2), groupid=event.group.id)
-                        if imginfo['FoundError']:
-                            return await sendMsgChain(event=event,
-                                                      msg=makeMsgChain(at=event.sender.id, text=imginfo['ErrorMsg']))
-                        res = await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
-                        if res != -1 and stfinder.recalltime != -1:
-                            await asyncio.sleep(stfinder.recalltime)
-                            await bot.recall(res)
-                    except Exception as e:
-                        print(f"色图请求失败:{e}")
-                        await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
-        elif m2:
-            if random.random() * 100 < 10:
-                # print(f"发出对{event.sender.id}的少冲提醒")
-                # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
-                pass
-            else:
-                if settings['setu'] and event.group.id in config['setugroups']:
-                    if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
-                        return bot.send(event, makeMsgChain(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧", rndimg=True))
-
-                    try:
-                        imginfo = await stfinder.getsetu(
-                            m2.group(2), event.group.id, m2.group(1))
-                        if imginfo['FoundError']:
-                            return await bot.send(event, makeMsgChain(at=event.sender.id, text=imginfo['ErrorMsg']))
-                        res = await sendMsgChain(event=event, msg=makeMsgChain(imgurl=imginfo['url']))
-                        # await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
-                        if res != -1 and stfinder.recalltime != -1:
-                            await asyncio.sleep(stfinder.recalltime)
-                            await bot.recall(res)
-                    except Exception as e:
-                        print(f"色图请求失败:{e}")
-                        await bot.send(event, MessageChain([Plain(f"出错了!这肯定不是{botname}的问题!")]))
-        return
 
 
     @bot.on(MessageEvent)
@@ -737,9 +643,9 @@ if __name__ == '__main__':
                 if m.group(3):
                     if m.group(4):
                         await sendMsgChain(event=event,
-                                           msg=majsoul.getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
+                                           msg=await majsoul.getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
                     else:
-                        await sendMsgChain(msg=majsoul.getcertaininfo(m.group(2), m.group(3)), event=event)
+                        await sendMsgChain(msg=await majsoul.getcertaininfo(m.group(2), m.group(3)), event=event)
                 else:
                     result = await majsoul.query(m.group(2))
                     if result['error']:

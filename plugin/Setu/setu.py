@@ -1,9 +1,19 @@
+import asyncio
+import base64
 import random
+import re
+from io import BytesIO
+
 import yaml
 import aiohttp
 import json
 
-from utils.asyrequestpackge import finish_all_asytasks
+from mirai import GroupMessage, Plain
+
+from plugin import bot, commandpre, commands_map, config
+from utils.MessageChainBuilder import messagechain_builder
+from utils.bufferpool import cmdbuffer, groupcommand
+from utils.cfg_loader import w_cfg_to_file
 
 '''
 r18	int	0	0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
@@ -30,6 +40,17 @@ user_agent_list = [
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
 ]
 
+
+async def download_setu_base64_from_url(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url=url) as resp:
+            img_content = await resp.read()
+
+    # 将图片转换为 base64
+    img_bytes = BytesIO(img_content)
+    b_content = img_bytes.getvalue()
+    imgcontent = base64.b64encode(b_content)
+    return imgcontent
 
 async def getsetuinfo(description: str, num: int) -> dict:
     tag = description
@@ -61,27 +82,27 @@ async def getsetuinfo(description: str, num: int) -> dict:
     return text
 
 
-class SetuFinder:
+def keyword_transform(keywords: str, value):
+    if keywords in ["r18", "num", "uid", "keyword", "size"]:
+        return f"{keywords}={value}"
+    elif keywords == "tag":
+        tag = ""
+        for v in value:
+            tag += f"{v}"
+        return tag
 
+
+class SetuFinder:
     recalltime = 30
 
     def __init__(self, botname):
         with open(r'./config/Setu/config.yml', 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-            self.r18setting = config['r18setting']
-            self.r18groups = config['r18groups']
-            self.allowsearchself = config['allowsearchself']
+            setu_config = yaml.safe_load(f)
+            self.r18setting = setu_config['r18setting']
+            self.r18groups = setu_config['r18groups']
+            self.allowsearchself = setu_config['allowsearchself']
             self.botname = botname
-            self.recalltime = config['recalltime']
-
-    def keyword_transform(self, keywords: str, value):
-        if keywords in ["r18", "num", "uid", "keyword", "size"]:
-            return f"{keywords}={value}"
-        elif keywords == "tag":
-            tag = ""
-            for v in value:
-                tag += f"{v}"
-            return tag
+            self.recalltime = setu_config['recalltime']
 
     async def getsetu(self, description, groupid, num=1) -> dict:
         if not num:
@@ -95,9 +116,8 @@ class SetuFinder:
                 return dict(FoundError=True, ErrorMsg="不许搜咱的图")
 
         # content = finish_all_asytasks([getsetuinfo(description, num)])
-        content = await getsetuinfo(description, num)
+        response = await getsetuinfo(description, num)
         # response = content[0]
-        response = content
         if len(response['data']) == 0:
             # imginfo = dict(FoundError=True, ErrorMsg="没找到这样的图片呢")
             imginfo = dict(FoundError=True, ErrorMsg="你的XP太奇怪了")
@@ -106,3 +126,104 @@ class SetuFinder:
             imginfo['FoundError'] = False
             imginfo['url'] = imginfo['urls']['original'].replace("cat", "re")
         return imginfo
+
+
+admin = config['admin']
+settings = config['settings']
+
+stfinder = SetuFinder(config['botconfig']['botname'])
+
+
+@bot.on(GroupMessage)
+async def enablesetu(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^{commandpre}{commands_map['setu']['enable']}", msg.strip())
+    if m:
+        if event.sender.id in admin:
+            groupid = event.group.id
+            if groupid in config['setugroups']:
+                await bot.send(event, messagechain_builder(text="本群已开启色图"))
+            else:
+                config['setugroups'].append(groupid)
+                # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                #     yaml.dump(config, file, allow_unicode=True)
+                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                await bot.send(event, messagechain_builder(text="色图开启成功"))
+
+
+@bot.on(GroupMessage)
+async def disablesetu(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+
+    m = re.match(
+        fr"^{commandpre}{commands_map['setu']['disable']}", msg.strip())
+    if m:
+        if event.sender.id in admin:
+            groupid = event.group.id
+            if groupid in config['setugroups']:
+                config['setugroups'].remove(groupid)
+                # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
+                #     yaml.dump(config, file, allow_unicode=True)
+                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                await bot.send(event, messagechain_builder(text="色图已关闭"))
+            else:
+                await bot.send(event, messagechain_builder(text="本群色图已关闭"))
+
+
+@bot.on(GroupMessage)
+async def getsomesetu(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    # 匹配指令
+    m1 = re.match(
+        fr"^{commandpre}{commands_map['setu']['getsetu1']}", msg.strip())
+    m2 = re.match(
+        fr"^{commandpre}{commands_map['setu']['getsetu2']}", msg.strip())
+    if m1:
+        if random.random() * 100 < 10:
+            # print(f"发出对{event.sender.id}的少冲提醒")
+            # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
+            pass
+        else:
+            if settings['setu'] and event.group.id in config['setugroups']:
+                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
+                    return bot.send(event, messagechain_builder(text="你冲的频率太频繁了,休息一下吧", at=event.sender.id))
+                try:
+                    imginfo = await stfinder.getsetu(
+                        m1.group(2), groupid=event.group.id)
+                    if imginfo['FoundError']:
+                        return await bot.send(event, messagechain_builder(at=event.sender.id, text=imginfo['ErrorMsg']))
+                    res = await bot.send(event, messagechain_builder(imgurl=imginfo['url']))
+                    if res != -1 and stfinder.recalltime != -1:
+                        await asyncio.sleep(stfinder.recalltime)
+                        await bot.recall(res)
+                    elif res == -1:
+                        await bot.send(event, f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
+                except Exception as e:
+                    print(f"色图请求失败:{e}")
+                    await bot.send(event, messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
+    elif m2:
+        if random.random() * 100 < 10:
+            # print(f"发出对{event.sender.id}的少冲提醒")
+            # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
+            pass
+        else:
+            if settings['setu'] and event.group.id in config['setugroups']:
+                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
+                    return bot.send(event, messagechain_builder(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧"))
+                try:
+                    imginfo = await stfinder.getsetu(
+                        m2.group(2), event.group.id, int(m2.group(1)))
+                    if imginfo['FoundError']:
+                        return await bot.send(event, messagechain_builder(at=event.sender.id, text=imginfo['ErrorMsg']))
+                    res = await bot.send(event, messagechain_builder(imgurl=imginfo['url']))
+                    # await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
+                    if res != -1 and stfinder.recalltime != -1:
+                        await asyncio.sleep(stfinder.recalltime)
+                        await bot.recall(res)
+                    elif res == -1:
+                        await bot.send(event, f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
+                except Exception as e:
+                    print(f"色图请求失败:{e}")
+                    await bot.send(event, messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
+    return

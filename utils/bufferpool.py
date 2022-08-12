@@ -140,3 +140,6 @@ class commandcache:
         for cmd in self.groupbuffer.values():
             cmdstr += f'{cmd}\n'
         return cmdstr
+
+
+cmdbuffer = commandcache()

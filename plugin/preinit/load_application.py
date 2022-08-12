@@ -145,3 +145,4 @@ except Exception as e:
     sys.exit(0)
 
 commandpre = config['commandpre']
+commands_map = load_commands()
