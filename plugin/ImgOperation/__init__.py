@@ -1,4 +1,4 @@
-from plugin.ImgOperation.bwimg import *
+from plugin.ImgOperation.bwimg import bwimg
 from plugin.ImgOperation.groupmember_imgoperation import daiburen, xka
 from plugin.ImgOperation.csgokill import cskill
 

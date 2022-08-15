@@ -1,4 +1,6 @@
-import re, math
+import math
+import re
+
 
 # 指定数量的顺子在三花色中组合
 def compose_gen_sz(sz) -> list:
@@ -193,7 +195,7 @@ def get_guzhang_around(guzhang_list: list):
 
 
 # m+d < 5时 减少向听数的进张
-def get_md_less_than5(hc, new_dazi = 1):
+def get_md_less_than5(hc, new_dazi=1):
     guzhang_list = []
     for x in range(len(hc)):
         if hc[x] == 1:

@@ -5,7 +5,8 @@ import os
 from io import BytesIO
 from PIL import Image as IMG, ImageFont, ImageDraw
 from mirai import GroupMessage, Plain, At
-from plugin.preinit.create_bot import bot
+# from plugin.preinit.create_bot import bot
+from core import bot
 
 from utils.MessageChainBuilder import messagechain_builder
 

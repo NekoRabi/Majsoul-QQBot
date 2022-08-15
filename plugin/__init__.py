@@ -1,4 +1,4 @@
-from plugin.preinit import *
+# from plugin.preinit import *
 from utils import *
 from plugin.jupai import *
 from plugin.LeisurePlugin import *
@@ -12,3 +12,5 @@ from plugin.ImgOperation import *
 from plugin.draw_wife import *
 from plugin.paili_analysis import *
 from plugin.prank_on_groupmember import *
+from plugin.BilibiliPlugin import *
+from plugin.AutoReply import *

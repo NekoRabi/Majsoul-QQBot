@@ -1,7 +1,16 @@
+import re
+
 from PIL import ImageFont, ImageDraw, Image as IMG
 import os
 import random
 import numpy as np
+from mirai import GroupMessage, Plain, MessageChain, Image
+
+# from plugin.preinit.create_bot import bot
+from core import bot, commandpre, commands_map
+
+if not os.path.exists("./images/jupai"):
+    os.mkdir("./images/jupai")
 
 
 def find_coeffs(pa, pb):
@@ -16,7 +25,8 @@ def find_coeffs(pa, pb):
     res = np.dot(np.linalg.inv(A.T * A) * A.T, B)
     return np.array(res).reshape(8)
 
-def imgoutput(senderid:int,textMessage = '拉克丝真可爱'):
+
+def imgoutput(senderid: int, textMessage='拉克丝真可爱'):
     print(f"开始创建图片，内容为:{textMessage}")
     try:
         font = ImageFont.truetype('./plugin/jupai/fonts/shs_and_emoji.ttf', 40)
@@ -57,3 +67,21 @@ def imgoutput(senderid:int,textMessage = '拉克丝真可爱'):
         out.save(f"./images/jupai/{senderid}.png")
     except OSError:
         print(OSError)
+
+    '''创建举牌文字'''
+
+
+@bot.on(GroupMessage)
+async def jupai(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr'''^{commandpre}{commands_map['jupai']['jupai']}''', msg.strip())
+    if m:
+
+        if len(m.group(1)) > 40:
+            await bot.send(event, "最多支持做40个字的举牌哦~")
+        imgoutput(event.sender.id, (m.group(1)))
+        message_chain = MessageChain([
+            await Image.from_local(f'./images/jupai/{event.sender.id}.png')
+        ])
+        await bot.send(event, message_chain)

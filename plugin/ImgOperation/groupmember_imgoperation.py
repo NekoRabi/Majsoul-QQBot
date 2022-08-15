@@ -1,6 +1,7 @@
 from utils.MessageChainBuilder import *
-from mirai import bot, GroupMessage
-from plugin.preinit.create_bot import bot
+from mirai import GroupMessage
+# from plugin.preinit.create_bot import bot
+from core import bot
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 

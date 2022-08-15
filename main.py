@@ -1,11 +1,10 @@
-import asyncio
 import logging
 from typing import Union
 import nest_asyncio
 import re
-import requests
 import websockets.exceptions
 
+from core import *
 from plugin import *
 from utils.bufferpool import cmdbuffer, groupcommand
 from utils.text_to_voice import VoiceCreater
@@ -228,8 +227,7 @@ if __name__ == '__main__':
                 qqid = int(m.group(1))
                 if qqid not in admin:
                     admin.append(qqid)
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
+                    w_cfg_to_file(content=config, path=r'./config/config.yml')
                     await sendMsgChain(event=event, msg=f"已将 {m.group(1)} 添加为机器人管理员")
                 else:
                     await sendMsgChain(event=event, msg=f"{m.group(1)} 已经是管理员了")
@@ -250,8 +248,7 @@ if __name__ == '__main__':
                 qqid = int(m.group(1))
                 if qqid in admin:
                     admin.remove(qqid)
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
+                    w_cfg_to_file(content=config, path=r'./config/config.yml')
                     return await sendMsgChain(event=event, msg=f"已将 {m.group(1)} 从机器人管理员中移出")
                 else:
                     return await sendMsgChain(event=event, msg=f"{m.group(1)} 不是再管理员了")
@@ -301,6 +298,7 @@ if __name__ == '__main__':
                 await bot.send(event, "pong!")
         return
 
+
     @bot.on(GroupMessage)
     async def guan_wang(event: GroupMessage):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -309,8 +307,9 @@ if __name__ == '__main__':
             if m.group(1) == '雀魂':
                 await bot.send(event, "https://game.maj-soul.net/1/")
             elif m.group(2) == '天凤':
-                await bot.send(event,'https://tenhou.net/')
+                await bot.send(event, 'https://tenhou.net/')
         return
+
 
     # 强制复读
 
@@ -337,7 +336,6 @@ if __name__ == '__main__':
 
 
     # 色图
-
 
     @bot.on(MessageEvent)
     async def getsyshelp(event: MessageEvent):
@@ -378,12 +376,10 @@ if __name__ == '__main__':
             if m:
                 if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                     settings['silence'] = True
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
+                    w_cfg_to_file(content=config, path=r'./config/config.yml')
                 else:
                     settings['silence'] = False
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
+                    w_cfg_to_file(content=config, path=r'./config/config.yml')
 
 
     # 单群沉默 - 从群聊沉默
@@ -399,13 +395,11 @@ if __name__ == '__main__':
                 if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                     if event.group.id not in silencegroup:
                         silencegroup.append(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
                 else:
                     if event.group.id in silencegroup:
                         silencegroup.remove(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
 
 
     # 关闭复读
@@ -422,14 +416,12 @@ if __name__ == '__main__':
                     print(f'已将{event.group.id}的复读关闭')
                     if event.group.id not in norepeatgroup:
                         norepeatgroup.append(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
                 else:
                     if event.group.id in norepeatgroup:
                         print(f'已将{event.group.id}的复读开启')
                         norepeatgroup.remove(event.group.id)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
 
 
     # 添加白名单
@@ -444,8 +436,7 @@ if __name__ == '__main__':
             if userid in admin and userid not in whiteList:
 
                 whiteList.append(int(m.group(1)))
-                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                    yaml.dump(config, file, allow_unicode=True)
+                w_cfg_to_file(content=config, path=r'./config/config.yml')
                 print(m)
                 return await bot.send(event, "添加成功")
             else:
@@ -466,8 +457,8 @@ if __name__ == '__main__':
                     return await bot.send(event, "请不要将管理员加入黑名单")
                 black_list['user'].append(int(m.group(1)))
                 print(black_list['user'])
-                with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                    yaml.dump(config, file, allow_unicode=True)
+
+                w_cfg_to_file(content=config, path=r'./config/config.yml')
                 print(m)
                 return await bot.send(event, "添加成功")
             else:
@@ -487,8 +478,8 @@ if __name__ == '__main__':
                 delperson = int(m.group(1))
                 if delperson in black_list['user']:
                     black_list['user'].remove(delperson)
-                    with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                        yaml.dump(config, file, allow_unicode=True)
+
+                    w_cfg_to_file(content=config, path=r'./config/config.yml')
                     return await bot.send(event, "删除成功")
                 else:
                     return await bot.send(event, "删除失败,用户不存在")
@@ -552,33 +543,28 @@ if __name__ == '__main__':
                 if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group not in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].append(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'查分功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'查分功能禁用成功')
                 elif commandname in ['qhpaipu', '雀魂最近对局']:
                     if group not in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].append(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'牌谱查询功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'牌谱查询功能禁用成功')
                 elif commandname in ['qhinfo', '雀魂玩家详情']:
                     if group not in qhsettings['disinfogroup']:
                         qhsettings['disinfogroup'].append(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'雀魂玩家详情功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'雀魂玩家详情功能禁用成功')
                 elif commandname in ['qhsl', '雀魂十连']:
-                    if group not in qhsettings['disybgroup']:
-                        qhsettings['disybgroup'].append(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'模拟十连功能禁用成功')
+                    if group not in qhsettings['disslgroup']:
+                        qhsettings['disslgroup'].append(group)
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'模拟十连功能禁用成功')
                 elif commandname in ['qhyb', '雀魂月报']:
                     if group not in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].append(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'牌谱查询功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'牌谱查询功能禁用成功')
                 else:
                     return await bot.send(event, '无此功能,请重新输入参数')
 
@@ -597,33 +583,28 @@ if __name__ == '__main__':
                 if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                     if group in qhsettings['disptgroup']:
                         qhsettings['disptgroup'].remove(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'查分功能启用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'查分功能启用成功')
                 elif commandname in ['qhpaipu', '雀魂最近对局']:
                     if group in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].remove(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'牌谱查询功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'牌谱查询功能启用成功')
                 elif commandname in ['qhinfo', '雀魂玩家详情']:
                     if group in qhsettings['disinfogroup']:
                         qhsettings['disinfogroup'].remove(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'雀魂玩家详情功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'雀魂玩家详情功能启用成功')
                 elif commandname in ['qhsl', '雀魂十连']:
-                    if group in qhsettings['disybgroup']:
-                        qhsettings['disybgroup'].remove(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'模拟十连功能禁用成功')
+                    if group in qhsettings['disslgroup']:
+                        qhsettings['disslgroup'].remove(group)
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'模拟十连功能启用成功')
                 elif commandname in ['qhyb', '雀魂月报']:
                     if group in qhsettings['dispaipugroup']:
                         qhsettings['dispaipugroup'].remove(group)
-                        with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
-                            yaml.dump(config, file, allow_unicode=True)
-                            return await bot.send(event, f'牌谱查询功能禁用成功')
+                        w_cfg_to_file(content=config, path=r'./config/config.yml')
+                        return await bot.send(event, f'牌谱查询功能启用成功')
                 else:
                     return await bot.send(event, '无此功能,请重新输入参数')
 
@@ -977,7 +958,7 @@ if __name__ == '__main__':
                 else:
                     reset = False
             result = await tenhou.getthpt(m.group(2), reset)
-            await sendMsgChain(makeMsgChain(imgbase64=result['img64']), event=event,errortext=result['msg'])
+            await sendMsgChain(makeMsgChain(imgbase64=result['img64']), event=event, errortext=result['msg'])
             # await bot.send(event, tenhou.getthpt(m.group(2), reset))
 
 
@@ -1134,25 +1115,6 @@ if __name__ == '__main__':
                                 event=event)
 
 
-    '''创建举牌文字'''
-
-
-    @bot.on(GroupMessage)
-    async def jupai(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr'''^{commandpre}{commands_map['jupai']['jupai']}''', msg.strip())
-        if m:
-
-            if len(m.group(1)) > 40:
-                await bot.send(event, "最多支持做40个字的举牌哦~")
-            imgoutput(event.sender.id, (m.group(1)))
-            message_chain = MessageChain([
-                await Image.from_local(f'./images/jupai/{event.sender.id}.png')
-            ])
-            await bot.send(event, message_chain)
-
-
     '''随机打断、复读、嘲讽'''
 
 
@@ -1179,51 +1141,6 @@ if __name__ == '__main__':
                         print(f"在{event.group.name}群,复读一次{msg}")
                         return await bot.send(event, event.message_chain)
         return
-
-
-    last_bvid = {}
-
-
-    @bot.on(GroupMessage)
-    # 哔哩哔哩解析
-    async def bili_resolve(event: GroupMessage):
-        if not settings['silence']:
-            if event.group.id not in silencegroup:
-                global last_bvid
-                text = str(event.message_chain.as_mirai_code)
-                text = text.replace('\\n', '').replace('\\', '')
-                if 'b23.tv/' in text:
-                    b23_url = re.findall('b23.tv/[A-Za-z0-9]+', text)[0]
-                    url = f'https://{b23_url}'
-                    resp = requests.get(url, allow_redirects=False)
-                    text = resp.text
-                if 'BV' in text:
-                    bvid = re.findall('BV[A-Za-z0-9]+', text)[0]
-                else:
-                    return
-                if event.group.id in last_bvid.keys():
-                    if bvid == last_bvid[event.group.id]:
-                        return
-                # if event.message_chain.has("www.bilibili.com/video"):
-                #     bvid = re.findall('BV[A-Za-z0-9]',"".join(map(str, event.message_chain[Plain])).strip())[0]
-                last_bvid[event.group.id] = bvid
-                bv_url = f'http://api.bilibili.com/x/web-interface/view?bvid={bvid}'
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url=bv_url) as resp:
-                        data = await resp.json()
-                if data['code'] != 0:
-                    return
-                img_url = data['data']['pic']
-                author = data['data']['owner']['name']
-                title = data['data']['title']
-                msg = f'{bvid}\nUP主:{author}\n标题:{title}'
-                '''if event.message_chain[1].type == 'App':
-                    app = event.message_chain[1].as_json()
-                    url = app['meta']['detail_1']['preview']
-                    img_url = f'http://{url}'''
-                message_chain = MessageChain(
-                    [Image(url=img_url), Plain(text=msg)])
-                return await bot.send(event, message_chain)
 
 
     @bot.on(GroupMessage)
@@ -1302,24 +1219,6 @@ if __name__ == '__main__':
             #     target = m.group(2)
             #     await petpet(target)
             #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
-
-
-    @bot.on(GroupMessage)
-    async def imgoperate(event: GroupMessage):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr"^{commandpre}{commands_map['imgoperation']['bw']}", msg.strip())
-        if m and event.message_chain.has(Image):
-            try:
-                img = event.message_chain.get_first(Image)
-                imgname = img.image_id
-                await img.download(filename=f'./images/tempimg/{imgname}')
-                makebwimg(imgname, m.group(1))
-                await bot.send(event, MessageChain([Image(path=f'./images/tempimg/{imgname}')]))
-                deletesource(imgname)
-            except Exception as e:
-                print(e)
-                rootLogger.exception(e)
 
 
     @bot.on(GroupMessage)

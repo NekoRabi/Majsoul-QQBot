@@ -10,7 +10,7 @@ import json
 
 from mirai import GroupMessage, Plain
 
-from plugin import bot, commandpre, commands_map, config
+from core import bot, commandpre, commands_map, config
 from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import cmdbuffer, groupcommand
 from utils.cfg_loader import w_cfg_to_file
@@ -51,6 +51,7 @@ async def download_setu_base64_from_url(url):
     b_content = img_bytes.getvalue()
     imgcontent = base64.b64encode(b_content)
     return imgcontent
+
 
 async def getsetuinfo(description: str, num: int) -> dict:
     tag = description

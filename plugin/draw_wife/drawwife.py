@@ -5,7 +5,8 @@ from io import BytesIO
 import aiohttp
 from mirai import GroupMessage, Plain
 
-from plugin.preinit.create_bot import bot
+# from plugin.preinit.create_bot import bot
+from core import bot
 
 from utils.MessageChainBuilder import messagechain_builder
 

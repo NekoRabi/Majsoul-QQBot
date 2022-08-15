@@ -1,4 +1,4 @@
-from utils import *
+from plugin.paili_analysis.utils import *
 from itertools import product
 import numpy as np
 import pickle

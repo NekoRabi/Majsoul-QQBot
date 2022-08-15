@@ -1,5 +1,6 @@
 import math
 
+
 # 检查牌是否同一区间
 def check_same_area(a, b):
     if a < 9 and b < 9:
@@ -23,7 +24,8 @@ def get_mianzi(single_color_cards):
     for x in range(len(single_color_cards) - 2):
         # 字牌无顺子
         if x < 27:
-            if all([single_color_cards[x], single_color_cards[x + 1], single_color_cards[x + 2]]) and math.floor(x / 9) == math.floor((x + 1) / 9) == math.floor((x + 2) / 9):
+            if all([single_color_cards[x], single_color_cards[x + 1], single_color_cards[x + 2]]) and math.floor(
+                    x / 9) == math.floor((x + 1) / 9) == math.floor((x + 2) / 9):
                 available[x][0] = 1
     # 刻子
     for x in range(len(single_color_cards)):
@@ -107,7 +109,7 @@ def get_mianzi(single_color_cards):
     for x in m:
         if len(x) == mianzi_count_max:
             for y in range(len(x)):
-                z = x[0:y] + x[y + 1 :]
+                z = x[0:y] + x[y + 1:]
                 z.sort()
                 if z not in m:
                     m.append(z)

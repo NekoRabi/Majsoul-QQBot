@@ -4,7 +4,8 @@ from plugin.paili_analysis.dfs import *
 
 from mirai import GroupMessage, Plain
 
-from plugin.preinit.create_bot import bot
+# from plugin.preinit.create_bot import bot
+from core import bot
 
 from utils.MessageChainBuilder import messagechain_builder
 
@@ -126,7 +127,7 @@ def calc_shanten_13(hc=None, hc_list=None):
     for y in range(len(xt_list)):
         if xt_list[y]:
             # (向听数, 进张列表)
-            return (y, list(set(xt_list[y])))
+            return y, list(set(xt_list[y]))
 
 
 # 一般形牌理分析
