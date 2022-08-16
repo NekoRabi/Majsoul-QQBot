@@ -1,14 +1,25 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/8/16 16:14
+:Update: /
+:Describe: 消息链构造工具
+:Version: 0.0.1
+"""
+
 import random
-
 from mirai import MessageChain, At, Plain, AtAll, Image
+from core import load_replydata
 
-from utils.cfg_loader import loadcfg_from_file
+replydata = load_replydata()
+enable_countenance = False # 表情是否启用
+if len(replydata.get('img')) > 0:
+    enable_countenance = True
 
-config = loadcfg_from_file(r'./config/config.yml')
+__all__ = ['messagechain_builder']
 
-
-def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, imgurl: str = None, imgbase64=None,
-                 at: int = None, atall=False) -> MessageChain:
+def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, rndimg=False,
+                         imgurl: str = None, imgbase64=None,
+                         at: int = None, atall=False) -> MessageChain:
     msgchain = []
     if at:
         msgchain.append(At(at))
@@ -22,6 +33,11 @@ def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: 
         msgchain.append(Plain(text))
     if reply_choices or text:
         msgchain.append(Plain(' '))
+    if rndimg:
+        if enable_countenance:
+            msgchain.append(Plain("\n"))
+            msgchain.append(
+                Image(path=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
     if imgpath:
         if reply_choices or text:
             msgchain.append(Plain("\n"))

@@ -1,1 +1,1 @@
-from plugin.Setu.setu import enablesetu, disablesetu, getsomesetu
+from plugin.Setu.setu import *

@@ -1,1 +1,1 @@
-from plugin.draw_wife.drawwife import drawwife
+from plugin.draw_wife.drawwife import *

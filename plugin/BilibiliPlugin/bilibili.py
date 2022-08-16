@@ -1,18 +1,27 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/8/16 17:23
+:Update: /
+:Describe: BiliBili相关
+:Version: 0.0.1
+"""
+
 import re
 import aiohttp
 from mirai import GroupMessage, MessageChain, Plain, Image
-
-# from plugin import bot, config
-from core import bot,config
+from core import bot, config
 
 last_bvid = {}
 
 settings = config['settings']
 silencegroup = config['silencegroup']
 
+__all__ = ['bili_resolve']
+
+
 @bot.on(GroupMessage)
-# 哔哩哔哩解析
 async def bili_resolve(event: GroupMessage):
+    """bilibili链接解析"""
     if not settings['silence']:
         if event.group.id not in silencegroup:
             global last_bvid
@@ -22,7 +31,7 @@ async def bili_resolve(event: GroupMessage):
                 b23_url = re.findall('b23.tv/[A-Za-z0-9]+', text)[0]
                 url = f'https://{b23_url}'
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(url=url,allow_redirects=False) as resp:
+                    async with session.get(url=url, allow_redirects=False) as resp:
                         text = await resp.text()
             if 'BV' in text:
                 bvid = re.findall('BV[A-Za-z0-9]+', text)[0]

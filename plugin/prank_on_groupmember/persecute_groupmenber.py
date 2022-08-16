@@ -23,6 +23,8 @@ default_maxwidth = default_fontsize * 15
 :Describe: 一个'迫害'群友的插件
 """
 
+__all__ = ['groupmessage_screenshot']
+
 
 async def get_head_sculpture(userid) -> Image:
     """

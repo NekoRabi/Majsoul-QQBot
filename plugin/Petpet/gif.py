@@ -1,16 +1,32 @@
-from PIL import Image as IMG
-from PIL import ImageOps
-from moviepy.editor import ImageSequenceClip
+"""
+:Author:  NekoRabi
+:Update Time:  2022/8/16 19:31
+:Describe: 生成摸头gif
+:Version: 0.0.2
+"""
+import random
+import re
+
 import numpy
 import aiohttp
-from io import BytesIO
 import os
+from PIL import Image as IMG, ImageOps
+from moviepy.editor import ImageSequenceClip
+from io import BytesIO
+from mirai import MessageChain, Plain, Image, GroupMessage, At
+from mirai.models import NudgeEvent
+from core import bot, config, replydata, commandpre, commands_map
+from utils.MessageChainBuilder import messagechain_builder
 
-# 插件信息
-__name__ = "PetPet"
-__description__ = "生成摸头gif"
-__usage__ = "在群内发送 摸@目标 即可"
+__all__ = ['nudge_petpet']
 
+if not os.path.exists("./images/PetPet"):
+    os.mkdir("./images/PetPet")
+
+_settings = config.get('settings')
+_silencegroup = config['silencegroup']
+_nudgeconfig = config['nudgeconfig']
+_admin = config['admin']
 
 async def petpet_generator(qqnumber: int):
     if not os.path.exists("./images/PetPet"):
@@ -146,3 +162,71 @@ async def petpet(member_id, flip=False, squish=0, fps=15) -> None:
         gif_frames.append(await make_frame(ima, i, squish=squish, flip=flip))
     # 输出
     await save_gif(gif_frames, f'./images/PetPet/temp/tempPetPet-{member_id}.gif', fps=fps)
+
+
+@bot.on(NudgeEvent)
+async def nudge_petpet(event: NudgeEvent):
+    sender = event.from_id
+
+    if sender == bot.qq:
+        return
+    if (not _settings['silence']) or _settings['nudgereply']:
+        if event.subject.kind == 'Group':
+            if not (event.subject.id in _silencegroup or event.subject.id in _nudgeconfig['disnudgegroup']):
+                target = event.target
+                if target == bot.qq:
+                    if sender in _admin:
+                        await bot.send_group_message(event.subject.id, messagechain_builder(
+                            reply_choices=replydata['nudgedata']['_admin']))
+                        await petpet(target)
+                        await bot.send_group_message(event.subject.id,
+                                                     MessageChain(
+                                                         await Image.from_local(
+                                                             filename=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+                    else:
+                        if random.random() < _nudgeconfig['sendnudgechance']:
+                            if random.random() < _nudgeconfig['supersendnudgechance']:
+                                await bot.send_group_message(event.subject.id,
+                                                             messagechain_builder(
+                                                                 reply_choices=replydata['nudgedata'][
+                                                                     'supernudgereply'],
+                                                                 rndimg=True))
+                                for i in range(_nudgeconfig['supernudgequantity']):
+                                    await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
+                                return
+                            else:
+                                await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
+                                return await bot.send_group_message(event.subject.id,
+                                                                    messagechain_builder(
+                                                                        reply_choices=replydata['nudgedata'][
+                                                                            'nudgereply'],
+                                                                        rndimg=True))
+                        else:
+                            return await bot.send_group_message(event.subject.id,
+                                                                MessageChain(
+                                                                    [Plain(
+                                                                        random.choice(
+                                                                            replydata['nudgedata']['other']))]))
+                else:
+                    await petpet(target)
+                    await bot.send_group_message(event.subject.id,
+                                                 MessageChain(
+                                                     Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+    return
+
+
+@bot.on(GroupMessage)
+async def touchhead(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{commands_map['reply']['touchhead']}", msg.strip())
+    if m:
+        if At in event.message_chain:
+            target = event.message_chain.get_first(At).target
+            await petpet(target)
+            if await bot.send(event,
+                              MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif'))) == -1:
+                print('摸头发送失败')
+        # else:
+        #     target = m.group(2)
+        #     await petpet(target)
+        #     await bot.send(event, MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))

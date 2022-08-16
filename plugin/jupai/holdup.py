@@ -12,6 +12,7 @@ from core import bot, commandpre, commands_map
 if not os.path.exists("./images/jupai"):
     os.mkdir("./images/jupai")
 
+__all__ = ['jupai']
 
 def find_coeffs(pa, pb):
     matrix = []
@@ -68,11 +69,12 @@ def imgoutput(senderid: int, textMessage='拉克丝真可爱'):
     except OSError:
         print(OSError)
 
-    '''创建举牌文字'''
+
 
 
 @bot.on(GroupMessage)
 async def jupai(event: GroupMessage):
+    """创建举牌文字"""
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr'''^{commandpre}{commands_map['jupai']['jupai']}''', msg.strip())

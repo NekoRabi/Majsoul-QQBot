@@ -10,7 +10,6 @@ import sqlite3
 import os
 from plugin.TenHouPlugin.ptcalculation import ptcalculation
 from utils import text_to_image
-from utils.asyrequestpackge import finish_all_asytasks
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -51,6 +50,65 @@ def un_gz(file_name):
     # gzip对象用read()打开后，写入open()建立的文件里。
     g_file.close()
     # 关闭gzip对象
+
+
+def file_init():
+    if not os.path.exists("./database/TenHouPlugin"):
+        os.mkdir("./database/TenHouPlugin")
+
+    if not os.path.exists("./data/TenHouPlugin"):
+        os.mkdir("./data/TenHouPlugin")
+
+    cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
+    cursor = cx.cursor()
+    cursor.execute('create table if not exists watchedplayer ('
+                   'id integer primary key,'
+                   'watchedgroupcount integer not null default 0,'
+                   'playername varchar(50) UNIQUE)')
+    cursor.execute("create table if not exists QQgroup("
+                   "id integer primary key ,"
+                   "groupid integer UNIQUE)")
+    cursor.execute("create table IF NOT EXISTS group2player("
+                   "id integer primary key,"
+                   "groupid integer,"
+                   "playername varchar(50),"
+                   "iswatching integer not null default 1,"
+                   "UNIQUE(groupid,playername) ON CONFLICT REPLACE)")
+    cursor.execute("create table if not exists paipu("
+                   "id integer primary key,"
+                   "startTime varchar(50),"
+                   "model varchar(50),"
+                   "duration varchar(50),"
+                   "player1 varcher(50),"
+                   "player2 varcher(50),"
+                   "player3 varcher(50),"
+                   "player4 varcher(50)"
+                   ")")
+    cursor.execute("create table if not exists isgaming("
+                   "playername varchar(50),"
+                   "url varchar(20)"
+                   ")")
+
+    cursor.execute("create view if not exists groupwatches as "
+                   "select groupid,"
+                   "group_concat(playername) as watchedplayers,"
+                   "count(groupid) as watchnums "
+                   "from group2player "
+                   "where iswatching = 1 "
+                   "group by groupid")
+
+    cursor.execute("create view if not exists watchedplayersview as "
+                   "select playername,"
+                   "count(groupid) as watchedgroupcount "
+                   "from group2player "
+                   "where iswatching = 1 "
+                   "group by playername")
+    cx.commit()
+    cursor.close()
+    cx.close()
+
+
+file_init()
 
 
 # 自动抓取天风结算 - 异步爬虫
@@ -214,17 +272,19 @@ async def asyautoget_th_matching() -> list:
     return msglist
 
 
-class tenhou:
+class TenHou:
 
     def __init__(self):
         self.template = bordercast_temple
 
-    async def asygetTH(self):
+    @staticmethod
+    async def asygetTH():
         return await asyautoget_th_matching() + await asyautoget_th_match()
         # return finish_all_asytasks([asyautoget_th_matching(), asyautoget_th_match()], mergelist=True)
 
     # 添加关注
-    def addthwatch(self, playername: str, groupid: int):
+    @staticmethod
+    def addthwatch(playername: str, groupid: int):
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(f'select * from QQgroup where groupid = {groupid}')
@@ -288,7 +348,8 @@ class tenhou:
         cx.close()
         return "添加成功"
 
-    def removethwatch(self, playername: str, groupid: int):
+    @staticmethod
+    def removethwatch(playername: str, groupid: int):
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -311,9 +372,10 @@ class tenhou:
             return "删除成功"
         else:
             print("未关注该用户")
-            return ("删除成功")
+            return "删除成功"
 
-    def clearthwatch(self, groupid: int):
+    @staticmethod
+    def clearthwatch(groupid: int):
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         print(f'开始执行清除群聊{groupid}的天凤关注')
@@ -325,7 +387,8 @@ class tenhou:
         cx.close()
         return "清除成功"
 
-    def getthwatch(self, groupid: int) -> str:
+    @staticmethod
+    def getthwatch(groupid: int) -> str:
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
 
@@ -339,7 +402,8 @@ class tenhou:
         cx.close()
         return msg
 
-    async def getthpt(self, playername: str, reset) -> dict:
+    @staticmethod
+    async def getthpt(playername: str, reset) -> dict:
         result = await ptcalculation(playername, reset)
         return dict(msg=result, img64=text_to_image(text=result, needtobase64=True))
 
@@ -424,4 +488,4 @@ def forwardmessage(msglist: list) -> list:
     return messageChainList
 
 
-tenhouobj = tenhou()
+tenhou = TenHou()

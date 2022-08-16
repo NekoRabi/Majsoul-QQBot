@@ -8,6 +8,8 @@ from mirai import GroupMessage, Plain, At
 # from plugin.preinit.create_bot import bot
 from core import bot
 
+__all__ = ['cskill']
+
 from utils.MessageChainBuilder import messagechain_builder
 
 

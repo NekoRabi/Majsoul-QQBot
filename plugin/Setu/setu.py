@@ -2,33 +2,31 @@ import asyncio
 import base64
 import random
 import re
-from io import BytesIO
-
 import yaml
 import aiohttp
 import json
 
+from io import BytesIO
 from mirai import GroupMessage, Plain
-
 from core import bot, commandpre, commands_map, config
 from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import cmdbuffer, groupcommand
 from utils.cfg_loader import w_cfg_to_file
 
-'''
-r18	int	0	0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
-num	int	1	一次返回的结果数量，范围为1到100；在指定关键字或标签的情况下，结果数量可能会不足指定的数量
-uid	int[]		返回指定uid作者的作品，最多20个
-keyword	string		返回从标题、作者、标签中按指定关键字模糊匹配的结果，大小写不敏感，性能和准度较差且功能单一，建议使用tag代替
-tag	string[]		返回匹配指定标签的作品，详见下文
-size	string[]	["original"]	返回指定图片规格的地址，详见下文
-proxy	string	i.pixiv.cat	设置图片地址所使用的在线反代服务，详见下文
-dateAfter	int		返回在这个时间及以后上传的作品；时间戳，单位为毫秒
-dateBefore	int		返回在这个时间及以前上传的作品；时间戳，单位为毫秒
-dsc	boolean	false
+###
+# r18	int	0	0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
+# num	int	1	一次返回的结果数量，范围为1到100；在指定关键字或标签的情况下，结果数量可能会不足指定的数量
+# uid	int[]		返回指定uid作者的作品，最多20个
+# keyword	string		返回从标题、作者、标签中按指定关键字模糊匹配的结果，大小写不敏感，性能和准度较差且功能单一，建议使用tag代替
+# tag	string[]		返回匹配指定标签的作品，详见下文
+# size	string[]	["original"]	返回指定图片规格的地址，详见下文
+# proxy	string	i.pixiv.cat	设置图片地址所使用的在线反代服务，详见下文
+# dateAfter	int		返回在这个时间及以后上传的作品；时间戳，单位为毫秒
+# dateBefore	int		返回在这个时间及以前上传的作品；时间戳，单位为毫秒
+# dsc	boolean	false
+###
 
-'''
-
+__all__ = ['getsomesetu', 'enablesetu', 'disablesetu']
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",

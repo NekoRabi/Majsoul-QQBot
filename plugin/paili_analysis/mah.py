@@ -1,16 +1,12 @@
 import pickle
 from plugin.paili_analysis.utils import *
 from plugin.paili_analysis.dfs import *
-
 from mirai import GroupMessage, Plain
-
-# from plugin.preinit.create_bot import bot
 from core import bot
-
 from utils.MessageChainBuilder import messagechain_builder
-
 from utils.text_to_img import text_to_image
 
+__all__ = ['paili_calculator']
 
 # 焰胡
 def yanhu(hc: str):

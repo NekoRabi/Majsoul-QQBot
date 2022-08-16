@@ -4,8 +4,10 @@ from io import BytesIO
 from typing import Union
 from PIL import Image, ImageDraw, ImageFont
 
+__all__ = ['text_to_image']
 
-def get_random_color():
+
+def _get_random_color():
     color = '#'
     colorchoice = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F']
     for i in range(6):
@@ -54,10 +56,10 @@ def text_to_image(text: Union[str, dict, set, list, tuple] = None, path: str = N
         bgimg = Image.new('RGB', (maxwidth + 2 * (fontsize + 5), (len(texts) + 2) * (fontsize + 5)), bgkcolor)
     bx, by = bgimg.size
     textdraw = ImageDraw.Draw(bgimg)
-    textdraw.line((1, 1, 1, 1), get_random_color(), 1)
-    textdraw.line((bx - 2, by - 2, bx - 2, by - 2), get_random_color(), 1)
-    textdraw.line((1, by - 2, 1, by - 2), get_random_color(), 1)
-    textdraw.line((bx - 2, 1, bx - 2, 1), get_random_color(), 1)
+    textdraw.line((1, 1, 1, 1), _get_random_color(), 1)
+    textdraw.line((bx - 2, by - 2, bx - 2, by - 2), _get_random_color(), 1)
+    textdraw.line((1, by - 2, 1, by - 2), _get_random_color(), 1)
+    textdraw.line((bx - 2, 1, bx - 2, 1), _get_random_color(), 1)
     for i in range(len(texts)):
         textdraw.text((fontsize, i * (fontsize + 5) + fontsize), text=f'{texts[i].strip()}',
                       font=font, fill=fontcolor)

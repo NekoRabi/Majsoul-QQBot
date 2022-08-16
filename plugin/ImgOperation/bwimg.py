@@ -1,11 +1,10 @@
 import os
 import re
-
 from PIL import Image as IMG, ImageDraw, ImageFont
 from mirai import GroupMessage, Plain, Image, MessageChain
-
-# from plugin.preinit.create_bot import bot
 from core import bot, commandpre, commands_map
+
+__all__ = ['bwimg']
 
 if not os.path.exists("./images/ImgOperation"):
     os.mkdir("./images/ImgOperation")

@@ -2,7 +2,6 @@ numpy~=1.22.4
 Pillow~=9.1.1
 aiohttp~=3.8.1
 moviepy~=1.0.3
-requests~=2.27.1
 PyYAML~=6.0
 APScheduler~=3.9.1
 yiri-mirai = 0.2.6.2

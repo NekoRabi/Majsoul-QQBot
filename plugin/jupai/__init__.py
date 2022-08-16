@@ -1,1 +1,1 @@
-from plugin.jupai.holdup import jupai
+from plugin.jupai.holdup import *

@@ -1,20 +1,24 @@
-from PIL import Image as IMG
-from PIL import ImageDraw
-from moviepy.editor import ImageSequenceClip as imageclip
+import re
 import numpy
 import aiohttp
-from io import BytesIO
 import os
 
-# 插件信息
-__name__ = "KissKiss"
-__description__ = "生成亲吻gif"
-__author__ = "Super_Water_God"
-__usage__ = "在群内发送 亲@目标 即可"
+from PIL import Image as IMG
+from PIL import ImageDraw
+from mirai import GroupMessage, Plain, At
+from moviepy.editor import ImageSequenceClip as imageclip
+from io import BytesIO
+from core import bot, commands_map, commandpre
+from utils.MessageChainBuilder import messagechain_builder
+
+if not os.path.exists("./images/KissKiss"):
+    os.mkdir("./images/KissKiss")
+
+__all__ = ['on_kiss']
 
 async def save_gif(gif_frames, dest, fps=10):
     clip = imageclip(gif_frames, fps=fps)
-    clip.write_gif(dest)
+    clip.write_gif(dest, logger=None, program='ffmpeg')
     clip.close()
 
 
@@ -32,30 +36,22 @@ async def kiss_make_frame(operator, target, i):
 
 
 async def kiss(operator_id, target_id) -> None:
-
-
     if not os.path.exists("./images/KissKiss"):
         os.mkdir("./images/KissKiss")
     if not os.path.exists("./images/KissKiss/temp"):
         os.mkdir("./images/KissKiss/temp")
-    operator_url = f'http://q1.qlogo.cn/g?b=qq&nk={str(operator_id)}&s=640'
-    target_url = f'http://q1.qlogo.cn/g?b=qq&nk={str(target_id)}&s=640'
+    operator_url = f'http://q1.qlogo.cn/g?b=qq&nk={operator_id}&s=640'
+    target_url = f'http://q1.qlogo.cn/g?b=qq&nk={target_id}&s=640'
     gif_frames = []
-    if str(operator_id) != "":  # admin自定义
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=operator_url) as resp:
-                operator_img = await resp.read()
-        operator = IMG.open(BytesIO(operator_img))
-    else:
-        operator = IMG.open("./plugin/KissKiss/avatar.png").convert("RGBA")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url=operator_url) as resp:
+            operator_img = await resp.read()
+    operator = IMG.open(BytesIO(operator_img))
 
-    if str(target_id) != "":  # admin自定义
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=target_url) as resp:
-                target_img = await resp.read()
-        target = IMG.open(BytesIO(target_img)).convert("RGBA")
-    else:
-        target = IMG.open("./plugin/KissKiss/avatar.png")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url=target_url) as resp:
+            target_img = await resp.read()
+    target = IMG.open(BytesIO(target_img)).convert("RGBA")
 
     operator = operator.resize((40, 40), IMG.ANTIALIAS)
     size = operator.size
@@ -80,3 +76,21 @@ async def kiss(operator_id, target_id) -> None:
     for i in range(1, 14):
         gif_frames.append(await kiss_make_frame(operator, target, i))
     await save_gif(gif_frames, f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif', fps=25)
+
+
+# 亲亲
+
+@bot.on(GroupMessage)
+async def on_kiss(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{commands_map['reply']['kisskiss']}", msg.strip())
+    if m:
+        if At in event.message_chain:
+            operator_id = event.sender.id
+            target_id = event.message_chain.get_first(At).target
+            if operator_id == target_id:
+                return await bot.send(event, messagechain_builder(text="请不要自交", rndimg=True))
+            else:
+                await kiss(operator_id=operator_id, target_id=target_id)
+                await bot.send(event, messagechain_builder(
+                    imgpath=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif'))

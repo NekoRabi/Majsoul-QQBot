@@ -1,17 +1,13 @@
 import base64
 import random
-from io import BytesIO
-
 import aiohttp
-from mirai import GroupMessage, Plain
-
-# from plugin.preinit.create_bot import bot
-from core import bot
-
-from utils.MessageChainBuilder import messagechain_builder
-
-from PIL import Image, ImageDraw
 import re
+
+from io import BytesIO
+from mirai import GroupMessage, Plain
+from core import bot
+from utils.MessageChainBuilder import messagechain_builder
+from PIL import Image, ImageDraw
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -26,6 +22,7 @@ user_agent_list = [
 
 asytimeout = aiohttp.ClientTimeout(total=60)
 
+__all__ = ['drawwife']
 
 async def download_img(url):
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=asytimeout,

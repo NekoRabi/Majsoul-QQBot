@@ -13,6 +13,8 @@ import base64
 if not os.path.exists("./images/ImgOperation"):
     os.mkdir("./images/ImgOperation")
 
+__all__ = ['xka', 'daiburen']
+
 
 def img_to_base64(img: Image):
     img_bytes = BytesIO()

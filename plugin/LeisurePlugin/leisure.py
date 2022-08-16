@@ -1,15 +1,41 @@
-import sqlite3
-import time, datetime
+import datetime
 import os
-from mirai import MessageChain
+import re
+import sqlite3
+import time
+
+from mirai import GroupMessage, Plain
+from core import bot, commandpre, commands_map
 from utils.MessageChainBuilder import messagechain_builder
-from plugin.LeisurePlugin.tarot import TarotCards
+from utils.MessageChainSender import sendMsgChain
 
 if not os.path.exists("./database/LeisurePlugin"):
     os.mkdir("./database/LeisurePlugin")
 
+usetarot = False
 
-def signup(userid: int) -> tuple:
+if os.path.exists(r'./plugin/Tarot/tarot.py'):
+    usetarot = True
+
+
+def db_init():
+    cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
+    cursor = cx.cursor()
+    cursor.execute('create table IF NOT EXISTS userinfo('
+                   'id integer primary key,'
+                   'userid integer UNIQUE,'
+                   'score integer default 0,'
+                   'lastsignin varchar(50),'
+                   'keepsigndays integer not null default 1'
+                   ')')
+    cx.commit()
+    cx.close()
+
+
+__all__ = ['sign_In', 'getuserscore']
+
+
+def sign_in(userid: int) -> tuple:
     singinmsg = "签到成功,积分+1\n当前积分 : "
     cx = sqlite3.connect("./database/LeisurePlugin/leisure.sqlite")
     cursor = cx.cursor()
@@ -21,7 +47,7 @@ def signup(userid: int) -> tuple:
         cursor.execute(f"insert into userinfo(userid,score,lastsignin) values({userid},1,'{today}')")
         cx.commit()
         singinmsg += "1\n这是你今天的塔罗牌"
-        return True,singinmsg
+        return True, singinmsg
     lastday_stamp = int(time.mktime(time.strptime(user[0][1], "%Y-%m-%d")))
     differ = (datetime.datetime.fromtimestamp(td_stamp) - datetime.datetime.fromtimestamp(lastday_stamp)).days
     if today != user[0][1]:
@@ -31,7 +57,8 @@ def signup(userid: int) -> tuple:
                 f"update userinfo set lastsignin = '{today}',score = score + 1,keepsigndays = keepsigndays + 1 where userid = {userid}")
         else:
             singinmsg += f"{user[0][0] + 1},连续签到中断惹~\n这是你今天的塔罗牌"
-            cursor.execute(f"update userinfo set lastsignin = '{today}',score = score + 1 ,keepsigndays = 1 where userid = {userid}")
+            cursor.execute(
+                f"update userinfo set lastsignin = '{today}',score = score + 1 ,keepsigndays = 1 where userid = {userid}")
         cx.commit()
     else:
         return False, "一天只能签到一次哦~"
@@ -66,3 +93,37 @@ def endfishing(userid: int) -> dict:
     msg = ""
     errmsg = ""
     return dict(success=True, msg=msg, errmsg=errmsg)
+
+
+# 签到获取积分
+
+@bot.on(GroupMessage)
+async def sign_In(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{commands_map['sys']['signin']}", msg.strip())
+    if m:
+        success, signmsg = sign_in(event.sender.id)
+        if success:
+            if usetarot:
+                from plugin.Tarot.tarot import tarotcards
+                card = tarotcards.drawcards(userid=event.sender.id)[0]
+                return await bot.send(event,
+                                      messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
+            else:
+                return await sendMsgChain(messagechain_builder(at=event.sender.id, text=signmsg))
+        else:
+            return await bot.send(event, messagechain_builder(at=event.sender.id, text=signmsg, rndimg=True))
+
+
+# 查询积分
+
+@bot.on(GroupMessage)
+async def getuserscore(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{commands_map['sys']['getscore']}", msg.strip())
+    if m:
+        scoremsg = getscore(
+            userid=event.sender.id)
+        return await bot.send(event, messagechain_builder(text=scoremsg, rndimg=True))
+
+db_init()

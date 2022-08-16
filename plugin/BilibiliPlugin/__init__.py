@@ -1,1 +1,1 @@
-from plugin.BilibiliPlugin.bilibili import bili_resolve
+from plugin.BilibiliPlugin.bilibili import *

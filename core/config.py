@@ -4,11 +4,14 @@ import sys
 from utils import text_to_image
 from utils.cfg_loader import loadcfg_from_file, w_cfg_to_file
 
+__all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map', 'load_replydata', 'load_commands',
+           'load_config', 'create_helpimg', 'create_init_config']
+
 config = {}
 replydata = {}
-syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig',
-          'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master',
-          'voicesetting', 'mutegrouplist', 'setugroups', 'welcomeinfo', 'replyimgpath', 'searchfrequency'}
+_syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig',
+           'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master',
+           'voicesetting', 'mutegrouplist', 'setugroups', 'welcomeinfo', 'replyimgpath', 'searchfrequency'}
 
 
 def load_config() -> dict:
@@ -65,22 +68,20 @@ def load_commands() -> dict:
     try:
         all_commands = loadcfg_from_file(r'./config/command.yml')
         return all_commands
-    except Exception as e:
-        print(f"发生未知错误{e}")
+    except Exception as _e:
+        print(f"发生未知错误{_e}")
 
 
 def create_helpimg():
-    help = loadcfg_from_file(r'./data/sys/help.yml')
-    grouphelp = help['grouphelp']
-    friendhelp = help['friendhelp']
+    _help = loadcfg_from_file(r'./data/sys/help.yml')
+    grouphelp = _help['grouphelp']
+    friendhelp = _help['friendhelp']
     text_to_image(path='grouphelp.png', text=grouphelp)
     text_to_image(path='friendhelp.png', text=friendhelp)
 
 
 def create_init_config():
-    """
-    生成默认配置
-    """
+    """生成默认配置"""
     sys_config = dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0], setugroups=[0],
                       welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
                       silencegroup=[0], norepeatgroup=[0], disnudgegroup=[0], commandpre="", searchfrequency=6,
@@ -107,7 +108,7 @@ try:
         create_init_config()
         print("默认文件生成完成，请重新启动")
         sys.exit(0)
-    for key in syskey:
+    for key in _syskey:
         if key not in config.keys():
             print(f"缺少关键字 {key}，尝试生成初始文件中...")
             create_init_config()
@@ -115,21 +116,21 @@ try:
             sys.exit(0)
     for k, v in config.items():
         print(k, v)
-    settings = config['settings']
-    welcomeinfo = config.get('welcomeinfo', [])
-    botconfig = config['botconfig']
-    botname = botconfig['botname']
-    voicesetting = config['voicesetting']
-    master = config['master']
+    _settings = config['settings']
+    _welcomeinfo = config.get('welcomeinfo', [])
+    _botconfig = config['botconfig']
+    _botname = _botconfig['botname']
+    _voicesetting = config['voicesetting']
+    master = config.get('master', 0)
     replydata['replyimgpath'] = config['replyimgpath']
     if master == 0:
         print('请输入机器人主人 ( master )')
-    if settings['voice']:
-        if voicesetting['secretId'].strip() == '' or voicesetting['secretKey'] == '':
+    if _settings['voice']:
+        if _voicesetting['secretId'].strip() == '' or _voicesetting['secretKey'] == '':
             print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
-            settings['voice'] = False
+            _settings['voice'] = False
             w_cfg_to_file(content=config, path=r'./config/config.yml')
-    if len(welcomeinfo) == 0:
+    if len(_welcomeinfo) == 0:
         print("入群欢迎文本不存在，该功能将关闭")
         config['settings']['autowelcome'] = False
 except Exception as e:
@@ -141,3 +142,6 @@ except Exception as e:
 
 commandpre = config.get('commandpre', '')
 commands_map = load_commands()
+admin = config['admin']
+if master != 0 and master not in admin:
+    admin.append(master)

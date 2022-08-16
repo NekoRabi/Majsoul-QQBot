@@ -1,7 +1,26 @@
-from PIL import ImageDraw, ImageFont, Image as IMG
+"""
+:Author:  NekoRabi
+:Update Time:  2022/8/16 16:17
+:Describe: 重开图片生成
+:Version: 0.0.2
+"""
+
+import re
 import numpy
+import os
+from PIL import ImageDraw, ImageFont, Image as IMG
+from mirai import GroupMessage, Plain, MessageChain, Image
+from core import bot, commandpre, commands_map
+from utils.MessageChainBuilder import messagechain_builder
+from utils.bufferpool import cmdbuffer, groupcommand
+
+
+if not os.path.exists("./images/Remake"):
+    os.mkdir("./images/Remake")
 
 score = 0
+
+__all__ = ['getremakeimg']
 
 
 def getattribute() -> list:
@@ -65,6 +84,12 @@ def getstart(worlddifficulty: str = None, worldtype: str = None) -> list:
 
 
 def addfont(img: IMG, senderid):
+    """
+    添加文字
+    :param img: PIL.Image
+    :param senderid: 发消息的用户id，用来生成图片的uid
+    :return:
+    """
     draw = ImageDraw.Draw(img)
     h1font = ImageFont.truetype(
         font='./plugin/Remake/font/MiSans-Bold.ttf', size=40)
@@ -84,6 +109,14 @@ def addfont(img: IMG, senderid):
 
 
 def create_remakeimg(senderid: int, basic_score: int = 30, worlddifficulty: str = None, worldtype: str = None):
+    """
+    生成重开图片
+    :param senderid: 发送人id
+    :param basic_score: 基础分
+    :param worlddifficulty: 世界难度
+    :param worldtype: 世界类型
+    :return:
+    """
     bgk = IMG.new('RGB', (900, 800), (230, 220, 210))
     img = IMG.open('./plugin/Remake/remake.jpg').convert("RGBA")
     count = 0
@@ -110,3 +143,26 @@ def create_remakeimg(senderid: int, basic_score: int = 30, worlddifficulty: str 
 
     addfont(bgk, senderid=senderid)
     bgk.save(fp=f'./images/Remake/{senderid}.png')
+
+
+@bot.on(GroupMessage)
+async def getremakeimg(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{commands_map['remake']['remake']}", msg.strip())
+    if m:
+
+        if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'remake')):
+            return bot.send(event, messagechain_builder(text="好快的重开", at=event.sender.id))
+        senderid = event.sender.id
+        if m.group(2):
+            basic_score = int(m.group(2))
+        else:
+            basic_score = 30
+        if m.group(3):
+            worlddifficulty = m.group(3)
+        else:
+            worlddifficulty = None
+        create_remakeimg(senderid, basic_score=basic_score,
+                         worlddifficulty=worlddifficulty)
+        await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
+    return
