@@ -28,6 +28,7 @@ _silencegroup = config['silencegroup']
 _nudgeconfig = config['nudgeconfig']
 _admin = config['admin']
 
+
 async def petpet_generator(qqnumber: int):
     if not os.path.exists("./images/PetPet"):
         os.mkdir("./images/PetPet")
@@ -177,7 +178,7 @@ async def nudge_petpet(event: NudgeEvent):
                 if target == bot.qq:
                     if sender in _admin:
                         await bot.send_group_message(event.subject.id, messagechain_builder(
-                            reply_choices=replydata['nudgedata']['_admin']))
+                            reply_choices=replydata['nudgedata']['admin']))
                         await petpet(target)
                         await bot.send_group_message(event.subject.id,
                                                      MessageChain(

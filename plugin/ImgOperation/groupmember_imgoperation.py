@@ -1,5 +1,7 @@
+import random
+
 from utils.MessageChainBuilder import *
-from mirai import GroupMessage
+from mirai import GroupMessage, At, Plain
 # from plugin.preinit.create_bot import bot
 from core import bot
 from io import BytesIO

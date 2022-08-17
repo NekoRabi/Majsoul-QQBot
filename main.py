@@ -1,6 +1,6 @@
 import datetime
 import logging
-
+import nest_asyncio
 import websockets.exceptions
 from apscheduler.triggers.cron import CronTrigger
 from mirai import GroupMessage, At, Image, MessageEvent, Voice, MessageChain
@@ -13,6 +13,8 @@ from utils.bufferpool import cmdbuffer
 from utils.cfg_loader import w_cfg_to_file
 from utils.file_cleaner import cleaner
 from utils.text_to_voice import VoiceCreater
+
+nest_asyncio.apply()
 
 if __name__ == '__main__':
 
@@ -29,9 +31,6 @@ if __name__ == '__main__':
     settings = config['settings']
     botname = config['botconfig']['botname']
     alarmclockgroup = config['alarmclockgroup']
-    silencegroup = config['silencegroup']
-    qhsettings = config['qhsettings']
-    nudgeconfig = config['nudgeconfig']
     vc = None
 
     if settings['voice']:

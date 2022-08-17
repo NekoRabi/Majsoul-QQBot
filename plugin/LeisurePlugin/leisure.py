@@ -126,4 +126,5 @@ async def getuserscore(event: GroupMessage):
             userid=event.sender.id)
         return await bot.send(event, messagechain_builder(text=scoremsg, rndimg=True))
 
+
 db_init()

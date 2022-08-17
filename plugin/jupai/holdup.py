@@ -6,7 +6,6 @@ import random
 import numpy as np
 from mirai import GroupMessage, Plain, MessageChain, Image
 
-# from plugin.preinit.create_bot import bot
 from core import bot, commandpre, commands_map
 
 if not os.path.exists("./images/jupai"):

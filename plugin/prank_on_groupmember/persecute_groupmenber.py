@@ -1,17 +1,15 @@
 import base64
 import re
-import aiohttp
 from io import BytesIO
 
+import aiohttp
 import mirai.exceptions
-from mirai import MessageChain
-
+from PIL import Image, ImageFont, ImageDraw
+from mirai.models import Plain, GroupMessage, Quote
 
 # from plugin.preinit.create_bot import bot
 from core import bot
 from utils.MessageChainBuilder import messagechain_builder
-from mirai.models import Plain, GroupMessage, Quote
-from PIL import Image, ImageFont, ImageDraw
 
 default_fontsize = 48
 default_maxwidth = default_fontsize * 15
@@ -185,10 +183,8 @@ async def groupmessage_screenshot(event: GroupMessage):
         if Quote in event.message_chain:
             quote = event.message_chain.get_first(Quote)  # 获取回复文本
             message_event_id = quote.id
-            # print(quote.origin, end='\n--------------------------------')
             try:
                 message_event = await bot.message_from_id(message_event_id)
-                # print(message_event)
                 origin_msg = "".join(map(str, message_event.message_chain[Plain]))
             except mirai.exceptions.ApiError as e:
                 # print(f'获取回复消息发送错误{e}')

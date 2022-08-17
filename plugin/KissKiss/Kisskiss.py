@@ -16,6 +16,7 @@ if not os.path.exists("./images/KissKiss"):
 
 __all__ = ['on_kiss']
 
+
 async def save_gif(gif_frames, dest, fps=10):
     clip = imageclip(gif_frames, fps=fps)
     clip.write_gif(dest, logger=None, program='ffmpeg')
