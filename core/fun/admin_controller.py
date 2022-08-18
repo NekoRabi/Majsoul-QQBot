@@ -6,15 +6,20 @@
 :Version: 0.0.1
 """
 
-
 import re
 
-from mirai import FriendMessage, Plain
+from mirai import FriendMessage, Plain, GroupMessage
 
 from core import bot, master, commandpre, commands_map, config, admin
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import sendMsgChain
 from utils.cfg_loader import w_cfg_to_file
+
+_whitelist = config['whitelist']
+
+_black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
+
+__all__ = ['addblacklist', 'addwhitelist', 'addadmin', 'deladmin', 'delblacklist', 'getbotinfo', 'getsyslog']
 
 
 @bot.on(FriendMessage)
@@ -55,3 +60,78 @@ async def deladmin(event: FriendMessage):
     else:
         await bot.send(event, messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
     return
+
+
+@bot.on(FriendMessage)
+async def getbotinfo(event: FriendMessage):
+    """获取bot信息"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    userid = event.sender.id
+    m = re.match(fr"^{commandpre}{commands_map['sys']['getbotinfo']}", msg.strip())
+    if m:
+        if userid in admin:
+            return await bot.send(event,
+                                  f"机器人设置:{config}\n白名单用户:{_whitelist}\n黑名单用户:{_black_list['user']}\n屏蔽群组:{_black_list['group']}")
+
+
+@bot.on(GroupMessage)
+async def addwhitelist(event: GroupMessage):
+    """添加白名单,目前没用"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    userid = event.sender.id
+    m = re.match(fr"^{commandpre}{commands_map['sys']['addwhitelist']}", msg.strip())
+    if m:
+        if userid in admin and userid not in _whitelist:
+
+            _whitelist.append(int(m.group(1)))
+            w_cfg_to_file(content=config, path=r'./config/config.yml')
+            print(m)
+            return await bot.send(event, "添加成功")
+        else:
+            return await bot.send(event, "添加失败,用户已存在")
+
+
+@bot.on(FriendMessage)
+async def addblacklist(event: FriendMessage):
+    """添加黑名单,目前没用"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    userid = event.sender.id
+    m = re.match(fr"^{commandpre}{commands_map['sys']['addblacklist']}", msg.strip())
+    if m:
+        if userid in admin:
+            if int(m.group(1)) in admin:
+                return await bot.send(event, "请不要将管理员加入黑名单")
+            _black_list['user'].append(int(m.group(1)))
+
+            w_cfg_to_file(content=config, path=r'./config/config.yml')
+            print(m)
+            return await bot.send(event, "添加成功")
+        else:
+            return await bot.send(event, "添加失败,用户已存在")
+
+
+@bot.on(FriendMessage)
+async def delblacklist(event: FriendMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    userid = event.sender.id
+    m = re.match(fr"^{commandpre}{commands_map['sys']['delblacklist']}", msg.strip())
+    if m:
+        if userid in admin:
+            delperson = int(m.group(1))
+            if delperson in _black_list['user']:
+                _black_list['user'].remove(delperson)
+
+                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                return await bot.send(event, "删除成功")
+            else:
+                return await bot.send(event, "删除失败,用户不存在")
+
+
+@bot.on(FriendMessage)
+async def getsyslog(event: FriendMessage):
+    if event.sender.id in admin:
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr"^{commandpre}{commands_map['sys']['log']}", msg.strip())
+        if m:
+            return await bot.send(event, "日志功能开发中")

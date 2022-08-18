@@ -1,13 +1,12 @@
 """
 :Author:  NekoRabi
-:Update Time:  2022/8/16 16:15
-:Describe: 随即消息回复
-:Version: 0.0.2
+:Update Time: 2022/8/18 2:38
+:Describe: 消息自动回复插件
+:Version: 0.0.3
 """
 import random
 import re
-
-from mirai import GroupMessage, Plain
+from mirai import GroupMessage, Plain, FriendMessage, At
 
 from core import bot, bot_cfg, config, commandpre, commands_map, replydata
 from utils.MessageChainBuilder import messagechain_builder
@@ -25,7 +24,7 @@ botname = bot_cfg.get('nickname', '')
 admin = config['admin']
 black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
 
-__all__ = ['duideduide','randominterrupt','diyreply','config_group_repeat']
+__all__ = ['duideduide', 'randominterrupt', 'diyreply', 'config_group_repeat', 'sendgroupat', 'sendmsgtogroup']
 
 
 @bot.on(GroupMessage)
@@ -161,3 +160,27 @@ async def config_group_repeat(event: GroupMessage):
                     print(f'已将{event.group.id}的复读开启')
                     norepeatgroup.remove(event.group.id)
                     w_cfg_to_file(content=config, path=r'./config/config.yml')
+
+
+@bot.on(FriendMessage)
+async def sendmsgtogroup(event: FriendMessage):
+    """向某群发送消息,假装机器人"""
+    if event.sender.id in admin:
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr"^{commandpre}{commands_map['sys']['sendmsgtogroup']}", msg.strip())
+        if m:
+            return await bot.send_group_message(int(m.group(1)), m.group(2))
+
+
+@bot.on(GroupMessage)
+async def sendgroupat(event: GroupMessage):
+    """发送带有At的消息串"""
+    if event.sender.id in admin:
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr"^{commandpre}at::\s*([\u4e00-\u9fa5\w%&',@;=?!^.$\x22，。？！]+)\s*$", msg.strip())
+        if m:
+            if At in event.message_chain:
+                target = event.message_chain.get_first(At).target
+                return await bot.send(event, messagechain_builder(at=target, text=f" {m.group(1)}"))
