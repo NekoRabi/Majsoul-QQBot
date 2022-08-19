@@ -34,7 +34,7 @@ async def welcome(event: MemberJoinEvent) -> None:
         await sendMsgChain(
             messagechain_builder(text=info, at=personid), grouptarget=event.member.group.id)
         if os.path.exists(r'./plugin/Petpet/gif.py'):
-            from plugin import petpet
+            from plugin.Petpet.gif import petpet
             await petpet(personid)
             await sendMsgChain(grouptarget=groupid,
                                msg=messagechain_builder(imgpath=f'./images/PetPet/temp/tempPetPet-{personid}.gif'))

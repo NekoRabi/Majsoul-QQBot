@@ -329,7 +329,7 @@ async def qhdrawcards(event: GroupMessage):
             else:
                 result = majsoul.drawcards(userid=event.sender.id, up=False)
                 if result['error']:
-                    return await bot.send(event, messagechain_builder(at=event.sender.id), text=result['resultsmsg'])
+                    return await bot.send(event, messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
                 mergeimgs(
                     result.get('results'), event.sender.id)
                 await bot.send(event, messagechain_builder(

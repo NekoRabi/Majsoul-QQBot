@@ -7,6 +7,8 @@ import aiohttp
 import json
 
 from io import BytesIO
+
+from PIL.Image import Image
 from mirai import GroupMessage, Plain
 from core import bot, commandpre, commands_map, config
 from utils.MessageChainBuilder import messagechain_builder
@@ -39,16 +41,27 @@ user_agent_list = [
 ]
 
 
-async def download_setu_base64_from_url(url):
+async def download_setu_base64_from_url(userid):
+    url = f'http://q1.qlogo.cn/g?b=qq&nk={userid}&s=640'
     async with aiohttp.ClientSession() as session:
         async with session.get(url=url) as resp:
             img_content = await resp.read()
 
-    # 将图片转换为 base64
-    img_bytes = BytesIO(img_content)
-    b_content = img_bytes.getvalue()
-    imgcontent = base64.b64encode(b_content)
-    return imgcontent
+    pic_base64 = base64.b64encode(img_content)
+    print(pic_base64)
+    return pic_base64
+
+
+# async def download_setu_base64_from_url(url):
+#     async with aiohttp.ClientSession() as session:
+#         async with session.get(url=url) as resp:
+#             img_content = await resp.read()
+#
+#     # 将图片转换为 base64
+#     img_bytes = BytesIO(img_content)
+#     b_content = img_bytes.getvalue()
+#     imgcontent = base64.b64encode(b_content)
+#     return imgcontent
 
 
 async def getsetuinfo(description: str, num: int) -> dict:
@@ -192,7 +205,9 @@ async def getsomesetu(event: GroupMessage):
                         m1.group(2), groupid=event.group.id)
                     if imginfo['FoundError']:
                         return await bot.send(event, messagechain_builder(at=event.sender.id, text=imginfo['ErrorMsg']))
+                    # imgb64 = download_setu_base64_from_url(imginfo['url'])
                     res = await bot.send(event, messagechain_builder(imgurl=imginfo['url']))
+                    # res = await bot.send(event,messagechain_builder(imgbase64=imgb64))
                     if res != -1 and stfinder.recalltime != -1:
                         await asyncio.sleep(stfinder.recalltime)
                         await bot.recall(res)
@@ -210,9 +225,14 @@ async def getsomesetu(event: GroupMessage):
             if settings['setu'] and event.group.id in config['setugroups']:
                 if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧"))
+                setu_num = m2.group(1)
+                if not setu_num:
+                    setu_num = 1
+                else:
+                    setu_num = int(setu_num)
                 try:
                     imginfo = await stfinder.getsetu(
-                        m2.group(2), event.group.id, int(m2.group(1)))
+                        m2.group(2), event.group.id, setu_num)
                     if imginfo['FoundError']:
                         return await bot.send(event, messagechain_builder(at=event.sender.id, text=imginfo['ErrorMsg']))
                     res = await bot.send(event, messagechain_builder(imgurl=imginfo['url']))

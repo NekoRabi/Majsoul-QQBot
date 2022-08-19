@@ -90,4 +90,9 @@ async def cskill(event: GroupMessage):
         elif At in event.message_chain:
             target_id = event.message_chain.get_first(At).target
             memberinfo = await bot.get_group_member(group=event.group.id, id_=target_id)
-            await bot.send(event, await jisha(event.sender.member_name, memberinfo.member_name))
+            if not memberinfo:
+                memberprofile = await bot.member_profile.get(target=event.group.id, member_id=target_id)
+                membername = memberprofile.nickname
+            else:
+                membername = memberinfo.member_name
+            await bot.send(event, await jisha(event.sender.member_name, membername))

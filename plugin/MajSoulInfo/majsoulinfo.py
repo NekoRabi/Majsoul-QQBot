@@ -182,7 +182,7 @@ class MajsoulQuery:
         except asyncio.TimeoutError as e:
             print(e)
             ERROR = True
-            paipuInfo = '牌谱查询超时'
+            paipuInfo = '牌谱查询超时,请稍后再试'
         result = dict(msg=paipuInfo, err=ERROR)
         if not ERROR:
             result['img64'] = text_to_image(text=paipuInfo, needtobase64=True)
@@ -475,7 +475,7 @@ class MajsoulQuery:
             msg += paipumsg
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n牌谱读取超时:\t{e}\n')
-            return dict(msg="查询超时,请再试一次", error=True)
+            return dict(msg="查询超时,请稍后再试", error=True)
         try:
             if selecttype == "4":
                 url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=16.12.9.15.11.8"
@@ -497,7 +497,7 @@ class MajsoulQuery:
             msg += infomsg
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n玩家详情读取超时:\t{e}\n')
-            return dict(msg="查询超时,请再试一次", error=True)
+            return dict(msg="查询超时,请稍后再试", error=True)
         text_to_image(path=f"MajsoulInfo/yb{playername}.png", text=msg)
         return dict(msg=msg, error=False)
 
@@ -581,7 +581,7 @@ class MajsoulQuery:
         if userinfo['error']:
             if userinfo['offline']:
                 return dict(msg="牌谱屋服务器离线", error=True)
-            return dict(msg="查询超时", error=True)
+            return dict(msg="查询超时,请稍后再试", error=True)
         prtmsg = username
         playerid = userinfo['playerid']
         if playerid:
@@ -650,7 +650,7 @@ class MajsoulQuery:
                     playerinfo = await response.json()
         except asyncio.exceptions.TimeoutError as e:
             print(f"查询超时\t {e}")
-            return "查询超时"
+            return "查询超时,请稍后再试"
         if len(playerinfo) == 0:
             return "不存在该玩家"
         elif len(playerinfo) < selectindex:
@@ -1165,7 +1165,7 @@ async def asysearchqh(url, type="3"):
                 return dict(msg=text, error=False)
     except asyncio.exceptions.TimeoutError as e:
         print(f"查询超时,{e}")
-        return dict(msg="查询超时，请再试一次", error=True)
+        return dict(msg="查询超时,请稍后再试", error=True)
 
 def db_init():
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
