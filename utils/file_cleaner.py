@@ -1,5 +1,7 @@
 import os
 
+__all__ = ['cleaner', 'filecleaner']
+
 
 class filecleaner:
 
@@ -37,4 +39,4 @@ def list_allfile(path, all_files=None):
 
 
 cleaner = filecleaner(['./images/KissKiss', './images/jupai',
-                      './images/MajSoulInfo', './images/PetPet', './images/Remake'])
+                       './images/MajSoulInfo', './images/PetPet', './images/Remake'])

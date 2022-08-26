@@ -290,7 +290,7 @@ async def qhdrawcards(event: GroupMessage):
                     mergeimgs(result.get('results'), event.sender.id)
                     await bot.send(event, messagechain_builder(
                         at=event.sender.id,
-                        text="抽卡结果:\n", imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
+                        text="抽卡结果:", imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
                     # return await bot.send(event, messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
@@ -303,7 +303,7 @@ async def qhdrawcards(event: GroupMessage):
                     mergeimgs(result.get('results'), event.sender.id)
                     await bot.send(event, messagechain_builder(
                         at=event.sender.id,
-                        text="抽卡结果:\n",
+                        text="抽卡结果:",
                         imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
                     # return await bot.send(event, messagechain_builder(
                     #     at=event.sender.id),
@@ -320,7 +320,7 @@ async def qhdrawcards(event: GroupMessage):
                         result.get('results'), event.sender.id)
                     await bot.send(event, messagechain_builder(
                         at=event.sender.id,
-                        text="\n 抽卡结果:\n",
+                        text="抽卡结果:",
                         imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
                     # return await bot.send(event, messagechain_builder(
                     #     at=event.sender.id),
@@ -334,7 +334,7 @@ async def qhdrawcards(event: GroupMessage):
                     result.get('results'), event.sender.id)
                 await bot.send(event, messagechain_builder(
                     at=event.sender.id,
-                    text="\n 抽卡结果:\n",
+                    text="抽卡结果:",
                     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
         else:
             return await bot.send(event, messagechain_builder(text="此群已禁用模拟抽卡"))

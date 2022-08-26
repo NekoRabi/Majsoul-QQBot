@@ -1,8 +1,5 @@
 import time
 
-from mirai import MessageChain
-
-
 # 消息缓冲池
 
 

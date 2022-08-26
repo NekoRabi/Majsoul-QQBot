@@ -17,6 +17,7 @@ sys:
   addblacklist: addblacklist\s*([0-9]+)\s*$
   delblacklist: delblacklist\s*([0-9]+)\s*$
   log: log\s*(\w+)?\s*(\d+)\s*$
+  tell_master: \s*转告主人\s*(\S+)$
 
   signin: \s*签到\s*$
   getscore: \s*获取当前积分\s*$
