@@ -128,7 +128,7 @@ if __name__ == '__main__':
     # 定时任务
     # 设定为每分钟执行一次
 
-    @scheduler.scheduled_job(CronTrigger(hour='*', minute=f'*'))
+    @scheduler.scheduled_job(CronTrigger(hour='*', minute='*'))
     async def allscheduledtask():
         # 时分秒
         minute_now = datetime.datetime.now().minute
@@ -152,21 +152,6 @@ if __name__ == '__main__':
                         if hour_now == 22:
                             await bot.send_group_message(groupid,
                                                          messagechain_builder(text="晚上10点了，大家可以休息了", rndimg=True))
-        if minute_now % config["searchfrequency"] == 0:
-            if settings['autogetpaipu']:
-                print(f"开始查询,当前时间{hour_now}:{minute_now}:{second_now}")
-                try:
-                    await asyth_all()
-                    await asyqh_autopaipu()
-                except websockets.exceptions.ConnectionClosedError as _e:
-                    logging.error(f'websockets发生错误{_e}')
-                    logging.exception(_e)
-                    exit(0)
-                except Exception as _e:
-                    logging.error(f'发生未知错误{_e}')
-                    logging.exception(_e)
-                print(
-                    f"查询结束,当前时间{hour_now}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
 
 
     bot.run(port=17580)

@@ -1,8 +1,9 @@
+import datetime
 import re
 
 from mirai import GroupMessage, Plain
 
-from core import bot, commandpre, commands_map
+from core import bot, commandpre, commands_map, config, scheduler
 from plugin.TenHouPlugin.TenHou import tenhou
 
 __all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
@@ -164,10 +165,21 @@ async def gettenhouwatcher(event: GroupMessage):
 async def asyth_all():
     print("开始查询天凤信息")
     result = await tenhou.asygetTH()
-    print(result)
+    # print(result)
     for msgobj in result:
         for group in msgobj['groups']:
             b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
             # await bot.send_group_message(group, msgobj['msg'])
             await sendMsgChain(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+    print(f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')
     return
+
+
+
+if config['settings']['autogetpaipu']:
+    _searchfrequency = config["searchfrequency"]
+    if int(_searchfrequency) < 1:
+        print('查询频率不能为0,将自动设置为6')
+        _searchfrequency = 6
+    scheduler.add_job(asyth_all, 'cron', hour='*', minute=f'0/{_searchfrequency}')
+    print(f'已添加定时任务 "天凤自动查询",查询周期{_searchfrequency}分钟')

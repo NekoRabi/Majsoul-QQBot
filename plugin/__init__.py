@@ -37,3 +37,5 @@ for name in _plugins:
 # from plugin.AutoReply import *
 # from plugin.Tarot import *
 # from plugin.kabishoubei import *
+
+print('插件加载完毕')

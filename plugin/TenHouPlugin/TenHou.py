@@ -148,49 +148,49 @@ async def asyautoget_th_match() -> list:
             playername.append(player[0])
         with open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log', 'r', encoding='utf-8') as f:
             lines = f.readlines()
-            for line in lines:
-                line = line.strip()
-                datas = line.split('|')
-                startTime = datas[0].replace('－ ', '')
-                duration = datas[1].strip()
-                model = datas[2].replace('－', '').strip()
-                players = datas[3].strip()
-                plname = re.sub(r"[(\d+.\-)]", "", players)
-                plname = plname.split(' ')
-                players = players.split(' ')
-                for p in playername:
-                    if p in plname:
-                        print(f"{datas}\n")
-                        cursor.execute(
-                            f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
-                        record = cursor.fetchall()
-                        if len(record) > 0:
-                            print("该记录已存在")
-                            break
-                        print(f"检测到{p}新的对局信息")
-                        # msg = "检测到新的对局信息:\n"
-                        msg = ""
-                        msg += f"{model}\n"
-                        msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
-                        order = get_matchorder(
-                            playerlist=players, playername=p)
-                        if len(players) == 4:
-                            msg += f"{bordercast_temple[4][order]}\n".replace(
-                                '%player%', p)
-                        else:
-                            msg += f"{bordercast_temple[3][order]}\n".replace(
-                                '%player%', p)
-                        for item in players:
-                            msg += f"{item}\n"
-                        if len(players) == 3:
-                            cursor.execute(
-                                f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
-                        else:
-                            cursor.execute(
-                                f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")''')
-                        cx.commit()
-                        msglist.append(dict(playername=p, msg=msg))
+        for line in lines:
+            line = line.strip()
+            datas = line.split('|')
+            startTime = datas[0].replace('－ ', '')
+            duration = datas[1].strip()
+            model = datas[2].replace('－', '').strip()
+            players = datas[3].strip()
+            plname = re.sub(r"[(\d+.\-)]", "", players)
+            plname = plname.split(' ')
+            players = players.split(' ')
+            for p in playername:
+                if p in plname:
+                    print(f"{datas}\n")
+                    cursor.execute(
+                        f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
+                    record = cursor.fetchall()
+                    if len(record) > 0:
+                        print("该记录已存在")
                         break
+                    print(f"检测到{p}新的对局信息")
+                    # msg = "检测到新的对局信息:\n"
+                    msg = ""
+                    msg += f"{model}\n"
+                    msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
+                    order = get_matchorder(
+                        playerlist=players, playername=p)
+                    if len(players) == 4:
+                        msg += f"{bordercast_temple[4][order]}\n".replace(
+                            '%player%', p)
+                    else:
+                        msg += f"{bordercast_temple[3][order]}\n".replace(
+                            '%player%', p)
+                    for item in players:
+                        msg += f"{item}\n"
+                    if len(players) == 3:
+                        cursor.execute(
+                            f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
+                    else:
+                        cursor.execute(
+                            f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")''')
+                    cx.commit()
+                    msglist.append(dict(playername=p, msg=msg))
+                    break
         os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log')
         # print(msglist)
     cursor.close()
