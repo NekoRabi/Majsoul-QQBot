@@ -68,6 +68,7 @@ aiotimeout = aiohttp.ClientTimeout(total=25)
 serverErrorHTML = '<html><body><h1>503 Service Unavailable</h1>'
 serverErrorCode = 503  # 牌谱屋炸了
 
+
 # aiohttp.TCPConnector(ssl=False, limit=10) = aiohttp.TCPConnector(ssl=False, limit=10)
 
 def get_qhpturl(playername, searchtype=3):
@@ -547,13 +548,13 @@ class MajsoulQuery:
                     if response.status == 503:
                         return dict(error=True, offline=True)
                     inforesponse: dict = await response.json()
-            infomsg = f" 立直率: {inforesponse['立直率'] * 100 :2.2f}%\t 副露率: {inforesponse['副露率'] * 100 :2.2f}%\t " \
-                      f" 和牌率: {inforesponse['和牌率'] * 100 :2.2f}%\n 放铳率: {inforesponse['放铳率'] * 100 :2.2f}% "
+            infomsg = f" 立直率: {inforesponse.get('立直率',0)* 100 :2.2f}%\t 副露率: {inforesponse.get('副露率',0)* 100 :2.2f}%\t " \
+                      f" 和牌率: {inforesponse.get('和牌率',0)* 100 :2.2f}%\n 放铳率: {inforesponse.get('放铳率',0)* 100 :2.2f}% "
             if inforesponse.get('默听率'):
                 infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
             else:
                 infomsg += '\t'
-            infomsg += f" 平均打点: {inforesponse['平均打点']}\t 平均铳点 : {inforesponse['平均铳点']}"
+            infomsg += f" 平均打点: {inforesponse.get('平均打点')}\t 平均铳点 : {inforesponse.get('平均铳点')}"
             msg += infomsg
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n玩家详情读取超时:\t{e}\n')
@@ -668,7 +669,7 @@ class MajsoulQuery:
             if userinfo['muti3']:
                 print("查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
                 prtmsg += f"\n\n查到多位同名三麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p3_levelinfo = userinfo.get('pl3')
+            user_p3_levelinfo:dict = userinfo.get('pl3')
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
             p3_score = int(user_p3_levelinfo.get("score")) + \
@@ -699,7 +700,8 @@ class MajsoulQuery:
     async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = None):
         if not selectindex:
             selectindex = 0
-        if selecttype == "3":
+        selecttype = int(selecttype)
+        if selecttype == 3:
             # url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
             url = get_qhpturl(username, 3)
             typename = "三麻"
@@ -733,6 +735,10 @@ class MajsoulQuery:
             prtmsg = f"玩家名: {playername}"
             levelinfo = playerinfo.get("level")
             level = levelinfo.get("id")
+            if level > 20000 and selecttype ==4:
+                prtmsg = f"未查询到四麻玩家,查询到三麻玩家\n玩家名: {playername}"
+            elif level < 20000 and selecttype == 3:
+                prtmsg = f"未查询到三麻玩家,查询到四麻玩家\n玩家名: {playername}"
             score = int(levelinfo.get("score")) + \
                     int(levelinfo.get("delta"))
             prtmsg += levelswitch(level, score, typename)
@@ -850,7 +856,7 @@ class MajsoulQuery:
 
 # 异步的qhpt
 
-async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None):
+async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None) -> dict:
     muti3 = False
     muti4 = False
     if not selectindex:
@@ -858,54 +864,55 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
     urlp3 = get_qhpturl(username, 3)
     urlp4 = get_qhpturl(username, 4)
     if selecttype:
-        if selecttype == "3":
-            url = urlp3
-            typename = "三麻"
-        else:
-            url = urlp4
-            typename = "四麻"
-        try:
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
-                async with session.get(url) as response:
-                    if response.status == 503:
-                        return dict(error=True, offline=True)
-                    playerinfo = await response.json()
-        except asyncio.exceptions.TimeoutError as e:
-            print(f"qhpt查询超时,{e}")
-            return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
-        except aiohttp.client.ClientConnectorError as _e:
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
-            return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
-        if len(playerinfo) == 0:
-            print("不存在该玩家")
-            return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
-        elif len(playerinfo) < selectindex:
-            print(f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo) - 1}")
-            return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
-        else:
-            playerinfo = playerinfo[selectindex]
-            if type(playerinfo) == dict:
-                playerid = playerinfo['id']
-                playername = playerinfo['nickname']
-                prtmsg = f"玩家名: {playername}"
-                levelinfo = playerinfo.get("level")
-                level = levelinfo.get("id")
-                score = int(levelinfo.get("score")) + int(levelinfo.get("delta"))
-                prtmsg += levelswitch(level, score, typename)
-                cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
-                cursor = cx.cursor()
-                cursor.execute(
-                    f"select * from qhplayer where playername = '{username}'")
-                if len(cursor.fetchall()) == 0:
-                    cursor.execute(
-                        "insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
-                else:
-                    cursor.execute(
-                        f"update qhplayer set playerid = {playerid} where playername = '{username}'")
-                cx.commit()
-                cx.close()
-                return prtmsg
+        return dict()
+        # if selecttype == "3":
+        #     url = urlp3
+        #     typename = "三麻"
+        # else:
+        #     url = urlp4
+        #     typename = "四麻"
+        # try:
+        #     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
+        #                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
+        #         async with session.get(url) as response:
+        #             if response.status == 503:
+        #                 return dict(error=True, offline=True)
+        #             playerinfo = await response.json()
+        # except asyncio.exceptions.TimeoutError as e:
+        #     print(f"qhpt查询超时,{e}")
+        #     return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+        # except aiohttp.client.ClientConnectorError as _e:
+        #     print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+        #     return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+        # if len(playerinfo) == 0:
+        #     print("不存在该玩家")
+        #     return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+        # elif len(playerinfo) < selectindex:
+        #     print(f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo) - 1}")
+        #     return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+        # else:
+        #     playerinfo = playerinfo[selectindex]
+        #     if type(playerinfo) == dict:
+        #         playerid = playerinfo['id']
+        #         playername = playerinfo['nickname']
+        #         prtmsg = f"玩家名: {playername}"
+        #         levelinfo = playerinfo.get("level")
+        #         level = levelinfo.get("id")
+        #         score = int(levelinfo.get("score")) + int(levelinfo.get("delta"))
+        #         prtmsg += levelswitch(level, score, typename)
+        #         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+        #         cursor = cx.cursor()
+        #         cursor.execute(
+        #             f"select * from qhplayer where playername = '{username}'")
+        #         if len(cursor.fetchall()) == 0:
+        #             cursor.execute(
+        #                 "insert into qhplayer(playerid,playername) values(?,?)", (playerid, username))
+        #         else:
+        #             cursor.execute(
+        #                 f"update qhplayer set playerid = {playerid} where playername = '{username}'")
+        #         cx.commit()
+        #         cx.close()
+        #         return prtmsg
 
     else:
         try:
@@ -930,12 +937,16 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
             if len(pl3) > 1:
                 muti3 = True
             pl3 = pl3[0]
+            if pl3.get('level').get('id') < 20000:
+                pl3 = None
         else:
             pl3 = None
         if len(pl4) > 0:
             if len(pl4) > 1:
                 muti4 = True
             pl4 = pl4[0]
+            if pl4.get('level').get('id') > 20000:
+                pl4 = None
         else:
             pl4 = None
 
@@ -1152,7 +1163,7 @@ def mergeimg(imgurls: list) -> Image:
 
 def forwardmessage(msglist: list) -> list:
     messageChainList = []
-    cmdopt=[]
+    cmdopt = []
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     for item in msglist:

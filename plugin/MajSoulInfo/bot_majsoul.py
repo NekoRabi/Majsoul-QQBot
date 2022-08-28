@@ -16,7 +16,7 @@ from plugin.MajSoulInfo.mergeimgs import mergeimgs
 from utils import text_to_image
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import sendMsgChain
-from utils.bufferpool import cmdbuffer, groupcommand
+from utils.bufferpool import *
 from utils.cfg_loader import w_cfg_to_file
 from utils.get_groupmember_authority import is_havingadmin
 
@@ -125,14 +125,16 @@ async def qhpt(event: GroupMessage):
     if m:
         if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
 
-            if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhpt')):
+            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhpt')):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             if m.group(3):
-                if m.group(4):
-                    await sendMsgChain(event=event,
-                                       msg=await majsoul.getcertaininfo(m.group(2), m.group(3), int(m.group(4))))
-                else:
-                    await sendMsgChain(msg=await majsoul.getcertaininfo(m.group(2), m.group(3)), event=event)
+                selecttype = int(m.group(3))
+                selectindex =  m.group(4)
+                if not selectindex:
+                    selectindex = 0
+                selectindex = int(selectindex)
+                await sendMsgChain(event=event,
+                                       msg=await majsoul.getcertaininfo(m.group(2), selecttype, selectindex))
             else:
                 result = await majsoul.query(m.group(2))
                 if result['error']:
@@ -154,7 +156,7 @@ async def getrecentqhpaipu(event: GroupMessage):
     if m:
         if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
 
-            if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhpaipu')):
+            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhpaipu')):
                 return sendMsgChain(event=event,
                                     msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             playername = m.group(2)
@@ -185,7 +187,7 @@ async def getplayerdetails(event: GroupMessage):
     if m:
         if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
-            if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhinfo')):
+            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhinfo')):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             playername = m.group(2)
             selecttype = m.group(3)
@@ -215,7 +217,7 @@ async def getqhmonthreport(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhyb']}", msg.strip())
     if m:
         if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
-            if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'qhyb')):
+            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhyb')):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             playername = m.group(2)
             selecttype = m.group(3)

@@ -15,11 +15,9 @@ from utils.cfg_loader import w_cfg_to_file
 
 settings = config.get('settings')
 whitelist = config['whitelist']
-alarmclockgroup = config['alarmclockgroup']
 silencegroup = config['silencegroup']
 repeatconfig = config['repeatconfig']
 norepeatgroup = config['norepeatgroup']
-qhsettings = config['qhsettings']
 botname = bot_cfg.get('nickname', '')
 admin = config['admin']
 black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
@@ -83,8 +81,12 @@ async def randominterrupt(event: GroupMessage):
                     print(f"在{event.group.name}群,打断一次{msg}")
                     return await bot.send(event, "?")
                 elif count < repeatconfig['repeatmsg']:
-                    print(f"在{event.group.name}群,复读一次{msg}")
-                    return await bot.send(event, event.message_chain)
+                    msg_component_type_list = []
+                    for component in event.message_chain:
+                        msg_component_type_list.append(component.type)
+                    if msg_component_type_list == ['Plain']:
+                        print(f"在{event.group.name}群,复读一次{msg}")
+                        return await bot.send(event, event.message_chain)
     return
 
 
@@ -184,3 +186,13 @@ async def sendgroupat(event: GroupMessage):
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
                 return await bot.send(event, messagechain_builder(at=target, text=f" {m.group(1)}"))
+
+# 群龙王
+# @bot.on(GroupEvent)
+# async def dradonchange(event: MemberHonorChangeEvent):
+#     if event.member.id == bot.qq:
+#         if event.honor == 'TALKACTIVE':
+#             if event.action == 'lose':
+#                 await bot.send(event, "呜呜，我的龙王被抢走惹~")
+#             else:
+#                 await bot.send(event, "我是水群冠军！")

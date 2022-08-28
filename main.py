@@ -1,9 +1,7 @@
 import datetime
-import logging
 import re
 
 import nest_asyncio
-import websockets.exceptions
 from apscheduler.triggers.cron import CronTrigger
 from mirai import MessageEvent, Voice, FriendMessage, Plain, GroupMessage
 from mirai.models import FlashImage
@@ -14,6 +12,7 @@ from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import cmdbuffer
 from utils.file_cleaner import cleaner
 from utils.text_to_voice import VoiceCreater
+from utils import *
 
 nest_asyncio.apply()
 
@@ -34,8 +33,6 @@ if __name__ == '__main__':
     if settings['voice']:
         vc = VoiceCreater(setting=config['voicesetting'])
 
-    if master not in admin:
-        admin.append(master)
     print(f"机器人{botname}启动中\tQQ : {bot.qq}")
 
     def getbase64voice(text):
@@ -58,9 +55,6 @@ if __name__ == '__main__':
             qqlogger.info(event)
         else:
             qqlogger.info(event)
-
-
-
 
 
     '''通用功能'''
@@ -115,43 +109,26 @@ if __name__ == '__main__':
                     print(f'闪照保存发生错误: {_e}')
 
 
-    # 群龙王
-    # @bot.on(GroupEvent)
-    # async def dradonchange(event: MemberHonorChangeEvent):
-    #     if event.member.id == bot.qq:
-    #         if event.honor == 'TALKACTIVE':
-    #             if event.action == 'lose':
-    #                 await bot.send(event, "呜呜，我的龙王被抢走惹~")
-    #             else:
-    #                 await bot.send(event, "我是水群冠军！")
-
     # 定时任务
     # 设定为每分钟执行一次
 
-    @scheduler.scheduled_job(CronTrigger(hour='*', minute='*'))
+    @scheduler.scheduled_job(CronTrigger(hour='8-22'))
     async def allscheduledtask():
         # 时分秒
         minute_now = datetime.datetime.now().minute
         hour_now = datetime.datetime.now().hour
         second_now = datetime.datetime.now().second
-        if minute_now == 0:
-            if hour_now == 0:
-                cmdbuffer.clearcache()
-                cleaner.do_clean()  # 每天0点清理所有pil生成的图片
-                # global rootLogger, qqlogger
-                # rootLogger = create_logger(config['loglevel'])
-                # qqlogger = getQQlogger()
-
-            if 7 < hour_now < 23:
-                for groupid in alarmclockgroup:
-                    if groupid != 0 and type(groupid) == int:
-                        await bot.send_group_message(groupid,
-                                                     messagechain_builder(
-                                                         text=f"准点报时: {datetime.datetime.now().hour}:00",
-                                                         rndimg=True))
-                        if hour_now == 22:
-                            await bot.send_group_message(groupid,
-                                                         messagechain_builder(text="晚上10点了，大家可以休息了", rndimg=True))
+        for groupid in alarmclockgroup:
+            if groupid != 0 and type(groupid) == int:
+                await bot.send_group_message(groupid,
+                                             messagechain_builder(
+                                                 text=f"准点报时: {datetime.datetime.now().hour}:00",
+                                                 rndimg=True))
+                if hour_now == 22:
+                    await bot.send_group_message(groupid,
+                                                 messagechain_builder(text="晚上10点了，大家可以休息了", rndimg=True))
 
 
+    scheduler.add_job(cmdbuffer.clearcache, 'cron', hour='0')
+    scheduler.add_job(cleaner.do_clean, 'cron', hour='0')
     bot.run(port=17580)

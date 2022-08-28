@@ -13,7 +13,7 @@ from mirai import FriendMessage, Plain, GroupMessage
 from core import bot, master, commandpre, commands_map, config, admin
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import sendMsgChain
-from utils.bufferpool import cmdbuffer, groupcommand
+from utils.bufferpool import cmdbuffer, GroupBotCommand
 from utils.cfg_loader import w_cfg_to_file
 
 _whitelist = config['whitelist']
@@ -150,7 +150,7 @@ async def tell_to_master(event: FriendMessage or GroupMessage):
             return await bot.send(event, messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
         if master != 0:
             if event is GroupMessage:
-                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'tell_master')):
+                if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'tell_master')):
                     return bot.send(event, messagechain_builder(text="该功能已进入CD", at=event.sender.id))
             message = m.group(1)
             await bot.send_friend_message(master, messagechain_builder(text=f'qq为{qqid}的人说:{message}'))

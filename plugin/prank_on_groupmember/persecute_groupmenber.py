@@ -1,13 +1,10 @@
 import base64
 import re
-from io import BytesIO
-
 import aiohttp
 import mirai.exceptions
+from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 from mirai.models import Plain, GroupMessage, Quote
-
-# from plugin.preinit.create_bot import bot
 from core import bot
 from utils.MessageChainBuilder import messagechain_builder
 

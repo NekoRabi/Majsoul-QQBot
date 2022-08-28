@@ -12,7 +12,7 @@ from PIL import ImageDraw, ImageFont, Image as IMG
 from mirai import GroupMessage, Plain, MessageChain, Image
 from core import bot, commandpre, commands_map
 from utils.MessageChainBuilder import messagechain_builder
-from utils.bufferpool import cmdbuffer, groupcommand
+from utils.bufferpool import *
 
 
 if not os.path.exists("./images/Remake"):
@@ -151,7 +151,7 @@ async def getremakeimg(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['remake']['remake']}", msg.strip())
     if m:
 
-        if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'remake')):
+        if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'remake')):
             return bot.send(event, messagechain_builder(text="好快的重开", at=event.sender.id))
         senderid = event.sender.id
         if m.group(2):

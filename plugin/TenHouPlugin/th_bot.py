@@ -15,7 +15,7 @@ from utils.MessageChainBuilder import messagechain_builder
 
 from utils.MessageChainSender import sendMsgChain
 
-from utils.bufferpool import groupcommand, cmdbuffer
+from utils.bufferpool import *
 from utils.get_groupmember_authority import is_havingadmin
 
 
@@ -24,7 +24,7 @@ async def ranktenhouplayer(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['tenhou']['thpt']}", msg.strip())
     if m:
-        if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'thpt')):
+        if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'thpt')):
             return sendMsgChain(event=event,
                                 msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
         reset = True

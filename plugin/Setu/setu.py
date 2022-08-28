@@ -12,7 +12,7 @@ from PIL.Image import Image
 from mirai import GroupMessage, Plain
 from core import bot, commandpre, commands_map, config
 from utils.MessageChainBuilder import messagechain_builder
-from utils.bufferpool import cmdbuffer, groupcommand
+from utils.bufferpool import *
 from utils.cfg_loader import w_cfg_to_file
 
 ###
@@ -198,7 +198,7 @@ async def getsomesetu(event: GroupMessage):
             pass
         else:
             if settings['setu'] and event.group.id in config['setugroups']:
-                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
+                if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(text="你冲的频率太频繁了,休息一下吧", at=event.sender.id))
                 try:
                     imginfo = await stfinder.getsetu(
@@ -223,7 +223,7 @@ async def getsomesetu(event: GroupMessage):
             pass
         else:
             if settings['setu'] and event.group.id in config['setugroups']:
-                if not cmdbuffer.updategroupcache(groupcommand(event.group.id, event.sender.id, 'setu')):
+                if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧"))
                 setu_num = m2.group(1)
                 if not setu_num:

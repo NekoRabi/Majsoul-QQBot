@@ -3,7 +3,7 @@ import time
 # 消息缓冲池
 
 
-class msgbufferpool(object):
+class MessageBufferPool:
     """
     Structure 结构
 
@@ -39,7 +39,7 @@ class msgbufferpool(object):
         self.group[groupid][senderid].append = msg
 
 
-class command:
+class BotCommand:
 
     def __init__(self):
         self.id = None
@@ -56,7 +56,7 @@ class command:
         return self.id
 
 
-class groupcommand(command):
+class GroupBotCommand(BotCommand):
     """
     群指令类
     """
@@ -73,10 +73,14 @@ class groupcommand(command):
         self.id = f'{groupid}_{userid}'
 
     def __str__(self):
-        return f'id:{self.id} groupid:{self.groupid} userid:{self.userid} command:{self.command} last_time:{self.last_time}'
+        return f'id:{self.id} ' \
+               f'groupid:{self.groupid} ' \
+               f'userid:{self.userid} ' \
+               f'command:{self.command} ' \
+               f'last_time:{self.last_time} '
 
     def __eq__(self, other):
-        if type(other) == groupcommand:
+        if other is GroupBotCommand:
             if other.groupid == self.groupid and other.userid == self.userid and other.command == self.command:
                 if -10 < other.last_time - self.last_time < 10:
                     return True
@@ -89,7 +93,7 @@ class groupcommand(command):
         return self.userid
 
 
-class commandcache:
+class BotCommandCache:
     """
         指令缓存区类
     """
@@ -106,7 +110,7 @@ class commandcache:
     def getallcache(self):
         return self.groupbuffer
 
-    def updategroupcache(self, command: command) -> bool:
+    def updategroupcache(self, command: BotCommand) -> bool:
         """
         更新指令缓存，更新成功/添加成功返回 True， 更新失败(10s内使用过)返回 False
 
@@ -126,7 +130,7 @@ class commandcache:
             # print('insert cmd')
             return True
 
-    def pushcmd(self, command: groupcommand):
+    def pushcmd(self, command: GroupBotCommand):
         self.groupbuffer[command.id] = command
 
     def clearcache(self):
@@ -139,4 +143,4 @@ class commandcache:
         return cmdstr
 
 
-cmdbuffer = commandcache()
+cmdbuffer = BotCommandCache()

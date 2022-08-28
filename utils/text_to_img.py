@@ -15,7 +15,7 @@ def _get_random_color():
     return color
 
 
-def text_to_image(text: Union[str, dict, set, list, tuple] = None, path: str = None, fontsize: int = 20,
+def text_to_image(text: Union[str, dict, set, list, tuple] = None, path: str = None, fontsize: int = 30,
                   bold: bool = False, fontcolor: tuple = (0, 0, 0), bgkcolor=(255, 255, 255),
                   backimgpath: str = None, imgbytes=None, needtobase64=False):
     """
