@@ -165,20 +165,20 @@ class MajsoulQuery:
                 if model in ['基本', '更多', '血统', '立直']:
                     if str(k) in infomodel.get(model):
                         if type(v) == float:
-                            if str(k) not in ['平均起手向听', '立直巡目', '和了巡数']:
+                            if str(k).endswith('率'):
                                 msg += f"{k:<12} : {v * 100:2.2f}%\n"
                             else:
                                 msg += f"{k:<12} : {v:2.2f}\n"
                         else:
-                            msg += f"{k} : {v}\n"
+                            msg += f"{k:<12} : {v if v else 0}\n"
                 elif model == 'all':
                     if type(v) == float:
-                        if str(k) not in ['平均起手向听', '立直巡目', '和了巡数']:
+                        if str(k).endswith('率'):
                             msg += f"{k:<12} : {v * 100:2.2f}%\n"
                         else:
                             msg += f"{k:<12} : {v:2.2f}\n"
                     else:
-                        msg += f"{k} : {v}\n"
+                        msg += f"{k:<12} : {v if v else 0}\n"
         text_to_image(path=f"MajsoulInfo/detail{playername}.png", text=msg)
         return dict(msg=msg, error=False)
 
@@ -548,13 +548,15 @@ class MajsoulQuery:
                     if response.status == 503:
                         return dict(error=True, offline=True)
                     inforesponse: dict = await response.json()
-            infomsg = f" 立直率: {inforesponse.get('立直率',0)* 100 :2.2f}%\t 副露率: {inforesponse.get('副露率',0)* 100 :2.2f}%\t " \
-                      f" 和牌率: {inforesponse.get('和牌率',0)* 100 :2.2f}%\n 放铳率: {inforesponse.get('放铳率',0)* 100 :2.2f}% "
-            if inforesponse.get('默听率'):
+            infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
+            infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
+            infomsg += f" 和牌率: {inforesponse.get('和牌率', None) * 100 if inforesponse.get('和牌率', None) else 0:2.2f}%\n"
+            infomsg += f" 放铳率: {inforesponse.get('放铳率', None) * 100 if inforesponse.get('放铳率', None) else 0:2.2f}% "
+            if inforesponse.get('默听率', None):
                 infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
             else:
                 infomsg += '\t'
-            infomsg += f" 平均打点: {inforesponse.get('平均打点')}\t 平均铳点 : {inforesponse.get('平均铳点')}"
+            infomsg += f" 平均打点: {inforesponse.get('平均打点') if inforesponse.get('平均打点') else 0}\t 平均铳点 : {inforesponse.get('平均铳点') if inforesponse.get('平均铳点') else 0}"
             msg += infomsg
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n玩家详情读取超时:\t{e}\n')
@@ -641,7 +643,7 @@ class MajsoulQuery:
         results = await paipu_pl3(playeridlist, nowtime) + await paipu_pl4(playeridlist, nowtime)
         return msganalysis(results)
 
-    async def query(self, username: str, selecttype: str = "", selectindex: int = 0) -> dict:
+    async def query(self, username: str, selecttype: str = "", selectindex: int = 1) -> dict:
         userinfo = await asyqhpt(username)
         if userinfo['error']:
             if userinfo['offline']:
@@ -669,7 +671,7 @@ class MajsoulQuery:
             if userinfo['muti3']:
                 print("查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
                 prtmsg += f"\n\n查到多位同名三麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p3_levelinfo:dict = userinfo.get('pl3')
+            user_p3_levelinfo: dict = userinfo.get('pl3')
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
             p3_score = int(user_p3_levelinfo.get("score")) + \
@@ -697,10 +699,20 @@ class MajsoulQuery:
         text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
         return dict(msg=prtmsg, error=False)
 
-    async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = None):
+    async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = 1):
+        """
+
+        Args:
+            username:   玩家名
+            selecttype:  查询类别  3/4 代表三麻或者四麻
+            selectindex:  查询序号,于 0.6.4 改成 下标从1开始
+
+        Returns:
+
+        """
         if not selectindex:
-            selectindex = 0
-        selecttype = int(selecttype)
+            selectindex = 1
+        selecttype = int(selecttype) - 1
         if selecttype == 3:
             # url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
             url = get_qhpturl(username, 3)
@@ -726,7 +738,9 @@ class MajsoulQuery:
         if len(playerinfo) == 0:
             return "不存在该玩家"
         elif len(playerinfo) < selectindex:
-            return f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo) - 1}"
+            return f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo)}"
+        elif selectindex < 0:
+            return f"序号有误，序号大于0"
         else:
             playerinfo = playerinfo[selectindex]
         if playerinfo:
@@ -735,7 +749,7 @@ class MajsoulQuery:
             prtmsg = f"玩家名: {playername}"
             levelinfo = playerinfo.get("level")
             level = levelinfo.get("id")
-            if level > 20000 and selecttype ==4:
+            if level > 20000 and selecttype == 4:
                 prtmsg = f"未查询到四麻玩家,查询到三麻玩家\n玩家名: {playername}"
             elif level < 20000 and selecttype == 3:
                 prtmsg = f"未查询到三麻玩家,查询到四麻玩家\n玩家名: {playername}"

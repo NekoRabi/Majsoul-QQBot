@@ -125,11 +125,13 @@ try:
     replydata['replyimgpath'] = config['replyimgpath']
     if master == 0:
         print('请输入机器人主人 ( master )')
-    if _settings['voice']:
+    if _settings.get('voice', None):
         if _voicesetting['secretId'].strip() == '' or _voicesetting['secretKey'] == '':
             print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
             _settings['voice'] = False
             w_cfg_to_file(content=config, path=r'./config/config.yml')
+    else:
+        _settings['voice'] = False
     if len(_welcomeinfo) == 0:
         print("入群欢迎文本不存在，该功能将关闭")
         config['settings']['autowelcome'] = False

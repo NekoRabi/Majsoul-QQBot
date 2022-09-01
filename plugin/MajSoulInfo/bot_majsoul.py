@@ -17,7 +17,7 @@ from utils import text_to_image
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import sendMsgChain
 from utils.bufferpool import *
-from utils.cfg_loader import w_cfg_to_file
+from utils.cfg_loader import w_cfg_to_file, loadcfg_from_file
 from utils.get_groupmember_authority import is_havingadmin
 
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
@@ -27,6 +27,8 @@ __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'get
 admin = config.get('admin')
 qhsettings = config.get('qhsettings')
 master = config['master']
+
+_qhconfig = loadcfg_from_file(r'./config/MajSoulInfo/config.yml')
 
 
 @bot.on(GroupMessage)
@@ -129,12 +131,12 @@ async def qhpt(event: GroupMessage):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             if m.group(3):
                 selecttype = int(m.group(3))
-                selectindex =  m.group(4)
+                selectindex = m.group(4)
                 if not selectindex:
                     selectindex = 0
                 selectindex = int(selectindex)
                 await sendMsgChain(event=event,
-                                       msg=await majsoul.getcertaininfo(m.group(2), selecttype, selectindex))
+                                   msg=await majsoul.getcertaininfo(m.group(2), selecttype, selectindex))
             else:
                 result = await majsoul.query(m.group(2))
                 if result['error']:
@@ -472,7 +474,8 @@ async def asyqh_autopaipu():
             b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
             # await bot.send_group_message(group, msgobj['msg'])
             await sendMsgChain(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
-    print(f"雀魂自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
+    print(
+        f"雀魂自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
     return
 
 
@@ -482,4 +485,4 @@ if config['settings']['autogetpaipu']:
         print('查询频率不能为0,将自动设置为6')
         _searchfrequency = 6
     scheduler.add_job(asyqh_autopaipu, 'cron', hour='*', minute=f'0/{_searchfrequency}')
-    print(f'已添加定时任务 "雀魂自动查询",查询周期{_searchfrequency}分钟')
+    print(f' |---已添加定时任务 "雀魂自动查询",查询周期{_searchfrequency}分钟')

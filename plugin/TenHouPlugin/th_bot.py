@@ -171,9 +171,9 @@ async def asyth_all():
             b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
             # await bot.send_group_message(group, msgobj['msg'])
             await sendMsgChain(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
-    print(f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')
+    print(
+        f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')
     return
-
 
 
 if config['settings']['autogetpaipu']:
@@ -182,4 +182,4 @@ if config['settings']['autogetpaipu']:
         print('查询频率不能为0,将自动设置为6')
         _searchfrequency = 6
     scheduler.add_job(asyth_all, 'cron', hour='*', minute=f'0/{_searchfrequency}')
-    print(f'已添加定时任务 "天凤自动查询",查询周期{_searchfrequency}分钟')
+    print(f' |---已添加定时任务 "天凤自动查询",查询周期{_searchfrequency}分钟')
