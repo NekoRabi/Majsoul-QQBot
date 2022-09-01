@@ -246,7 +246,7 @@ async def getsometarots(event: GroupMessage):
                 return await sendMsgChain(event=event, msg=messagechain_builder(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
         else:
             card = tarotcards.drawcards(userid=event.sender.id)[0]
-            return await bot.send(event, imgbase64=card.imgcontent)
+            return await bot.send(event, messagechain_builder(imgbase64=card.imgcontent))
 
 
 # 获取塔罗牌抽卡记录

@@ -36,7 +36,7 @@ bordercast_temple = {
     }
 }
 
-timeout = aiohttp.ClientTimeout(total=330)
+timeout = aiohttp.ClientTimeout(total=30)
 
 
 # 解压gz

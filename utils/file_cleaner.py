@@ -10,12 +10,14 @@ class filecleaner:
         self.do_clean()
 
     def do_clean(self):
-        allfile = []
+        _allfile = []
         print("开始清理文件")
         for folderpath in self.target:
-            allfile.extend(list_allfile(path=folderpath))
+            if os.path.exists(folderpath):
+                _allfile.extend(list_allfile(path=folderpath))
         try:
-            for file in allfile:
+            print(f'发现 {len(_allfile)} 个文件')
+            for file in _allfile:
                 os.remove(file)
             print("清理完成")
         except FileNotFoundError as e:
@@ -29,7 +31,7 @@ def list_allfile(path, all_files=None):
         files = os.listdir(path)
     else:
         print('this path not exist')
-        return
+        return all_files
     for file in files:
         if os.path.isdir(os.path.join(path, file)):
             list_allfile(os.path.join(path, file), all_files)
@@ -38,5 +40,6 @@ def list_allfile(path, all_files=None):
     return all_files
 
 
-cleaner = filecleaner(['./images/KissKiss', './images/jupai',
-                       './images/MajSoulInfo', './images/PetPet', './images/Remake'])
+cleaner = filecleaner(
+    ['./images/KissKiss', './images/jupai', './images/MajSoulInfo', './images/PetPet', './images/Remake',
+     './images/ImgOperation', './images/daibu'])

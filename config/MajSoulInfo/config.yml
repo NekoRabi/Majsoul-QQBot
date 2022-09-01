@@ -4,6 +4,7 @@ qhsettings: # 是否启用
   qhsl: true
   qhyb: true
   qhpaipu: true
+  autoquery: true
   disptgroup: # 在某群禁用 qhpt
     - 0
   disinfogroup:
@@ -11,8 +12,6 @@ qhsettings: # 是否启用
   disslgroup:
     - 0
   disybgroup:
-    - 0
-  disautoquerygroup:
     - 0
   dispaipugroup:
     - 0

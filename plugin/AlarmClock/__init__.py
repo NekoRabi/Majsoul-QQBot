@@ -1,0 +1,1 @@
+from plugin.AlarmClock.bot_clock import *
