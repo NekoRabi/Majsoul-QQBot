@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import os.path
 import random
 import re
 import yaml
@@ -39,6 +40,13 @@ user_agent_list = [
     "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
     "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
 ]
+
+if not os.path.exists("./config/Setu"):
+    os.mkdir("./config/Setu")
+if not os.path.exists(r'./config/Setu/config.yml'):
+    cfg = dict(r18enable=False, enable=False, allowsearchself=False, setugroups=[586468489], r18groups=[586468489],
+               recalltime=50)
+    w_cfg_to_file(content=cfg, path=r'./config/Setu/config.yml')
 
 
 async def download_setu_base64_from_url(userid):
@@ -107,14 +115,12 @@ def keyword_transform(keywords: str, value):
 class SetuFinder:
     recalltime = 30
 
-    def __init__(self, botname):
-        with open(r'./config/Setu/config.yml', 'r', encoding='utf-8') as f:
-            setu_config = yaml.safe_load(f)
-            self.r18setting = setu_config['r18setting']
-            self.r18groups = setu_config['r18groups']
-            self.allowsearchself = setu_config['allowsearchself']
-            self.botname = botname
-            self.recalltime = setu_config['recalltime']
+    def __init__(self, botname, _config):
+        self.r18enable = _config['r18enable']
+        self.r18groups = _config['r18groups']
+        self.allowsearchself = _config['allowsearchself']
+        self.recalltime = _config['recalltime']
+        self.botname = botname
 
     async def getsetu(self, description, groupid, num=1) -> dict:
         if not num:
@@ -141,9 +147,10 @@ class SetuFinder:
 
 
 admin = config['admin']
-settings = config['settings']
 
-stfinder = SetuFinder(config['botconfig']['botname'])
+with open(r'./config/Setu/config.yml', 'r', encoding='utf-8') as f:
+    setu_config = yaml.safe_load(f)
+stfinder = SetuFinder(config['botconfig']['botname'], setu_config)
 
 
 @bot.on(GroupMessage)
@@ -154,13 +161,14 @@ async def enablesetu(event: GroupMessage):
     if m:
         if event.sender.id in admin:
             groupid = event.group.id
-            if groupid in config['setugroups']:
+            if groupid in setu_config.get['setugroup']:
                 await bot.send(event, messagechain_builder(text="本群已开启色图"))
             else:
-                config['setugroups'].append(groupid)
+                setu_config.get['setugroup'].append(groupid)
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                w_cfg_to_file(content=setu_config, path=r'./config/Setu/config.yml')
                 await bot.send(event, messagechain_builder(text="色图开启成功"))
 
 
@@ -173,11 +181,12 @@ async def disablesetu(event: GroupMessage):
     if m:
         if event.sender.id in admin:
             groupid = event.group.id
-            if groupid in config['setugroups']:
-                config['setugroups'].remove(groupid)
+            if groupid in setu_config.get['setugroup']:
+                setu_config.get['setugroup'].remove(groupid)
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                w_cfg_to_file(content=setu_config, path=r'./config/Setu/config.yml')
                 await bot.send(event, messagechain_builder(text="色图已关闭"))
             else:
                 await bot.send(event, messagechain_builder(text="本群色图已关闭"))
@@ -197,7 +206,7 @@ async def getsomesetu(event: GroupMessage):
             # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             pass
         else:
-            if settings['setu'] and event.group.id in config['setugroups']:
+            if setu_config.get('enable', False) and event.group.id in setu_config.get['setugroup']:
                 if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(text="你冲的频率太频繁了,休息一下吧", at=event.sender.id))
                 try:
@@ -222,7 +231,7 @@ async def getsomesetu(event: GroupMessage):
             # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             pass
         else:
-            if settings['setu'] and event.group.id in config['setugroups']:
+            if setu_config.get('enable', False) and event.group.id in setu_config.get['setugroup']:
                 if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧"))
                 setu_num = m2.group(1)

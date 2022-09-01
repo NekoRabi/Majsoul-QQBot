@@ -10,8 +10,8 @@ __all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map
 config = {}
 replydata = {}
 _syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig',
-           'silencegroup', 'repeatconfig', 'norepeatgroup', 'qhsettings', 'nudgeconfig', 'loglevel', 'master',
-           'voicesetting', 'mutegrouplist', 'setugroups', 'welcomeinfo', 'replyimgpath', 'searchfrequency'}
+           'silencegroup', 'repeatconfig', 'norepeatgroup', 'nudgeconfig', 'loglevel', 'master',
+           'voicesetting', 'mutegrouplist', 'welcomeinfo', 'replyimgpath', 'searchfrequency'}
 
 
 def load_config() -> dict:
@@ -82,22 +82,20 @@ def create_helpimg():
 
 def create_init_config():
     """生成默认配置"""
-    sys_config = dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0], setugroups=[0],
+    sys_config = dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
                       welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
                       silencegroup=[0], norepeatgroup=[0], disnudgegroup=[0], commandpre="", searchfrequency=6,
                       master=0, loglevel="INFO", replyimgpath='fox', botconfig=dict(qq=123456, botname=""),
+                      nudgeconfig=dict(disnudgegroup=[0],sendnudgechance=0.3,supernudgequantity=10,supersendnudgechance=0.2),
                       repeatconfig=dict(
                           repeatQ=20, repeatmsg=1, interruptQ=0.5, interruptQQ=0.1, autoreply=True, kwreply=True),
                       adapter=dict(verify_key='NekoRabi',
                                    host='localhost', port=17280),
                       settings=dict(autogetpaipu=True, autowelcome=True, help=True, r18talk=True, nudgereply=True,
-                                    setu=False, silence=False, norepeat=False, voice=False, saveflashimg=True),
-                      voicesettings=dict(codec='mp3', volumn=1, speed=0.85, voicetype=1002, private=True,
+                                    silence=False, norepeat=False, voice=False, saveflashimg=True),
+                      voicesetting=dict(codec='mp3', volumn=1, speed=0.85, voicetype=1002, private=True,
                                          secretId='',
-                                         secretKey=''),
-                      qhsettings=dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, disptgroup=[0],
-                                      disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
-                                      dispaipugroup=[0]))
+                                         secretKey=''))
     w_cfg_to_file(sys_config, r'./config/config.yml')
 
 

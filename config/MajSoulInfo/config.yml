@@ -1,17 +1,19 @@
-qhsettings: # 是否启用
-  qhpt: true
-  qhinfo: true
-  qhsl: true
-  qhyb: true
-  qhpaipu: true
-  autoquery: true
-  disptgroup: # 在某群禁用 qhpt
-    - 0
-  disinfogroup:
-    - 0
-  disslgroup:
-    - 0
-  disybgroup:
-    - 0
-  dispaipugroup:
-    - 0
+qhpt: true # 是否启用查询雀魂PT功能
+qhinfo: true # 是否启用查询雀魂信息功能
+qhsl: true # 是否启用模拟雀魂抽卡
+qhyb: true # 是否启用查询雀魂月报功能
+qhpaipu: true # 是否启用查询雀魂牌谱功能
+autoquery: true  # 是否启用自动查询
+searchfrequency: 6 #  牌谱查询频率
+dailydrawcount: 3 # 每个用户每天抽卡次数上限
+ # 分别在在某群禁用 相关功能
+disptgroup:
+  - 0
+disinfogroup:
+  - 0
+disslgroup:
+  - 0
+disybgroup:
+  - 0
+dispaipugroup:
+  - 0

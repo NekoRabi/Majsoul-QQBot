@@ -1,10 +1,17 @@
-# r18全局设置
-r18setting: true
+# 是否开启r18色图
+r18enable: true
+
+# 是否开启色图
+enable: false
 
 # 是否允许机器人搜索机器人的色图
 allowsearchself: false
 
-# 开启r18的群聊
+# 开启色图的群聊
+setugroups:
+  - 586468489
+
+# 开启r18搜索的群聊
 r18groups:
   - 586468489
 

@@ -1,4 +1,6 @@
 import os
+import sqlite3
+
 from utils.cfg_loader import w_cfg_to_file
 
 if not os.path.exists("./database/MajSoulInfo"):
@@ -10,10 +12,9 @@ if not os.path.exists("./images/MajSoulInfo"):
 
 if not os.path.exists(r"./config/MajSoulInfo/config.yml"):
     print('未检测到雀魂配置文件,生成初始文件中...')
-    cfg = dict(
-        qhsettings=dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, autoquery=True, disptgroup=[0],
-                        disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
-                        dispaipugroup=[0]))
+    cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, autoquery=True, dailydrawcount=3,
+               disptgroup=[0], disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
+               dispaipugroup=[0])
     w_cfg_to_file(content=cfg, path=r"./config/MajSoulInfo/config.yml")
     print('雀魂配置文件生成完毕')
 
@@ -35,3 +36,84 @@ if not os.path.exists(r"./config/MajSoulInfo/template.yml"):
                     )
     w_cfg_to_file(content=template, path=r"./config/MajSoulInfo/template.yml")
     print('雀魂模板文件生成完毕')
+
+
+def db_init():
+    cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
+    cursor = cx.cursor()
+    cursor.execute("create table if not exists paipu("
+                   "id integer primary key,"
+                   "uuid varchar(50) UNIQUE,"
+                   "watchid integer,"
+                   "startTime varchar(50),"
+                   "endTime varchar(50),"
+                   "player1 varcher(50),"
+                   "player2 varcher(50),"
+                   "player3 varcher(50),"
+                   "player4 varcher(50)"
+                   ")")
+    cursor.execute('create table if not exists watchedplayer ('
+                   'id integer primary key,'
+                   'watchedgroupcount integer not null default 0,'
+                   'playerid integer,'
+                   'playername varchar(50) UNIQUE)')
+    cursor.execute("create table if not exists QQgroup("
+                   "id integer primary key ,"
+                   "groupid integer UNIQUE)")
+    cursor.execute("create table if not exists group2player("
+                   "id integer primary key,"
+                   "groupid integer,"
+                   "playerid integer,"
+                   "playername varchar(50),"
+                   'iswatching integer not null default 1,'
+                   "UNIQUE(groupid,playerid) ON CONFLICT REPLACE)")
+    cursor.execute('create table if not exists qhplayer ('
+                   'id integer primary key,'
+                   'playerid integer,'
+                   'playername varchar(50) UNIQUE)')
+    cursor.execute("create table IF NOT EXISTS drawcards("
+                   "id integer primary key,"
+                   "userid int UNIQUE,"
+                   "drawcount int,"
+                   "lastdraw varchar(50)"
+                   ")")
+    cursor.execute("create table if not exists playerdrawcard("
+                   "id integer primary key,"
+                   "userid integer not null,"
+                   "drawtime varchar(50) not null,"
+                   "itemlevel int not null,"
+                   "itemname TEXT not null"
+                   ")")
+    cursor.execute("create table if not exists tagnames("
+                   "id integer primary key,"
+                   "tagname TEXT not null,"
+                   "userid integer not null,"
+                   "gpid integer not null,"
+                   "constraint gp_nickname "
+                   "foreign key (gpid) "
+                   "references group2player(id)"
+                   ")")
+    cursor.execute("create view if not exists groupwatches as "
+                   "select groupid,"
+                   "group_concat(playername) as watchedplayers,"
+                   "count(groupid) as watchnums "
+                   "from group2player "
+                   "where iswatching = 1 "
+                   "group by groupid")
+    cursor.execute("create view if not exists watchedplayersview as "
+                   "select playername,playerid, "
+                   "count(groupid) as watchedgroupcount "
+                   "from group2player "
+                   "where iswatching = 1 "
+                   "group by playername")
+    cursor.execute("create view if not exists tagnameview as "
+                   "select tagname,playername,groupid "
+                   "from tagnames as tg join group2player as gp "
+                   "where tg.gpid = gp.id "
+                   "and gp.iswatching = 1")
+    cx.commit()
+    cursor.close()
+    cx.close()
+
+
+db_init()

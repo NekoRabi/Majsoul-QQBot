@@ -9,6 +9,8 @@ _alarmclockgroup: list = config['alarmclockgroup']
 
 _botname = bot_cfg.get('nickname')
 
+
+
 if 0 in _alarmclockgroup:
     _alarmclockgroup.remove(0)
 

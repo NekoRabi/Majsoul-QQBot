@@ -25,10 +25,10 @@ __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'get
            'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
            'freshqhpaipu', 'guan_wang']
 admin = config.get('admin')
-qhsettings = config.get('qhsettings')
-master = config['master']
+# qhsettings = config.get('qhsettings')
+master = config.get('master')
 
-_qhconfig = loadcfg_from_file(r'./config/MajSoulInfo/config.yml')
+qhsettings = loadcfg_from_file(r'./config/MajSoulInfo/config.yml')
 
 
 @bot.on(GroupMessage)
@@ -47,27 +47,32 @@ async def disableqhplugin(event: GroupMessage):
             if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                 if group not in qhsettings['disptgroup']:
                     qhsettings['disptgroup'].append(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'查分功能禁用成功')
             elif commandname in ['qhpaipu', '雀魂最近对局']:
                 if group not in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].append(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'牌谱查询功能禁用成功')
             elif commandname in ['qhinfo', '雀魂玩家详情']:
                 if group not in qhsettings['disinfogroup']:
                     qhsettings['disinfogroup'].append(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'雀魂玩家详情功能禁用成功')
             elif commandname in ['qhsl', '雀魂十连']:
                 if group not in qhsettings['disslgroup']:
                     qhsettings['disslgroup'].append(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'模拟十连功能禁用成功')
             elif commandname in ['qhyb', '雀魂月报']:
                 if group not in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].append(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'牌谱查询功能禁用成功')
             else:
                 return await bot.send(event, '无此功能,请重新输入参数')
@@ -89,27 +94,32 @@ async def enableqhplugin(event: GroupMessage):
             if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                 if group in qhsettings['disptgroup']:
                     qhsettings['disptgroup'].remove(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'查分功能启用成功')
             elif commandname in ['qhpaipu', '雀魂最近对局']:
                 if group in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].remove(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'牌谱查询功能启用成功')
             elif commandname in ['qhinfo', '雀魂玩家详情']:
                 if group in qhsettings['disinfogroup']:
                     qhsettings['disinfogroup'].remove(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'雀魂玩家详情功能启用成功')
             elif commandname in ['qhsl', '雀魂十连']:
                 if group in qhsettings['disslgroup']:
                     qhsettings['disslgroup'].remove(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'模拟十连功能启用成功')
             elif commandname in ['qhyb', '雀魂月报']:
                 if group in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].remove(group)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    w_cfg_to_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await bot.send(event, f'牌谱查询功能启用成功')
             else:
                 return await bot.send(event, '无此功能,请重新输入参数')
@@ -479,8 +489,9 @@ async def asyqh_autopaipu():
     return
 
 
-if config['settings']['autogetpaipu']:
-    _searchfrequency = config["searchfrequency"]
+# if config['settings']['autogetpaipu']:
+if qhsettings.get('autoquery', False):
+    _searchfrequency = int(qhsettings.get("searchfrequency",6))
     if int(_searchfrequency) < 1:
         print('查询频率不能为0,将自动设置为6')
         _searchfrequency = 6
