@@ -12,8 +12,8 @@ if not os.path.exists("./images/MajSoulInfo"):
 
 if not os.path.exists(r"./config/MajSoulInfo/config.yml"):
     print('未检测到雀魂配置文件,生成初始文件中...')
-    cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, autoquery=True, dailydrawcount=3,
-               disptgroup=[0], disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
+    cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, bordertype='image', autoquery=True,
+               dailydrawcount=3, disptgroup=[0], disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
                dispaipugroup=[0])
     w_cfg_to_file(content=cfg, path=r"./config/MajSoulInfo/config.yml")
     print('雀魂配置文件生成完毕')

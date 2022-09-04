@@ -1,4 +1,4 @@
-adapter: # Mirai-api-http
+adapter: # Mirai-Api-Http
   host: localhost
   port: 17280
   verify_key: NekoRabi
@@ -21,7 +21,7 @@ mutegrouplist:
 
 commandpre: ''  # 指令前缀
 
-master: 0  # 机器人主人
+master: 0  # 机器人主人,必填
 
 searchfrequency: 6 # 查询频率，建议为 6
 
@@ -51,16 +51,11 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 whitelist:
   - 0   # 白名单
 
-# 色图群聊
-setugroups:
-  - 0
-
 settings: # 功能开关
   autogetpaipu: true  # 自动获取雀魂牌谱
   autowelcome: true   # 自动欢迎新人
   nudgereply: true    # 是否启用摸头事件
   r18talk: true       # 开启管理员词库
-  setu: false         # 色图
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
   help: true          # 是否显示帮助
@@ -75,27 +70,6 @@ repeatconfig:         # 回复、打断相关，要求值从上到下排序为�
 
   autoreply: true     # 是否开启机器人互动
   kwreply: true       # 是否开启关键词回复
-
-# 雀魂指令控制
-qhsettings: # 是否启用
-  qhpt: true
-  qhinfo: true
-  qhsl: true
-  qhyb: true
-  qhpaipu: true
-  disptgroup: # 在某群禁用 qhpt
-    - 0
-  disinfogroup:
-    - 0
-  disslgroup:
-    - 0
-  disybgroup:
-    - 0
-  disautoquerygroup:
-    - 0
-  dispaipugroup:
-    - 0
-  borderimg: true
 
 
 #语音设置

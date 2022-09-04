@@ -1,7 +1,7 @@
 # yaml.scanner.ScannerError:
 解决方法：yaml文件的格式不对，请检查 冒号 (:) 和 横线 (-) 后面是否有空格，并检查缩进
 
-# ERORAs of 3.10， the *loop* parameter was removed from Lock() since it is no longer necessaryTraceback (most recent call last) :
+# ERORAs of 3.10， the \*loop* parameter was removed from Lock() since it is no longer necessaryTraceback (most recent call last) :
 解决方法：参数 loop 已从 python 3.10 中移除，请降级安装python 3.8 或 3.9 ，或者参考 [官方办法](https://yiri-mirai.vercel.app/docs/faq#as-of-310-the-loop-parameter-was-removed-from-lock-since-it-is-no-longer-necessary)
 
 # 启动后秒退
@@ -52,5 +52,10 @@ websocket通道异常关闭，当前版本来说，一般是由异步爬虫引�
 # config乱码
 utf-8格式文件以gbk保存 或者反过来了，重写一次配置文件 
 
-# KeyError、ImportError、FileNotExistError 等
+# mirai.exceptions.ApiError: (500, '[ERROR 500]mirai 内部错误。', 'Connection timed out: connect')
+连接超时，这通常是产生于发送图片
+
+消息链中存在 Image(url='xxx') 的形式的图片组件时，发送该消息链可能会超时。这是通常是网络原因
+
+# KeyError、ImportError、FileNotExistError 等代码错误
 截图直接发我，一般都是我代码有问题，出现这种问题真的很抱歉

@@ -1,6 +1,8 @@
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等。有python基础的也可以自己写插件
 
+**以上功能现在全部作为插件使用**
+
 # [指令帮助](./docs/command_help.md)
 
 # [自定义指令帮助](./docs/reg-command_help.md)
@@ -55,7 +57,7 @@
 
 可以参考 YiriMirai 的[官方文档](https://yiri-mirai.wybxc.cc/docs/quickstart)的快速部署。
 
-可以使用 ``` pip install -r requirements.txt``` 来快速安装所需依赖。
+可以使用 ``` pip install -r requirements.txt``` 来快速安装所需依赖。 *也可以双击bat文件*
 
 我提供了自己的 [Mirai](./other/自用mirai/mcl1.0.6.zip) 和 [Mirai-Api-Http](./other/mirai-api-http/setting.yml) 配置，可以直接进行复制和替换。
 
@@ -72,17 +74,20 @@ exe不包含资源文件，需要另外下载，下载好后需要放到对应�
 下载好后，双击exe启动，会自动生成一些配置文件，填好文件应该就能使用。
 
 
+**<font color='red'>启动后请不要关闭命令行</font> Mirai 和 本程序 都必须开着 !**
+
+
 # 环境
 
 我自己环境是 Python 3.9  和 Java 17.
 
 **建议使用 Python 3.9 和 Java 17**
 
-已知Python 3.10 可能有问题跑不起来，如已安装并报错，请降级安装python 3.8-9 *以后会去解决3.10的问题*
-
 # 自定义插件 <font size=4>(仅支持code版本)</font>
 
-有python基础的人可以尝试参考 [这个程序](./plugin/ImgOperation/groupmember_imgoperation.py) 自己编写插件
+有python基础的人可以尝试参考 [模板](./plugin/Template/helloworld.py) 自己编写插件
+
+也可以联系我帮忙做一些插件(看心情做)
 
 编写好后记得要 <font color='red'>import</font>
 
@@ -99,7 +104,7 @@ exe不包含资源文件，需要另外下载，下载好后需要放到对应�
  ```
 ### 请注意 ， 冒号(:)和横线(-)  后面必须要有 '空格'
 
-adapter: # Mirai-api-http
+adapter: # Mirai-Api-Http
   host: localhost
   port: 17280
   verify_key: NekoRabi
@@ -122,13 +127,13 @@ mutegrouplist:
 
 commandpre: ''  # 指令前缀
 
-master: 0  # 机器人主人
+master: 0  # 机器人主人,必填
 
 searchfrequency: 6 # 查询频率，建议为 6
 
-replyimgpath : fox # 表情包选择,请将表情包方放在文件夹'data/reply/img/'下以
+replyimgpath : fox # 表情包路径
 
-loglevel: INFO # 日志等级,功能暂时关闭
+loglevel: INFO # 日志等级
 
 # "戳一戳"配置文件
 nudgeconfig:
@@ -152,16 +157,11 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 whitelist:
   - 0   # 白名单
 
-# 色图群聊
-setugroups:
-  - 0
-
 settings: # 功能开关
   autogetpaipu: true  # 自动获取雀魂牌谱
   autowelcome: true   # 自动欢迎新人
   nudgereply: true    # 是否启用摸头事件
   r18talk: true       # 开启管理员词库
-  setu: false         # 色图
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
   help: true          # 是否显示帮助
@@ -174,25 +174,8 @@ repeatconfig:         # 回复、打断相关，要求值从上到下排序为�
   interruptQ: 0.5     # 用 ? 打断发言的概率
   interruptQQ: 0.1    # 用 ? 或多个??打断发言的概率
 
-# 雀魂指令控制
-qhsettings: # 是否启用
-  qhpt: true
-  qhinfo: true
-  qhsl: true
-  qhyb: true
-  qhpaipu: true
-  disptgroup: # 在某群禁用 qhpt
-    - 0
-  disinfogroup:
-    - 0
-  disslgroup:
-    - 0
-  disybgroup:
-    - 0
-  disautoquerygroup:
-    - 0
-  dispaipugroup:
-    - 0
+  autoreply: true     # 是否开启机器人互动
+  kwreply: true       # 是否开启关键词回复
 
 
 #语音设置
@@ -207,7 +190,8 @@ voicesetting:
                   # 即 设置private 为 true，则只有你可以让机器人说话
   secretId: ''
   secretKey: ''
-  codec: 'mp3'    # 音频格式,为 'mp3'或'wav'
+  codec: 'mp3'
+
 
 
 
@@ -216,7 +200,7 @@ voicesetting:
 ### 以 commonreply.json 为例
 ```
 {
-  <!-- 都是最简单的 key:[value0,value1...]  
+  <!-- 都是最简单的 key:[value0,value1...]  ,触发时随机抽取一条消息进行回复
   前面是与机器人互动的关键词 string ，后面是回复消息的 list -->
   "贴": [
       "贴什么贴.....只......只能......一下哦！",
@@ -297,6 +281,7 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  - 摸头、互亲、举牌、色图、占卜等图片相关功能
  - 强交互性，提供自定义回复、图片回复和语音回复
  - 支持自定义指令，可以自定义自己喜欢的触发方式
+ - 支持插件
  - 以后会有更多……
 
  # 存在的问题
@@ -308,7 +293,7 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  # 开发计划
 
 
-  [ ] 增加何切支持
+  [x] 增加何切支持
 
   [x] 将所有功能都写进配置文件，提供高度自定义
 

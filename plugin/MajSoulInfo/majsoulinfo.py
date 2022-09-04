@@ -669,8 +669,8 @@ class MajsoulQuery:
         """三麻"""
         try:
             if userinfo['muti3']:
-                print("查到多位同名三麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
-                prtmsg += f"\n\n查到多位同名三麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
+                print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+                prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
             user_p3_levelinfo: dict = userinfo.get('pl3')
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
@@ -684,8 +684,8 @@ class MajsoulQuery:
         """四麻"""
         try:
             if userinfo['muti4']:
-                print("查到多位同名四麻玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
-                prtmsg += f"\n\n查到多位同名四麻玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
+                print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+                prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
             user_p4_levelinfo = userinfo['pl4']
             user_p4_levelinfo = user_p4_levelinfo.get("level")
             p4_level = user_p4_levelinfo.get("id")
@@ -712,7 +712,7 @@ class MajsoulQuery:
         """
         if not selectindex:
             selectindex = 1
-        selecttype = int(selecttype) - 1
+        selectindex = int(selectindex) - 1 if int(selectindex) > 0 else 0
         if selecttype == 3:
             # url = f"https://ak-data-1.sapk.ch/api/v2/pl3/search_player/{username}?limit=20"
             url = get_qhpturl(username, 3)
@@ -947,37 +947,41 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
+        pl3info = None
+        pl4info = None
         if len(pl3) > 0:
             if len(pl3) > 1:
-                muti3 = True
-            pl3 = pl3[0]
-            if pl3.get('level').get('id') < 20000:
-                pl3 = None
-        else:
-            pl3 = None
+                muti3 =True
+            for _pl in pl3:
+                if _pl.get('level').get('id') > 20000:
+                    pl3info = _pl
+                    break
+            # else:
+            #     pl3info = None
         if len(pl4) > 0:
             if len(pl4) > 1:
                 muti4 = True
-            pl4 = pl4[0]
-            if pl4.get('level').get('id') > 20000:
-                pl4 = None
-        else:
-            pl4 = None
-
+            pl4info = None
+            for _pl in pl4:
+                if _pl.get('level').get('id') < 20000:
+                    pl4info = _pl
+                    break
+            # else:
+            #     pl4 = None
         playerid = None
         playername = None
-        if pl3:
-            # if pl3['nickname'] == username:
-            playerid = pl3['id']
-            playername = pl3['nickname']
-        elif pl4:
-            # if pl4['nickname'] == username :
-            playerid = pl4['id']
-            playername = pl4['nickname']
+        if pl3info:
+            # if pl3info['nickname'] == username:
+            playerid = pl3info['id']
+            playername = pl3info['nickname']
+        elif pl4info:
+            # if pl4info['nickname'] == username :
+            playerid = pl4info['id']
+            playername = pl4info['nickname']
         else:
             muti3 = False
             muti4 = False
-        return dict(pl3=pl3, pl4=pl4, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
+        return dict(pl3=pl3info, pl4=pl4info, playerid=playerid, playername=playername, error=False, muti3=muti3, muti4=muti4,
                     offline=False)
 
 

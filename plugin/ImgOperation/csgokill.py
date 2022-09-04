@@ -58,7 +58,7 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
         pimg_a = penetrate_img.split()[3]
 
     img = IMG.new('RGBA', (total_width, 50), (255, 0, 0))
-    img_bg = IMG.new('RGBA', (total_width - 8, 42), (0, 0, 0, 112))
+    img_bg = IMG.new('RGBA', (total_width - 10, 42), (0, 0, 0, 112))
     img.paste(img_bg, (6, 4))
     img.paste(img_gun, (gun_posx, 10), g_a)
     if penetrate_img:
