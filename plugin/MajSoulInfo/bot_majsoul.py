@@ -264,7 +264,7 @@ async def addmajsoulwatch(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['majsoul']['addwatch']}", msg.strip())
     if m:
-        if event.group.id not in qhsettings['disautoquerygroup']:
+        if event.group.id:
             # if is_havingadmin(event):
             #     await bot.send(event, addwatch(m.group(2), event.group.id))
             # else:
@@ -278,7 +278,7 @@ async def delmajsoulwatch(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['majsoul']['delwatch']}", msg.strip())
     if m:
-        if event.group.id not in qhsettings['disautoquerygroup']:
+        if event.group.id:
             # if is_havingadmin(event):
             #     await bot.send(event,
             #                    removewatch(playername=m.group(2), groupid=event.group.id))
@@ -470,7 +470,7 @@ async def guan_wang(event: GroupMessage):
     if m:
         if m.group(1) == '雀魂':
             await bot.send(event, "https://game.maj-soul.net/1/")
-        elif m.group(2) == '天凤':
+        elif m.group(1) == '天凤':
             await bot.send(event, 'https://tenhou.net/')
     return
 

@@ -8,6 +8,7 @@
 
 import re
 import aiohttp
+import mirai.exceptions
 from mirai import GroupMessage, MessageChain, Plain, Image
 from core import bot, config
 
@@ -59,4 +60,8 @@ async def bili_resolve(event: GroupMessage):
                 img_url = f'http://{url}'''
             message_chain = MessageChain(
                 [Image(url=img_url), Plain(text=msg)])
-            return await bot.send(event, message_chain)
+            try:
+                await bot.send(event, message_chain)
+            except mirai.exceptions.ApiError as _e:
+                print(f'视频封面发送失败 {_e.args}')
+    return
