@@ -1,13 +1,20 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/5 16:46
+:Update: /
+:Describe: 天凤功能插件
+:Version: 0.0.1
+"""
 import base64
 import gzip
 import datetime
+import os
 import random
+import sqlite3
 
 import aiohttp
 import pytz
 import re
-import sqlite3
-import os
 from plugin.TenHouPlugin.ptcalculation import ptcalculation
 from utils import text_to_image
 
@@ -50,65 +57,6 @@ def un_gz(file_name):
     # gzip对象用read()打开后，写入open()建立的文件里。
     g_file.close()
     # 关闭gzip对象
-
-
-def file_init():
-    if not os.path.exists("./database/TenHouPlugin"):
-        os.mkdir("./database/TenHouPlugin")
-
-    if not os.path.exists("./data/TenHouPlugin"):
-        os.mkdir("./data/TenHouPlugin")
-
-    cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
-    cursor = cx.cursor()
-    cursor.execute('create table if not exists watchedplayer ('
-                   'id integer primary key,'
-                   'watchedgroupcount integer not null default 0,'
-                   'playername varchar(50) UNIQUE)')
-    cursor.execute("create table if not exists QQgroup("
-                   "id integer primary key ,"
-                   "groupid integer UNIQUE)")
-    cursor.execute("create table IF NOT EXISTS group2player("
-                   "id integer primary key,"
-                   "groupid integer,"
-                   "playername varchar(50),"
-                   "iswatching integer not null default 1,"
-                   "UNIQUE(groupid,playername) ON CONFLICT REPLACE)")
-    cursor.execute("create table if not exists paipu("
-                   "id integer primary key,"
-                   "startTime varchar(50),"
-                   "model varchar(50),"
-                   "duration varchar(50),"
-                   "player1 varcher(50),"
-                   "player2 varcher(50),"
-                   "player3 varcher(50),"
-                   "player4 varcher(50)"
-                   ")")
-    cursor.execute("create table if not exists isgaming("
-                   "playername varchar(50),"
-                   "url varchar(20)"
-                   ")")
-
-    cursor.execute("create view if not exists groupwatches as "
-                   "select groupid,"
-                   "group_concat(playername) as watchedplayers,"
-                   "count(groupid) as watchnums "
-                   "from group2player "
-                   "where iswatching = 1 "
-                   "group by groupid")
-
-    cursor.execute("create view if not exists watchedplayersview as "
-                   "select playername,"
-                   "count(groupid) as watchedgroupcount "
-                   "from group2player "
-                   "where iswatching = 1 "
-                   "group by playername")
-    cx.commit()
-    cursor.close()
-    cx.close()
-
-
-file_init()
 
 
 # 自动抓取天风结算 - 异步爬虫
@@ -220,10 +168,10 @@ async def asyautoget_th_matching() -> list:
     nowmatches = []
     for infos in text:
         info = infos.split(',')
-        duijuurl = info[0]
-        type = info[1]
-        time = info[2]
-        numberX = info[3]
+        _duijuurl = info[0]
+        _type = info[1]
+        _time = info[2]
+        _numberX = info[3]
         players = []
         for i in range(4, len(info), 3):
             dstr = base64.b64decode(info[i]).decode('utf-8')
@@ -231,9 +179,8 @@ async def asyautoget_th_matching() -> list:
             player = dict(
                 playername=info[i], playerlevel=info[i + 1], playerrank=info[i + 2])
             players.append(player)
-        duiju = dict(url=duijuurl, type=type, time=time,
-                     numberX=numberX, players=players)
-        nowmatches.append(duiju)
+        _duiju = dict(url=_duijuurl, type=_type, time=_time, numberX=_numberX, players=players)
+        nowmatches.append(_duiju)
 
     eligible_Matches = []
     for match in nowmatches:
@@ -278,7 +225,7 @@ class TenHou:
         self.template = bordercast_temple
 
     @staticmethod
-    async def asygetTH():
+    async def asythquery():
         return await asyautoget_th_matching() + await asyautoget_th_match()
         # return finish_all_asytasks([asyautoget_th_matching(), asyautoget_th_match()], mergelist=True)
 

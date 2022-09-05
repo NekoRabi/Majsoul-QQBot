@@ -6,6 +6,7 @@ qhpaipu: true # 是否启用查询雀魂牌谱功能
 autoquery: true  # 是否启用自动查询
 searchfrequency: 6 #  牌谱查询频率
 dailydrawcount: 3 # 每个用户每天抽卡次数上限
+broadcast: "image" # 广播类型,发送图片还是文本
  # 分别在在某群禁用 相关功能
 disptgroup:
   - 0

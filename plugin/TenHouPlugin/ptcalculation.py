@@ -265,7 +265,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
                 ps.addscore(3, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
                             matchtime=starttime)
         matchcount += 1
-    print(matchcount)
+    # print(matchcount)
 
     return ps.showrank()
 

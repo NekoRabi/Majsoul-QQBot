@@ -1,10 +1,18 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/5 16:45
+:Update: /
+:Describe: 天凤与机器人交互组件
+:Version: 0.0.1
+"""
 import datetime
 import re
 
 from mirai import GroupMessage, Plain
 
-from core import bot, commandpre, commands_map, config, scheduler
+from core import bot, commandpre, commands_map, scheduler
 from plugin.TenHouPlugin.TenHou import tenhou
+from utils.cfg_loader import loadcfg_from_file
 
 __all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
            'gettenhouwatcher']
@@ -17,6 +25,8 @@ from utils.MessageChainSender import sendMsgChain
 
 from utils.bufferpool import *
 from utils.get_groupmember_authority import is_havingadmin
+
+_cfg = loadcfg_from_file(r'./config/TenHouPlugin/config.yml')
 
 
 @bot.on(GroupMessage)
@@ -164,7 +174,7 @@ async def gettenhouwatcher(event: GroupMessage):
 
 async def asyth_all():
     print("开始查询天凤信息")
-    result = await tenhou.asygetTH()
+    result = await tenhou.asythquery()
     # print(result)
     for msgobj in result:
         for group in msgobj['groups']:
@@ -176,8 +186,8 @@ async def asyth_all():
     return
 
 
-if config['settings']['autogetpaipu']:
-    _searchfrequency = config["searchfrequency"]
+if _cfg.get('autoquery', True):
+    _searchfrequency = _cfg.get('searchfrequency', 6)
     if int(_searchfrequency) < 1:
         print('查询频率不能为0,将自动设置为6')
         _searchfrequency = 6

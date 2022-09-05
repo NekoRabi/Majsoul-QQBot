@@ -145,18 +145,18 @@ async def qhpt(event: GroupMessage):
                 if not selectindex:
                     selectindex = 0
                 selectindex = int(selectindex)
-                await sendMsgChain(event=event,
-                                   msg=await majsoul.getcertaininfo(m.group(2), selecttype, selectindex))
+                result = await majsoul.getcertaininfo(m.group(2), selecttype, selectindex)
             else:
                 result = await majsoul.query(m.group(2))
-                if result['error']:
-                    # await bot.send(event, result['msg'])
-                    await sendMsgChain(msg=result['msg'], event=event)
-                else:
-                    await sendMsgChain(msg=messagechain_builder(imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'),
-                                       event=event,
-                                       errortext=result['msg'])
-                    # await bot.send(event, imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
+            await bot.send(event, result)
+            # if result['error']:
+            #     # await bot.send(event, result['msg'])
+            #     await sendMsgChain(msg=result['msg'], event=event)
+            # else:
+            #     await sendMsgChain(msg=messagechain_builder(imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'),
+            #                        event=event,
+            #                        errortext=result['msg'])
+            # await bot.send(event, imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
         return
 
 
@@ -184,11 +184,12 @@ async def getrecentqhpaipu(event: GroupMessage):
                         return await bot.send(event, "牌局数量有误，最多支持10场牌局")
                 result = await majsoul.getsomeqhpaipu(playername=playername, type=searchtype,
                                                       counts=searchnumber)
-                if not result['err']:
-                    await sendMsgChain(event=event,
-                                       msg=messagechain_builder(imgbase64=result['img64']), errortext=result['msg'])
-                else:
-                    await sendMsgChain(event=event, msg=result['msg'])
+                # if not result.get('err', True):
+                #     await sendMsgChain(event=event,
+                #                        msg=messagechain_builder(imgbase64=result['img64']), errortext=result['msg'])
+                # else:
+                #     await sendMsgChain(event=event, msg=result['msg'])
+                await sendMsgChain(event=event, msg=result)
 
 
 @bot.on(GroupMessage)
@@ -207,18 +208,18 @@ async def getplayerdetails(event: GroupMessage):
             selectlevel = m.group(5)
             if selectlevel:
                 pass
-            else:
-                if model is None:
-                    model = '基本'
-                detail = await majsoul.getplayerdetail(
-                    playername=playername, selecttype=selecttype, model=model)
-                if detail['error']:
-                    await bot.send(event, detail['msg'])
-                else:
-                    res = await bot.send(event,
-                                         messagechain_builder(imgpath=f'./images/MajsoulInfo/detail{playername}.png'))
-                    if res == -1:
-                        await bot.send(event, detail['msg'])
+            if model is None:
+                model = '基本'
+            detail = await majsoul.getplayerdetail(
+                playername=playername, selecttype=selecttype, model=model)
+            await bot.send(event, detail)
+            # if detail['error']:
+            #     await bot.send(event, detail['msg'])
+            # else:
+            #     res = await bot.send(event,
+            #                          messagechain_builder(imgpath=f'./images/MajsoulInfo/detail{playername}.png'))
+            #     if res == -1:
+            #         await bot.send(event, detail['msg'])
     return
 
 
@@ -237,15 +238,16 @@ async def getqhmonthreport(event: GroupMessage):
             month = m.group(5)
             report = await majsoul.getmonthreport(
                 playername=playername, selecttype=selecttype, year=year, month=month)
-            if report['error']:
-                await bot.send(event, report['msg'])
-            else:
-                res_id = await bot.send(event,
-                                        messagechain_builder(imgpath=f'./images/MajsoulInfo/yb{playername}.png'))
-                if res_id == -1:
-                    print(f"图片yb{playername}.png发送失败，尝试发送文本")
-                    await bot.send(event, report['msg'])
-                # await bot.send(event,messagechain_builder()(imgbase64=report['imgbase64']))
+            await bot.send(event, report)
+            # if report['error']:
+            #     await bot.send(event, report['msg'])
+            # else:
+            #     res_id = await bot.send(event,
+            #                             messagechain_builder(imgpath=f'./images/MajsoulInfo/yb{playername}.png'))
+            #     if res_id == -1:
+            #         print(f"图片yb{playername}.png发送失败，尝试发送文本")
+            #         await bot.send(event, report['msg'])
+            # await bot.send(event,messagechain_builder()(imgbase64=report['imgbase64']))
     return
 
 
@@ -455,7 +457,7 @@ async def freshqhpaipu(event: FriendMessage):
     if event.sender.id == master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr"^{commandpre}freshqh\s*$", msg.strip())
+            fr"^{commandpre}freshqhdb\s*$", msg.strip())
         if m:
             print("牌谱刷新中")
             await sendMsgChain(msg="牌谱刷新中", event=event)
@@ -491,7 +493,7 @@ async def asyqh_autopaipu():
 
 # if config['settings']['autogetpaipu']:
 if qhsettings.get('autoquery', False):
-    _searchfrequency = int(qhsettings.get("searchfrequency",6))
+    _searchfrequency = int(qhsettings.get("searchfrequency", 6))
     if int(_searchfrequency) < 1:
         print('查询频率不能为0,将自动设置为6')
         _searchfrequency = 6
