@@ -6,7 +6,6 @@
 :Version: 0.0.1
 """
 
-
 from typing import Union
 
 from mirai import MessageChain, MessageEvent
@@ -17,10 +16,11 @@ from utils.MessageChainBuilder import messagechain_builder
 
 __all__ = ['sendMsgChain']
 
+
 async def sendMsgChain(msg: Union[MessageChain, str, MessageComponent], event: MessageEvent = None,
                        grouptarget: int = None, friendtarget: int = None, errortext: str = None) -> int:
     res = 0
-    if msg is not MessageChain:
+    if not isinstance(msg, MessageChain):
         msg = MessageChain(msg)
     errtext = "消息发送失败"
     imgSendErrText = f"图片发送失败,这肯定不是{bot_cfg.get('nickname')}的问题!"

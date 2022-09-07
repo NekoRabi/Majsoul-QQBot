@@ -7,13 +7,14 @@
 """
 
 import re
+import time
 
 from mirai import FriendMessage, Plain, GroupMessage
 
 from core import bot, master, commandpre, commands_map, config, admin
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import sendMsgChain
-from utils.bufferpool import cmdbuffer, GroupBotCommand
+from utils.bufferpool import *
 from utils.cfg_loader import w_cfg_to_file
 
 _whitelist = config['whitelist']
@@ -22,6 +23,8 @@ _black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
 
 __all__ = ['addblacklist', 'addwhitelist', 'addadmin', 'deladmin', 'delblacklist', 'getbotinfo', 'getsyslog',
            'tell_to_master']
+
+_blacklist_msg = {}
 
 
 @bot.on(FriendMessage)
@@ -139,8 +142,8 @@ async def getsyslog(event: FriendMessage):
             return await bot.send(event, "日志功能开发中")
 
 
-@bot.on(GroupMessage or FriendMessage)
-async def tell_to_master(event: FriendMessage or GroupMessage):
+@bot.on(GroupMessage)
+async def tell_to_master(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^{commandpre}{commands_map['sys']['tell_master']}", msg.strip())
@@ -149,9 +152,9 @@ async def tell_to_master(event: FriendMessage or GroupMessage):
         if qqid in _black_list:
             return await bot.send(event, messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
         if master != 0:
-            if event is GroupMessage:
-                if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'tell_master')):
-                    return bot.send(event, messagechain_builder(text="该功能已进入CD", at=event.sender.id))
+            if not cmdbuffer.updategroupcache(LongTimeGroupCommand(event.group.id, event.sender.id, 'tell_master')):
+                return bot.send(event, messagechain_builder(text="只能每5分钟发一条消息哦~", at=event.sender.id))
+
             message = m.group(1)
-            await bot.send_friend_message(master, messagechain_builder(text=f'qq为{qqid}的人说:{message}'))
+            await bot.send_friend_message(master, messagechain_builder(text=f'qq {qqid} 的人说:{message}'))
             await bot.send(event, messagechain_builder(text='已转告主人'))

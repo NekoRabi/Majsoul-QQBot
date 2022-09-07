@@ -1,10 +1,19 @@
-import time
+"""
+:Author:  NekoRabi
+:Create:  2022/9/6 21:00
+:Update: /
+:Describe: 缓冲池类
+:Version: 0.0.2
+"""
 
-# 消息缓冲池
+import time
 
 
 class MessageBufferPool:
     """
+
+    暂时弃用
+
     Structure 结构
 
     好友消息(dict):
@@ -40,6 +49,9 @@ class MessageBufferPool:
 
 
 class BotCommand:
+    """指令父类"""
+
+    type: str = 'BotCommand'
 
     def __init__(self):
         self.id = None
@@ -56,12 +68,13 @@ class BotCommand:
         return self.id
 
 
-class GroupBotCommand(BotCommand):
+class GroupCommand(BotCommand):
     """
     群指令类
     """
+    type: str = 'GroupCommand'
 
-    def __init__(self, groupid, userid, command: str):
+    def __init__(self, groupid, userid, command: str, cd=10):
         """
         构造一条群指令，需要群号
         """
@@ -71,6 +84,7 @@ class GroupBotCommand(BotCommand):
         self.command = command
         self.last_time = int(time.time())
         self.id = f'{groupid}_{userid}'
+        self.duration = cd
 
     def __str__(self):
         return f'id:{self.id} ' \
@@ -80,9 +94,42 @@ class GroupBotCommand(BotCommand):
                f'last_time:{self.last_time} '
 
     def __eq__(self, other):
-        if other is GroupBotCommand:
+        if isinstance(other, GroupCommand):
             if other.groupid == self.groupid and other.userid == self.userid and other.command == self.command:
-                if -10 < other.last_time - self.last_time < 10:
+                if -self.duration < other.last_time - self.last_time < self.duration:
+                    return True
+        return False
+
+    def getgroupid(self):
+        return self.groupid
+
+    def getuserid(self):
+        return self.userid
+
+
+class LongTimeGroupCommand(GroupCommand):
+    """
+    长时间群指令类
+    """
+    type: str = 'LongTimeGroupCommand'
+
+    def __init__(self, groupid, userid, command: str, cd=300):
+        """
+        构造一条长时间群指令，需要群号
+        """
+        super().__init__(groupid, userid, command, cd=300)
+
+    def __str__(self):
+        return f'id:{self.id} ' \
+               f'groupid:{self.groupid} ' \
+               f'userid:{self.userid} ' \
+               f'command:{self.command} ' \
+               f'last_time:{self.last_time} '
+
+    def __eq__(self, other):
+        if isinstance(other, GroupCommand):
+            if other.groupid == self.groupid and other.userid == self.userid and other.command == self.command:
+                if -self.duration < other.last_time - self.last_time < self.duration:
                     return True
         return False
 
@@ -95,7 +142,7 @@ class GroupBotCommand(BotCommand):
 
 class BotCommandCache:
     """
-        指令缓存区类
+    群指令缓存区类
     """
 
     def __init__(self):
@@ -130,7 +177,7 @@ class BotCommandCache:
             # print('insert cmd')
             return True
 
-    def pushcmd(self, command: GroupBotCommand):
+    def pushcmd(self, command: GroupCommand):
         self.groupbuffer[command.id] = command
 
     def clearcache(self):
@@ -142,5 +189,7 @@ class BotCommandCache:
             cmdstr += f'{cmd}\n'
         return cmdstr
 
+
+# TODO 做一个私聊指令缓冲池，并合并
 
 cmdbuffer = BotCommandCache()

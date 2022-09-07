@@ -161,10 +161,10 @@ async def enablesetu(event: GroupMessage):
     if m:
         if event.sender.id in admin:
             groupid = event.group.id
-            if groupid in setu_config.get['setugroup']:
+            if groupid in setu_config.get('setugroups'):
                 await bot.send(event, messagechain_builder(text="本群已开启色图"))
             else:
-                setu_config.get['setugroup'].append(groupid)
+                setu_config.get('setugroups').append(groupid)
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
                 # w_cfg_to_file(content=config, path=r'./config/config.yml')
@@ -181,8 +181,8 @@ async def disablesetu(event: GroupMessage):
     if m:
         if event.sender.id in admin:
             groupid = event.group.id
-            if groupid in setu_config.get['setugroup']:
-                setu_config.get['setugroup'].remove(groupid)
+            if groupid in setu_config.get('setugroups'):
+                setu_config.get('setugroups').remove(groupid)
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
                 # w_cfg_to_file(content=config, path=r'./config/config.yml')
@@ -201,13 +201,14 @@ async def getsomesetu(event: GroupMessage):
     m2 = re.match(
         fr"^{commandpre}{commands_map['setu']['getsetu2']}", msg.strip())
     if m1:
-        if random.random() * 100 < 10:
+        # if random.random() * 100 < 10:
+        if random.random() * 100 < 0:
             # print(f"发出对{event.sender.id}的少冲提醒")
             # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             pass
         else:
-            if setu_config.get('enable', False) and event.group.id in setu_config.get['setugroup']:
-                if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'setu')):
+            if setu_config.get('enable', False) and event.group.id in setu_config.get('setugroups'):
+                if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(text="你冲的频率太频繁了,休息一下吧", at=event.sender.id))
                 try:
                     imginfo = await stfinder.getsetu(
@@ -217,22 +218,22 @@ async def getsomesetu(event: GroupMessage):
                     # imgb64 = download_setu_base64_from_url(imginfo['url'])
                     res = await bot.send(event, messagechain_builder(imgurl=imginfo['url']))
                     # res = await bot.send(event,messagechain_builder(imgbase64=imgb64))
-                    if res != -1 and stfinder.recalltime != -1:
+                    if res == -1:
+                        await bot.send(event, f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
+                    elif stfinder.recalltime != -1:
                         await asyncio.sleep(stfinder.recalltime)
                         await bot.recall(res)
-                    elif res == -1:
-                        await bot.send(event, f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
                 except Exception as e:
                     print(f"色图请求失败:{e}")
                     await bot.send(event, messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
     elif m2:
-        if random.random() * 100 < 10:
+        if random.random() * 100 < 0:
             # print(f"发出对{event.sender.id}的少冲提醒")
             # await bot.send(event, [At(event.sender.id), " 能不能少冲点啊，这次就不给你发了"])
             pass
         else:
-            if setu_config.get('enable', False) and event.group.id in setu_config.get['setugroup']:
-                if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'setu')):
+            if setu_config.get('enable', False) and event.group.id in setu_config.get('setugroups'):
+                if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'setu')):
                     return bot.send(event, messagechain_builder(at=event.sender.id, text="你冲的频率太频繁了,休息一下吧"))
                 setu_num = m2.group(1)
                 if not setu_num:
@@ -246,11 +247,11 @@ async def getsomesetu(event: GroupMessage):
                         return await bot.send(event, messagechain_builder(at=event.sender.id, text=imginfo['ErrorMsg']))
                     res = await bot.send(event, messagechain_builder(imgurl=imginfo['url']))
                     # await bot.send(event, MessageChain([Image(url=imginfo['url'])]))
-                    if res != -1 and stfinder.recalltime != -1:
+                    if res == -1:
+                        await bot.send(event, f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
+                    elif stfinder.recalltime != -1:
                         await asyncio.sleep(stfinder.recalltime)
                         await bot.recall(res)
-                    elif res == -1:
-                        await bot.send(event, f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
                 except Exception as e:
                     print(f"色图请求失败:{e}")
                     await bot.send(event, messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))

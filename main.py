@@ -5,7 +5,7 @@
 :Version: v0.6.4
 """
 import nest_asyncio
-from mirai import MessageEvent, FriendMessage,  GroupMessage
+from mirai import MessageEvent, FriendMessage, GroupMessage
 from mirai.models import FlashImage
 
 from core import *
@@ -31,11 +31,12 @@ if __name__ == '__main__':
 
     print(f"机器人{botname}启动中\tQQ : {bot.qq}")
 
+
     # 聊天记录存储
 
     @bot.on(MessageEvent)
     def add_event_log(event: MessageEvent):
-        if event.type == 'GroupMessage':
+        if isinstance(event, GroupMessage):
             # infodict = dict(type=event.type,senderid=event.sender.id,sendername=event.sender.get_name(),
             # groupname=event.group.name,groupid=event.group.id,message=event.message_chain)
             # qqlogger.info(infodict)
@@ -44,17 +45,15 @@ if __name__ == '__main__':
             qqlogger.info(event)
 
 
-
     @bot.on(MessageEvent)
     async def save_flashimage(event: MessageEvent):
-        if event is GroupMessage or FriendMessage:
+        if type(event) in [GroupMessage, FriendMessage]:
             if FlashImage in event.message_chain and settings['saveflashimg']:
                 flashimg = event.message_chain.get_first(FlashImage)
                 try:
                     await flashimg.download(directory='./data/flashimages')
                 except Exception as _e:
                     print(f'闪照保存发生错误: {_e}')
-
 
 
     scheduler.add_job(cmdbuffer.clearcache, 'cron', hour='0')

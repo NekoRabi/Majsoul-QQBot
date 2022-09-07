@@ -192,9 +192,9 @@ class TarotCards:
                     opt = ""
                     if colindex is None:
                         colindex = -1
-                    elif colindex is int:
+                    elif type(colindex) is int:
                         colindex = [colindex]
-                    elif colindex is list:
+                    elif type(colindex) is list:
                         pass
                     else:
                         colindex = -1

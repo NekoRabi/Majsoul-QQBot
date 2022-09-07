@@ -151,7 +151,7 @@ async def getremakeimg(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['remake']['remake']}", msg.strip())
     if m:
 
-        if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'remake')):
+        if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'remake')):
             return bot.send(event, messagechain_builder(text="好快的重开", at=event.sender.id))
         senderid = event.sender.id
         if m.group(2):

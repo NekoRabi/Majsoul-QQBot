@@ -34,7 +34,7 @@ async def ranktenhouplayer(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['tenhou']['thpt']}", msg.strip())
     if m:
-        if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'thpt')):
+        if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
             return sendMsgChain(event=event,
                                 msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
         reset = True

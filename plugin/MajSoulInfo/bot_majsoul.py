@@ -137,7 +137,7 @@ async def qhpt(event: GroupMessage):
     if m:
         if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
 
-            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhpt')):
+            if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhpt')):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             if m.group(3):
                 selecttype = int(m.group(3))
@@ -168,7 +168,7 @@ async def getrecentqhpaipu(event: GroupMessage):
     if m:
         if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
 
-            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhpaipu')):
+            if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhpaipu')):
                 return sendMsgChain(event=event,
                                     msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             playername = m.group(2)
@@ -200,7 +200,7 @@ async def getplayerdetails(event: GroupMessage):
     if m:
         if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
-            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhinfo')):
+            if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhinfo')):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             playername = m.group(2)
             selecttype = m.group(3)
@@ -230,7 +230,7 @@ async def getqhmonthreport(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['majsoul']['qhyb']}", msg.strip())
     if m:
         if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
-            if not cmdbuffer.updategroupcache(GroupBotCommand(event.group.id, event.sender.id, 'qhyb')):
+            if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhyb')):
                 return bot.send(event, messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
             playername = m.group(2)
             selecttype = m.group(3)

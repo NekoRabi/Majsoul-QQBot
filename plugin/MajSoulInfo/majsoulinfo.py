@@ -345,7 +345,7 @@ class MajsoulQuery:
                 person_index = random.randint(0, person['length'] - 1)
                 ps = person['item'][person_index]['name']
                 drawcounts['person'] += 1
-                psrare = person['item'][person_index]['rare']
+                # psrare = person['item'][person_index]['rare']
                 results.append(person['item'][person_index]['url'])
                 resultsmsg += ps
                 cursor.execute(
@@ -621,7 +621,7 @@ class MajsoulQuery:
             return "删除成功"
         cursor.execute(
             f'select * from watchedplayer where playerid = {playerid}')
-        watcherplayers = cursor.fetchall()
+        # watcherplayers = cursor.fetchall()
         if groupplayers[0][3] != 0:
             cursor.execute(
                 f"update group2player set iswatching = 0 where playerid = {playerid} and groupid = {groupid}")
@@ -1222,7 +1222,7 @@ def mergeimg(imgurls: list) -> Image:
 
 def forwardmessage(msglist: list) -> list:
     messageChainList = []
-    cmdopt = []
+    # cmdopt = []
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
     for item in msglist:
@@ -1301,17 +1301,6 @@ def msganalysis(infos: list) -> list:
             pass
     return forwardmessage(content)
 
-
-async def asysearchqh(url, type="3"):
-    try:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            async with session.get(url) as response:
-                text = await response.json()
-                return dict(msg=text, error=False)
-    except asyncio.exceptions.TimeoutError as e:
-        print(f"查询超时,{e}")
-        return dict(msg="查询超时,请稍后再试", error=True)
 
 
 majsoul = MajsoulQuery()
