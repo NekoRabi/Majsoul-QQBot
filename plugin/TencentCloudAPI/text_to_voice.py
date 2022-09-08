@@ -13,18 +13,16 @@ __all__ = ['VoiceCreater']
 class VoiceCreater:
 
     def __init__(self, setting=None, secretId=None, secretKey=None, volume=1, speed=0.9, voicetype=1002, codec='mp3',
-                 token=None, timestamp=None):
+                 token=None, timestamp=None, **kwargs):
+        self.secretId = secretId
+        self.secretKey = secretKey
         if setting:
-            self.secretId = setting['secretId']
-            self.secretKey = setting['secretKey']
             self.volume = setting['volume']
             self.speed = setting['speed']
             self.voicetype = setting['voicetype']
             self.codec = setting['codec']
         else:
             self.token = token
-            self.secretId = secretId
-            self.secretKey = secretKey
             self.timestamp = timestamp
             self.volume = volume
             self.speed = speed

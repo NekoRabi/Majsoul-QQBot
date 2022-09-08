@@ -191,8 +191,8 @@ async def diuren(event: GroupMessage):
         if userid:
             img = await throwpeople(userid)
             await bot.send(event, messagechain_builder(imgbase64=img))
-        else:
-            await bot.send(event, messagechain_builder(text='请At要丢的人哦~'))
+        # else:
+        #     await bot.send(event, messagechain_builder(text='请At要丢的人哦~'))
     return
 
 

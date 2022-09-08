@@ -105,4 +105,14 @@ def file_init():
         w_cfg_to_file(commands, path=r'./config/command.yml')
 
 
+    # if not os.path.exists(r'./config/TenHouPlugin/command.yml'):
+    #     w_cfg_to_file(thcmds, path=r'./config/command.yml')
+    # else:
+    #     commands = loadcfg_from_file(r'./config/TenHouPlugin/command.yml')
+    #     for key in ['thpt', 'addwatch', 'delwatch', 'getwatch', 'clearwatch', 'tagon', 'tagoff', 'taglist']:
+    #         if key not in commands.keys():
+    #             commands['tenhou'] = thcmds
+    #             w_cfg_to_file(commands, path=r'./config/command.yml')
+    #             break
+
 file_init()

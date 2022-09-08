@@ -557,12 +557,12 @@ class MajsoulQuery:
             averagerank = (rankdict['1'] + rankdict['2'] * 2 +
                            rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
             if selecttype == "4":
-                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位,平均顺位:{averagerank:1.2f}"
+                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
             else:
-                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,平均顺位:{averagerank:1.2f}"
+                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位"
             if rankdict['fly'] > 0:
-                paipumsg += f"被飞了{rankdict['fly']}次,"
-            paipumsg += f"\nPT总得失: {ptchange}\n\n"
+                paipumsg += f",被飞了{rankdict['fly']}次"
+            paipumsg += f",平均顺位:{averagerank:1.2f}\nPT总得失: {ptchange}\n\n"
             msg += paipumsg
         except asyncio.exceptions.TimeoutError as e:
             print(f'\n牌谱读取超时:\t{e}\n')

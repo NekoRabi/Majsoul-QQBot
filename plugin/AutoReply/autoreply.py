@@ -22,7 +22,8 @@ botname = bot_cfg.get('nickname', '')
 admin = config['admin']
 black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
 
-__all__ = ['duideduide', 'randominterrupt', 'diyreply', 'config_group_repeat', 'sendgroupat', 'sendmsgtogroup']
+__all__ = ['duideduide', 'randominterrupt', 'diyreply', 'config_group_repeat', 'sendgroupat', 'sendmsgtogroup',
+           'fabing', 'crazy_thursday']
 
 
 @bot.on(GroupMessage)
@@ -83,8 +84,8 @@ async def randominterrupt(event: GroupMessage):
                 elif count < repeatconfig['repeatmsg']:
                     msg_component_type_list = []
                     for component in event.message_chain:
-                        msg_component_type_list.append(component.type)
-                    if msg_component_type_list == ['Plain']:
+                        msg_component_type_list.append(type(component))
+                    if msg_component_type_list == [Plain]:
                         print(f"在{event.group.name}群,复读一次{msg}")
                         return await bot.send(event, event.message_chain)
     return
@@ -100,15 +101,6 @@ async def diyreply(event: GroupMessage):
     if not settings['silence'] and repeatconfig['autoreply']:
         if event.group.id not in silencegroup:
             msg = "".join(map(str, event.message_chain[Plain]))
-            m = re.match(fr"^{commandpre}{commands_map['reply']['jida']}", msg.strip())
-            if m:
-                return await bot.send(event,
-                                      f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
-            m1 = re.match(fr"^{commandpre}{commands_map['reply']['wochao']}", msg.strip())
-            if m1:
-                return await bot.send(event,
-                                      f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
-
             senderid = event.sender.id
             if botname == "":
                 return
@@ -140,6 +132,28 @@ async def diyreply(event: GroupMessage):
 
 
 @bot.on(GroupMessage)
+async def fabing(event: GroupMessage):
+    """
+    发病文
+
+    很多发病文斗太恶心了
+    :param event:
+    :return:
+    """
+    if not settings['silence'] and repeatconfig['autoreply']:
+        if event.group.id not in silencegroup:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match(fr"^{commandpre}{commands_map['reply']['jida']}", msg.strip())
+            if m:
+                return await bot.send(event,
+                                      f"{m.group(1)}说，他有五个鸡，我说，立直鸡，副露鸡，默听鸡，自摸鸡，放铳鸡\n{m.group(1)}还说，他有四个鸡，我说，坐东鸡，坐西鸡，坐南鸡，坐北鸡\n{m.group(1)}又说，他有三个鸡，我说，上一打鸡，这一打鸡，下一打鸡\n{m.group(1)}又说，他有两个鸡，我说，子家鸡 亲家鸡\n{m.group(1)}最后说，他有一个鸡，我说，{m.group(1)}就是鸡")
+            m1 = re.match(fr"^{commandpre}{commands_map['reply']['wochao']}", msg.strip())
+            if m1:
+                return await bot.send(event,
+                                      f"考试中 {event.sender.member_name}想抄{m1.group(1)}的答案🥵{m1.group(1)}一直挡着说 不要抄了 不要抄了🥵当时{m1.group(1)}的眼泪都流下来了🥵可是{event.sender.member_name}还是没听{m1.group(1)}说的🥺一直在抄{m1.group(1)}🥵呜呜呜呜🥺 因为卷子是正反面 说亲自动手 趁监考老师不注意的时候把{m1.group(1)}翻到反面 翻来覆去抄{m1.group(1)}🥵抄完前面抄后面🥵🥵🥵")
+
+
+@bot.on(GroupMessage)
 async def config_group_repeat(event: GroupMessage):
     """
     关闭自动回复
@@ -162,6 +176,26 @@ async def config_group_repeat(event: GroupMessage):
                     print(f'已将{event.group.id}的复读开启')
                     norepeatgroup.remove(event.group.id)
                     w_cfg_to_file(content=config, path=r'./config/config.yml')
+
+
+@bot.on(GroupMessage)
+async def crazy_thursday(event: GroupMessage):
+    """
+    疯狂星期四
+    Args:
+        event:
+
+    Returns:
+
+    我也不知道返回说明好
+    """
+
+    if not settings['silence'] and repeatconfig['autoreply']:
+        if event.group.id not in silencegroup:
+            msg = "".join(map(str, event.message_chain[Plain]))
+            m = re.match('[vV]我?(50|五十)', msg.strip())
+            if m:
+                return await bot.send(event, messagechain_builder(text='我也想吃KFC'))
 
 
 @bot.on(FriendMessage)

@@ -10,8 +10,8 @@ __all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map
 config = {}
 replydata = {}
 _syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig',
-           'silencegroup', 'repeatconfig', 'norepeatgroup', 'nudgeconfig', 'loglevel', 'master',
-           'voicesetting', 'mutegrouplist', 'welcomeinfo', 'replyimgpath'}
+           'silencegroup', 'repeatconfig', 'norepeatgroup', 'nudgeconfig', 'loglevel', 'master', 'mutegrouplist',
+           'welcomeinfo', 'replyimgpath'}
 
 
 def load_config() -> dict:
@@ -92,11 +92,8 @@ def create_init_config():
                           repeatQ=20, repeatmsg=1, interruptQ=0.5, interruptQQ=0.1, autoreply=True, kwreply=True),
                       adapter=dict(verify_key='NekoRabi',
                                    host='localhost', port=17280),
-                      settings=dict(autogetpaipu=True, autowelcome=True, help=True, r18talk=True, nudgereply=True,
-                                    silence=False, norepeat=False, voice=False, saveflashimg=True),
-                      voicesetting=dict(codec='mp3', volumn=1, speed=0.85, voicetype=1002, private=True,
-                                        secretId='',
-                                        secretKey=''))
+                      settings=dict(autowelcome=True, help=True, r18talk=True, nudgereply=True,
+                                    silence=False, norepeat=False, saveflashimg=True))
     w_cfg_to_file(sys_config, r'./config/config.yml')
 
 
@@ -119,18 +116,10 @@ try:
     _welcomeinfo = config.get('welcomeinfo', [])
     _botconfig = config['botconfig']
     _botname = _botconfig['botname']
-    _voicesetting = config['voicesetting']
     master = config.get('master', 0)
     replydata['replyimgpath'] = config['replyimgpath']
     if master == 0:
         print('请输入机器人主人 ( master )')
-    if _settings.get('voice', None):
-        if _voicesetting['secretId'].strip() == '' or _voicesetting['secretKey'] == '':
-            print('请在填写语音设置后,再开启语音功能  现已将语音功能关闭')
-            _settings['voice'] = False
-            w_cfg_to_file(content=config, path=r'./config/config.yml')
-    else:
-        _settings['voice'] = False
     if len(_welcomeinfo) == 0:
         print("入群欢迎文本不存在，该功能将关闭")
         config['settings']['autowelcome'] = False
