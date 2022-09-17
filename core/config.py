@@ -1,8 +1,14 @@
-import os
+"""
+:Author:  NekoRabi
+:Create:  2022/9/18 3:12
+:Update: /
+:Describe: 机器人配置文件
+:Version: 0.6.5
+"""
 import sys
 
 from utils import text_to_image
-from utils.cfg_loader import loadcfg_from_file, w_cfg_to_file
+from utils.cfg_loader import *
 
 __all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map', 'load_replydata', 'load_commands',
            'load_config', 'create_helpimg', 'create_init_config']
@@ -10,42 +16,44 @@ __all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map
 config = {}
 replydata = {}
 _syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig',
-           'silencegroup', 'repeatconfig', 'norepeatgroup', 'nudgeconfig', 'loglevel', 'master', 'mutegrouplist',
+           'silencegroup', 'nudgeconfig', 'loglevel', 'master', 'mutegrouplist',
            'welcomeinfo', 'replyimgpath'}
 
 
 def load_config() -> dict:
+    """加载配置文件"""
     return config
 
 
 def load_replydata() -> dict:
+    """加载回复"""
     if os.path.exists(r"./data/reply/commonreply.json"):
-        replydata['common'] = loadcfg_from_file(r"./data/reply/commonreply.json", filetype='json')
+        replydata['common'] = read_file(r"./data/reply/commonreply.json", filetype='json')
 
     else:
         print("回复文本不存在")
         replydata['common'] = {"你好": ["你好"]}
 
     if os.path.exists(r"./data/reply/hyperreply.json"):
-        replydata['r18'] = loadcfg_from_file(r"./data/reply/hyperreply.json", filetype='json')
+        replydata['r18'] = read_file(r"./data/reply/hyperreply.json", filetype='json')
     else:
         print("r18回复文本不存在")
         replydata['r18'] = {"你好": ["爱你"]}
 
     if os.path.exists(r"./data/reply/black_user_reply.yml"):
-        replydata['blackuser'] = loadcfg_from_file(r"./data/reply/black_user_reply.yml")
+        replydata['blackuser'] = read_file(r"./data/reply/black_user_reply.yml")
     else:
         print("黑名单回复文本不存在")
         replydata['blackuser'] = {"你好": ["不好"]}
 
     if os.path.exists(r"./data/reply/nudgedata.yml"):
-        replydata['nudgedata'] = loadcfg_from_file(r'./data/reply/nudgedata.yml')
+        replydata['nudgedata'] = read_file(r'./data/reply/nudgedata.yml')
     else:
         print("摸头文本不存在")
         replydata['nudgedata'] = ["摸摸"]
 
     if os.path.exists(r"./data/reply/mismatch.yml"):
-        replydata['mismatch'] = loadcfg_from_file(r'./data/reply/mismatch.yml')
+        replydata['mismatch'] = read_file(r'./data/reply/mismatch.yml')
         # with open(r'./data/reply/mismatch.yml', encoding="utf-8") as mismatch:
         #     replydata['mismatch'] = yaml.safe_load(mismatch)
     else:
@@ -65,40 +73,40 @@ def load_replydata() -> dict:
 
 
 def load_commands() -> dict:
+    """获取系统指令"""
     try:
-        all_commands = loadcfg_from_file(r'./config/command.yml')
+        all_commands = read_file(r'./config/command.yml')
         return all_commands
     except Exception as _e:
         print(f"发生未知错误{_e}")
 
 
 def create_helpimg():
-    _help = loadcfg_from_file(r'./data/sys/help.yml')
+    """生成帮助图片"""
+    _help = read_file(r'./data/sys/help.yml')
     grouphelp = _help['grouphelp']
     friendhelp = _help['friendhelp']
-    text_to_image(path='grouphelp.png', text=grouphelp)
-    text_to_image(path='friendhelp.png', text=friendhelp)
+    text_to_image(text=grouphelp, path='grouphelp.png')
+    text_to_image(text=friendhelp, path='friendhelp.png')
 
 
 def create_init_config():
     """生成默认配置"""
     sys_config = dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
                       welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
-                      silencegroup=[0], norepeatgroup=[0], disnudgegroup=[0], commandpre="",
+                      silencegroup=[0], disnudgegroup=[0], commandpre="",
                       master=0, loglevel="INFO", replyimgpath='fox', botconfig=dict(qq=123456, botname=""),
                       nudgeconfig=dict(disnudgegroup=[0], sendnudgechance=0.3, supernudgequantity=10,
                                        supersendnudgechance=0.2),
-                      repeatconfig=dict(
-                          repeatQ=20, repeatmsg=1, interruptQ=0.5, interruptQQ=0.1, autoreply=True, kwreply=True),
                       adapter=dict(verify_key='NekoRabi',
                                    host='localhost', port=17280),
                       settings=dict(autowelcome=True, help=True, r18talk=True, nudgereply=True,
-                                    silence=False, norepeat=False, saveflashimg=True))
-    w_cfg_to_file(sys_config, r'./config/config.yml')
+                                    silence=False,  saveflashimg=True))
+    write_file(sys_config, r'./config/config.yml')
 
 
 try:
-    config = loadcfg_from_file(r'./config/config.yml')
+    config = read_file(r'./config/config.yml')
     if not config:
         print("生成初始文件中...")
         create_init_config()

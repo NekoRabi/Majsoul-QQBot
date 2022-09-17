@@ -1,41 +1,18 @@
-# 可用参数: %playername% - 玩家名， %counts% - 对局次数
-# %pl3% 三麻信息，格式为  '三杰2 [1000/1400]' ， %pl4% 四麻信息,格式为 '魂8 [10.0/20]'
-qhpt: " 玩家名: %playername%\n三麻: %pl3% \n四麻: %pl4% "
-
-#雀魂月报
-qhyb:
-  # 可用参数  %playername% - 玩家名， %counts% - 对局次数,%Y - 年份 例如2022, %m - 月份, %1st% / %2nd% / %3rd% / %4th% 顺位次数,
-  #  %flycount% 被飞信息,内容例 "其中被飞了5次", %ptchange% 该月对局总的pt得失
-  pl3: " 玩家%playername%在%Y年%m月共进行了%counts%场对局,共计%1st%次①位,%2nd%次②位,%3rd%次③位,%4th%次④位,平均顺位:%averank%,%flycount%,PT得失:%ptchange%\n"
-  pl4: " 玩家%playername%在%Y年%m月共进行了%counts%场对局,共计%1st%次①位,%2nd%次②位,%3rd%次③位,平均顺位:%averank%,%flycount%,PT得失:%ptchange%\n"
-  # 可用参数:    胡牌率, 放铳率, 自摸率, 默胡率, 流局率, 流听率, 副露率, 立直率, 胡了巡数, 平均打点, 平均铳点, 平均顺位, 被飞率,立直率,
-  # 立直和了, 立直放铳A, 立直放铳B, 立直收支, 立直收入, 立直支出, 先制率, 追立率, 被追率, 立直巡目, 立直流局,
-  # 一发率,振听率, 立直多面, 立直好型,最大连庄, 里宝率, 被炸率, 平均被炸点数, 放铳时立直率, 放铳时副露率, 副露后放铳率,
-  # 副露后流局率, 副露后和牌率, 打点效率, 铳点损失,净打点效率,役满, 累计役满, 两立直, 流满, 最大累计番数, 平均起手向听
-  infomsg: " 立直率: %立直率%\n 副露率: %副露率%\n 和牌率: %和牌率%\n 放铳率: %放铳率%\n 默听率: %默听率%\n 平均打点: %平均打点%\n 平均铳点: %平均铳点%"
-
-#雀魂十连
-qhsl:
-  # 每日最大抽卡次数
-  maxdraw: 3
-
-qhinfo:
-  # 每行信息格式
-  format: "%k% : %v% \n"
-
-qhpaipu:
-  # 可用参数: %playername% - 玩家名， %counts% - 对局次数
-  head: "玩家%playername%最近%counts%场对局如下:"
-  # 每个牌谱格式,可用参数 %paipuurl% - 牌谱链接 , %startTime% - 开始时间 , %endTime% - 结束时间,%players% 所有对局玩家，包括他们的分数
-  format: "牌谱链接:%paipuurl% \n开始时间:%startTime% \n结束时间:%endTime% \n对局玩家:%players% \n"
-  # 追加信息，可用参数 : %ptupdate% - 所有对局信息的总pt收支
-  footer: "总PT收支:%ptupdate%"
-
-#雀魂对局结束播报
-boardcast:
-  # 可用参数: %playername% - 玩家名
-  head: "检测到新的对局:\n"
-  # 播报格式,可用参数 %paipuurl% - 牌谱链接 , %startTime% - 开始时间 , %endTime% - 结束时间,%players% 所有对局玩家，包括他们的分数
-  format: "牌谱链接:%paipuurl% \n开始时间:%startTime% \n结束时间:%endTime% \n对局玩家:%players%"
-  # 是按照得分排序
+endboardcast:
+  format: "牌谱链接:%paipuurl% <br>开始时间:%startTime% <br>结束时间:%endTime% <br>对局玩家:%players%"
+  head: "检测到新的对局:<br>"
   sort: false
+qhinfo:
+  format: '%k% : %v% <br>'
+qhpaipu:
+  footer: "总PT收支:%ptupdate%"
+  format: "牌谱链接:%paipuurl% <br>开始时间:%startTime% <br>结束时间:%endTime% <br>对局玩家:%players%<br>"
+  head: '玩家%playername%最近%counts%场对局如下:'
+qhpt: ' 玩家名: %playername%<br>三麻: %pl3% <br>四麻: %pl4% '
+qhsl:
+  maxdraw: 3
+qhyb:
+  infomsg: '立直率: %立直率%<br> 副露率: %副露率%<br> 和牌率: %和牌率%<br> 放铳率: %放铳率%<br> 默听率: %默听率%<br>
+    平均打点: %平均打点%<br> 平均铳点: %平均铳点%'
+  pl3: "玩家%playername%在%Y年%m月共进行了%counts%场对局,共计%1st%次①位,%2nd%次②位,%3rd%次③位,%4th%次④位,平均顺位:%averank%,%flycount%,PT得失:%ptchange%<br>"
+  pl4: "玩家%playername%在%Y年%m月共进行了%counts%场对局,共计%1st%次①位,%2nd%次②位,%3rd%次③位,平均顺位:%averank%,%flycount%,PT得失:%ptchange%<br>"

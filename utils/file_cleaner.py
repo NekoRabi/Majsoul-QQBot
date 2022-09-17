@@ -1,9 +1,16 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/18 3:25
+:Update: /
+:Describe: 垃圾自动清理
+:Version: 0.0.1
+"""
 import os
 
-__all__ = ['cleaner', 'filecleaner']
+__all__ = ['cleaner', 'FileCleaner']
 
 
-class filecleaner:
+class FileCleaner:
 
     def __init__(self, foldernames: list):
         self.target = foldernames
@@ -30,7 +37,7 @@ def list_allfile(path, all_files=None):
     if os.path.exists(path):
         files = os.listdir(path)
     else:
-        print('this path not exist')
+        # print('文件不存在')
         return all_files
     for file in files:
         if os.path.isdir(os.path.join(path, file)):
@@ -40,6 +47,8 @@ def list_allfile(path, all_files=None):
     return all_files
 
 
-cleaner = filecleaner(
+# TODO 垃圾清理的路径自定义,而不是通过代码写死
+
+cleaner = FileCleaner(
     ['./images/KissKiss', './images/jupai', './images/MajSoulInfo', './images/PetPet', './images/Remake',
      './images/ImgOperation', './images/daibu'])

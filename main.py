@@ -1,8 +1,8 @@
 """
 :Author:  NekoRabi
-:Update Time:  2022/9/1 1:45
+:Update Time:  2022/9/18 2:57
 :Describe: Bot入口函数
-:Version: v0.6.4
+:Version: v0.6.5
 """
 import nest_asyncio
 from mirai import MessageEvent, FriendMessage, GroupMessage
@@ -10,9 +10,7 @@ from mirai.models import FlashImage
 
 from core import *
 from plugin import *
-from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import cmdbuffer
-from utils.file_cleaner import cleaner
 from utils import *
 
 nest_asyncio.apply()
@@ -20,12 +18,9 @@ nest_asyncio.apply()
 if __name__ == '__main__':
 
     config = load_config()
-    replydata = load_replydata()
     create_helpimg()
     qqlogger = getQQlogger()
     rootLogger = create_logger(config['loglevel'])
-    admin: list = config['admin']
-    master = config['master']
     settings = config['settings']
     botname = config['botconfig']['botname']
 

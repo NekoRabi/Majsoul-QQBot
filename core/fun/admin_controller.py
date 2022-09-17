@@ -13,9 +13,9 @@ from mirai import FriendMessage, Plain, GroupMessage
 
 from core import bot, master, commandpre, commands_map, config, admin
 from utils.MessageChainBuilder import messagechain_builder
-from utils.MessageChainSender import sendMsgChain
+from utils.MessageChainSender import messagechain_sender
 from utils.bufferpool import *
-from utils.cfg_loader import w_cfg_to_file
+from utils.cfg_loader import write_file
 
 _whitelist = config['whitelist']
 
@@ -29,6 +29,7 @@ _blacklist_msg = {}
 
 @bot.on(FriendMessage)
 async def addadmin(event: FriendMessage):
+    """添加管理员"""
     if event.sender.id == master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
@@ -37,19 +38,20 @@ async def addadmin(event: FriendMessage):
             qqid = int(m.group(1))
             if qqid not in admin:
                 admin.append(qqid)
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
-                await sendMsgChain(event=event, msg=f"已将 {m.group(1)} 添加为机器人管理员")
+                write_file(content=config, path=r'./config/config.yml')
+                await messagechain_sender(event=event, msg=f"已将 {m.group(1)} 添加为机器人管理员")
             else:
-                await sendMsgChain(event=event, msg=f"{m.group(1)} 已经是管理员了")
+                await messagechain_sender(event=event, msg=f"{m.group(1)} 已经是管理员了")
 
     else:
-        await sendMsgChain(event=event, msg=messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
+        await messagechain_sender(event=event, msg=messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
 
     return
 
 
 @bot.on(FriendMessage)
 async def deladmin(event: FriendMessage):
+    """删除管理员"""
     if event.sender.id == master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
@@ -58,10 +60,10 @@ async def deladmin(event: FriendMessage):
             qqid = int(m.group(1))
             if qqid in admin:
                 admin.remove(qqid)
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
-                return await sendMsgChain(event=event, msg=f"已将 {m.group(1)} 从机器人管理员中移出")
+                write_file(content=config, path=r'./config/config.yml')
+                return await messagechain_sender(event=event, msg=f"已将 {m.group(1)} 从机器人管理员中移出")
             else:
-                return await sendMsgChain(event=event, msg=f"{m.group(1)} 不是再管理员了")
+                return await messagechain_sender(event=event, msg=f"{m.group(1)} 不是再管理员了")
     else:
         await bot.send(event, messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
     return
@@ -89,7 +91,7 @@ async def addwhitelist(event: GroupMessage):
         if userid in admin and userid not in _whitelist:
 
             _whitelist.append(int(m.group(1)))
-            w_cfg_to_file(content=config, path=r'./config/config.yml')
+            write_file(content=config, path=r'./config/config.yml')
             print(m)
             return await bot.send(event, "添加成功")
         else:
@@ -98,7 +100,7 @@ async def addwhitelist(event: GroupMessage):
 
 @bot.on(FriendMessage)
 async def addblacklist(event: FriendMessage):
-    """添加黑名单,目前没用"""
+    """添加黑名单"""
     msg = "".join(map(str, event.message_chain[Plain]))
     userid = event.sender.id
     m = re.match(fr"^{commandpre}{commands_map['sys']['addblacklist']}", msg.strip())
@@ -108,7 +110,7 @@ async def addblacklist(event: FriendMessage):
                 return await bot.send(event, "请不要将管理员加入黑名单")
             _black_list['user'].append(int(m.group(1)))
 
-            w_cfg_to_file(content=config, path=r'./config/config.yml')
+            write_file(content=config, path=r'./config/config.yml')
             print(m)
             return await bot.send(event, "添加成功")
         else:
@@ -126,7 +128,7 @@ async def delblacklist(event: FriendMessage):
             if delperson in _black_list['user']:
                 _black_list['user'].remove(delperson)
 
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                write_file(content=config, path=r'./config/config.yml')
                 return await bot.send(event, "删除成功")
             else:
                 return await bot.send(event, "删除失败,用户不存在")
@@ -144,6 +146,7 @@ async def getsyslog(event: FriendMessage):
 
 @bot.on(GroupMessage)
 async def tell_to_master(event: GroupMessage):
+    """让别人可以给机器人主人发消息"""
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^{commandpre}{commands_map['sys']['tell_master']}", msg.strip())

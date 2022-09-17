@@ -1,7 +1,14 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/18 3:38
+:Update: /
+:Describe: 机器人核心
+:Version: 0.0.1
+"""
 from mirai import Mirai, WebSocketAdapter
-from utils.cfg_loader import loadcfg_from_file
+from utils.cfg_loader import read_file
 
-bot_cfg = loadcfg_from_file(r'./config/config.yml')
+bot_cfg = read_file(r'./config/config.yml')
 bot_cfg = dict(adapter=bot_cfg.get('adapter'), id=int(bot_cfg['botconfig']['qq']),
                nickname=bot_cfg['botconfig'].get('botname', ''))
 

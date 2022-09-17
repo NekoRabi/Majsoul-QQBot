@@ -14,7 +14,7 @@ from mirai import GroupMessage, Plain
 from core import bot, commandpre, commands_map, config
 from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import *
-from utils.cfg_loader import w_cfg_to_file
+from utils.cfg_loader import write_file
 
 ###
 # r18	int	0	0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
@@ -46,7 +46,7 @@ if not os.path.exists("./config/Setu"):
 if not os.path.exists(r'./config/Setu/config.yml'):
     cfg = dict(r18enable=False, enable=False, allowsearchself=False, setugroups=[586468489], r18groups=[586468489],
                recalltime=50)
-    w_cfg_to_file(content=cfg, path=r'./config/Setu/config.yml')
+    write_file(content=cfg, path=r'./config/Setu/config.yml')
 
 
 async def download_setu_base64_from_url(userid):
@@ -168,7 +168,7 @@ async def enablesetu(event: GroupMessage):
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
                 # w_cfg_to_file(content=config, path=r'./config/config.yml')
-                w_cfg_to_file(content=setu_config, path=r'./config/Setu/config.yml')
+                write_file(content=setu_config, path=r'./config/Setu/config.yml')
                 await bot.send(event, messagechain_builder(text="色图开启成功"))
 
 
@@ -186,7 +186,7 @@ async def disablesetu(event: GroupMessage):
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
                 # w_cfg_to_file(content=config, path=r'./config/config.yml')
-                w_cfg_to_file(content=setu_config, path=r'./config/Setu/config.yml')
+                write_file(content=setu_config, path=r'./config/Setu/config.yml')
                 await bot.send(event, messagechain_builder(text="色图已关闭"))
             else:
                 await bot.send(event, messagechain_builder(text="本群色图已关闭"))

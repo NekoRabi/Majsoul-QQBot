@@ -1,0 +1,13 @@
+secretId: ''
+secretKey: ''
+# 密钥可前往https://console.cloud.tencent.com/cam/capi网站进行获取
+voicesetting:
+
+  # 腾讯云文本转语音系统，请在使用前仔细看使用手册
+  # https://cloud.tencent.com/document/product/1073/37995
+  codec: 'mp3'    # 音频编码类型, wav 或 mp3
+  enable: true    # 是否启用该功能
+  private: true   # 是否仅私人使用
+  speed: 0.9      # 语速
+  voicetype: 1002 # 音色
+  volume: 1       # 音量

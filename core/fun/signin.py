@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/18 3:13
+:Update: /
+:Describe: 签到功能，也是系统数据库
+:Version: 0.0.1
+"""
 import datetime
 import os
 import re
@@ -7,7 +14,7 @@ import time
 from mirai import GroupMessage, Plain
 from core import bot, commandpre, commands_map
 from utils.MessageChainBuilder import messagechain_builder
-from utils.MessageChainSender import sendMsgChain
+from utils.MessageChainSender import messagechain_sender
 
 if not os.path.exists("./database/sys"):
     os.mkdir("./database/sys")
@@ -97,7 +104,7 @@ async def sign_In(event: GroupMessage):
                 return await bot.send(event,
                                       messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
             else:
-                return await sendMsgChain(messagechain_builder(at=event.sender.id, text=signmsg))
+                return await messagechain_sender(messagechain_builder(at=event.sender.id, text=signmsg))
         else:
             return await bot.send(event, messagechain_builder(at=event.sender.id, text=signmsg, rndimg=True))
 

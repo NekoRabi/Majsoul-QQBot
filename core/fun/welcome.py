@@ -6,7 +6,6 @@
 :Version: 0.0.1
 """
 
-# 欢迎
 import os.path
 import random
 
@@ -14,10 +13,10 @@ from mirai.models import MemberJoinEvent
 
 from core import bot, config
 from utils.MessageChainBuilder import messagechain_builder
-from utils.MessageChainSender import sendMsgChain
+from utils.MessageChainSender import messagechain_sender
 
 settings = config.get('settings')
-admin = config['admin']
+admin = config.get('admin',[])
 
 __all__ = ['welcome']
 
@@ -31,11 +30,11 @@ async def welcome(event: MemberJoinEvent) -> None:
         groupid = event.member.group.id
         info: str = random.choice(config['welcomeinfo'])
         info = info.replace('%ps%', personname).replace('%gn%', groupname)
-        await sendMsgChain(
+        await messagechain_sender(
             messagechain_builder(text=info, at=personid), grouptarget=event.member.group.id)
         if os.path.exists(r'./plugin/Petpet/gif.py'):
             from plugin.Petpet.gif import petpet
             await petpet(personid)
-            await sendMsgChain(grouptarget=groupid,
-                               msg=messagechain_builder(imgpath=f'./images/PetPet/temp/tempPetPet-{personid}.gif'))
+            await messagechain_sender(grouptarget=groupid,
+                                      msg=messagechain_builder(imgpath=f'./images/PetPet/temp/tempPetPet-{personid}.gif'))
         return

@@ -21,7 +21,7 @@ from mirai import MessageChain
 
 from plugin.MajSoulInfo.folder_init import *
 from utils.MessageChainBuilder import messagechain_builder
-from utils.cfg_loader import loadcfg_from_file
+from utils.cfg_loader import read_file
 from utils.text_to_img import text_to_image
 
 asytimeout = aiohttp.ClientTimeout(total=60)
@@ -114,8 +114,8 @@ def get_player_extended_stats_url(playerid, searchtype, end_time=None, start_tim
     return url
 
 
-_template = loadcfg_from_file(r"./config/MajSoulInfo/template.yml")
-_config = loadcfg_from_file(r"./config/MajSoulInfo/config.yml")
+_template = read_file(r"./config/MajSoulInfo/template.yml")
+_config = read_file(r"./config/MajSoulInfo/config.yml")
 
 
 class MajsoulQuery:
@@ -197,7 +197,7 @@ class MajsoulQuery:
         if _config.get('broadcast', 'image') in ['txt', 'text', 'str']:
             return messagechain_builder(text=msg)
         else:
-            return messagechain_builder(imgbase64=text_to_image(needtobase64=True, text=msg))
+            return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
 
     async def getsomeqhpaipu(self, playername: str, type="4", counts=5) -> MessageChain:
         ptupdate = 0
@@ -317,6 +317,7 @@ class MajsoulQuery:
             person = lottery['person']
 
         drawtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        random.seed()
         for count in range(10):
             luck = random.random() * 100
             if count == 9 and drawcounts['2gift'] == 0:
@@ -601,7 +602,7 @@ class MajsoulQuery:
             return messagechain_builder(text="查询超时,请稍后再试")
         if _config.get('broadcast', 'image') in ['text', 'txt', 'str']:
             return messagechain_builder(text=msg)
-        return messagechain_builder(imgbase64=text_to_image(needtobase64=True, text=msg))
+        return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
 
     def removewatch(self, playername: str, groupid: int) -> str:
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')

@@ -204,7 +204,7 @@ async def asyautoget_th_matching() -> list:
                 eligible_Matches.append(tempmatch)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    print('正在进行的玩家:', gamingplayer)
+    print('正在天凤对局的玩家:', gamingplayer)
     for item in gamingplayer:
         if item['isgaming'] == 2:
             cursor.execute(

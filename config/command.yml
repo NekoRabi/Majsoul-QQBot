@@ -30,26 +30,6 @@ setu:
   getsetu1: (色图|涩图|setu)\s*(\S+)?\s*$
   getsetu2: 来(\d)*[张份点]?(\S+)*\s*(的)?\s*[色涩涉]图\s*$
 
-majsoul:
-  disable: (qhdisable)\s*(\w+)\s*$
-  enable : (qhenable)\s*(\w+)\s*$
-  qhpt: (qhpt|雀魂分数|雀魂pt)\s*(\S+)\s*([34])?\s*([0-9]+)?\s*$
-  qhpaipu : (qhpaipu|雀魂最近对局)\s*(\S+)\s*([34])*\s*([0-9]+)?\s*$
-  qhinfo: (qhinfo|雀魂玩家详情)\s*(\S+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$
-  qhyb: (qhyb|雀魂月报)\s*(\S+)\s*([34])?\s*([0-9]{4})?[-]?([0-9]{1,2})?\s*$
-  qhsl: (qhsl|雀魂十连)\s*(\w+)*\s*$
-  getmyqhsl: (getmyqhsl|我的雀魂十连)\s*$
-  getwatch: (qhgetwatch|雀魂获取本群关注)\s*$
-  addwatch: (qhadd|雀魂添加关注)\s*(\S+)\s*$
-  delwatch: (qhdel|雀魂删除关注)\s*(\S+)\s*$
-  clearwatch: (qhclearwatch|雀魂清除本群关注)\s*$
-
-  tagon:  (qhtagon|雀魂添加标记)\s*(\S+)\s*(\S+)\s*$
-  tagoff: (qhtagoff|雀魂删除标记)\s*(\S+)\s*(\S+)?\s*$
-  taglist: (qhtaglist)\s*(\S+)?\s*$
-
-  tagopeartion: (qhtag)\s*(\S+)\s*(\S+)\s*(\S*)?\s*
-
 tenhou:
   thpt: (thpt|天凤pt|天凤分数)\s*(\S+)\s*(\S+)?\s*$
   addwatch: (thadd|天凤添加关注)\s*(\S+)\s*$

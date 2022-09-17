@@ -1,5 +1,5 @@
 import os
-from utils.cfg_loader import w_cfg_to_file
+from utils.cfg_loader import write_file
 
 
 def file_init():
@@ -18,7 +18,7 @@ def file_init():
                 'private': True,
                 'codec': 'mp3'}
         }
-        w_cfg_to_file(content=_cfg, path=r'./config/TencentCloudAPI/config.yml')
+        write_file(content=_cfg, path=r'./config/TencentCloudAPI/config.yml')
 
 
 file_init()

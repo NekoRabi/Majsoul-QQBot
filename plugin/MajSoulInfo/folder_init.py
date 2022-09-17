@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from utils.cfg_loader import w_cfg_to_file
+from utils.cfg_loader import write_file
 
 if not os.path.exists("./database/MajSoulInfo"):
     os.mkdir("./database/MajSoulInfo")
@@ -13,9 +13,33 @@ if not os.path.exists("./images/MajSoulInfo"):
 if not os.path.exists(r"./config/MajSoulInfo/config.yml"):
     print('未检测到雀魂配置文件,生成初始文件中...')
     cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, broadcast='image', autoquery=True,
-               dailydrawcount=3, disptgroup=[0], disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
-               dispaipugroup=[0])
-    w_cfg_to_file(content=cfg, path=r"./config/MajSoulInfo/config.yml")
+               dailydrawcount=3, disptgroup=[0], disinfogroup=[0], disslgroup=[0], disybgroup=[0],
+               disautoquerygroup=[0], dispaipugroup=[0])
+    write_file(content=cfg, path=r"./config/MajSoulInfo/config.yml")
+    print('雀魂配置文件生成完毕')
+
+if not os.path.exists(r"./config/MajSoulInfo/command.yml"):
+    print('未检测到雀魂指令模板,生成初始文件中...')
+    _cmd = {
+        'disable': r'(qhdisable)\s*(\w+)\s*$',
+        'enable': r'(qhenable)\s*(\w+)\s*$',
+        'qhpt': r'(qhpt|雀魂分数|雀魂pt)\s*(\S+)\s*([34])?\s*([0-9]+)?\s*$',
+        'qhpaipu': r'(qhpaipu|雀魂最近对局)\s*(\S+)\s*([34])*\s*([0-9]+)?\s*$',
+        'qhinfo': r'(qhinfo|雀魂玩家详情)\s*(\S+)\s*(\d+)\s*(\w+)*\s*(\w+)*\s*$',
+        'qhyb': r'(qhyb|雀魂月报)\s*(\S+)\s*([34])?\s*([0-9]{4})?[-]?([0-9]{1,2})?\s*$',
+        'qhsl': r'(qhsl|雀魂十连)\s*(\w+)*\s*$',
+        'getmyqhsl': r'(getmyqhsl|我的雀魂十连)\s*$',
+        'getwatch': r'(qhgetwatch|雀魂获取本群关注)\s*$',
+        'addwatch': r'(qhadd|雀魂添加关注)\s*(\S+)\s*$',
+        'delwatch': r'(qhdel|雀魂删除关注)\s*(\S+)\s*$',
+        'clearwatch': r'(qhclearwatch|雀魂清除本群关注)\s*$',
+        'tagon': r'(qhtagon|雀魂添加标记)\s*(\S+)\s*(\S+)\s*$',
+        'tagoff': r'(qhtagoff|雀魂删除标记)\s*(\S+)\s*(\S+)?\s*$',
+        'taglist': r'(qhtaglist)\s*(\S+)?\s*$',
+
+        'tagopeartion': r'(qhtag)\s*(\S+)\s*(\S+)\s*(\S*)?\s*'
+    }
+    write_file(content=_cmd, path=r"./config/MajSoulInfo/command.yml")
     print('雀魂配置文件生成完毕')
 
 if not os.path.exists(r"./config/MajSoulInfo/template.yml"):
@@ -34,7 +58,7 @@ if not os.path.exists(r"./config/MajSoulInfo/template.yml"):
                                       format=r"牌谱链接:%paipuurl% <br>开始时间:%startTime% <br>结束时间:%endTime% <br>对局玩家:%players%",
                                       sort=False)
                     )
-    w_cfg_to_file(content=template, path=r"./config/MajSoulInfo/template.yml")
+    write_file(content=template, path=r"./config/MajSoulInfo/template.yml")
     print('雀魂模板文件生成完毕')
 
 

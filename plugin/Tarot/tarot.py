@@ -18,8 +18,8 @@ from mirai import GroupMessage, Plain
 from mirai.models import ForwardMessageNode, Forward
 from core import bot, commandpre, commands_map
 from utils.MessageChainBuilder import messagechain_builder
-from utils.MessageChainSender import sendMsgChain
-from utils.cfg_loader import w_cfg_to_file
+from utils.MessageChainSender import messagechain_sender
+from utils.cfg_loader import write_file
 
 __all__ = ['getsometarots', 'getmytarots', 'tarotcards']
 
@@ -40,7 +40,7 @@ def write_default_cfg():
              negative="无知、缺乏理解力; 研究不足; 不理性的态度; 自我封闭; 神经质; 洁癖; 与女性朋友柒争执; 对人冷淡; 晚婚或独身主义; 没有结果的单相思; 气色不好; 不孕",
              imageName="The High Priestess.jpg", )
     ])
-    w_cfg_to_file(interpretation, r'./config/Tarot/data.yml')
+    write_file(interpretation, r'./config/Tarot/data.yml')
 
 
 def file_init():
@@ -243,7 +243,7 @@ async def getsometarots(event: GroupMessage):
                 # ForwardMessageNode(event.sender,MessageChain(msgC))
                 return await bot.send(event, Forward(node_list=msgC))
             else:
-                return await sendMsgChain(event=event, msg=messagechain_builder(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
+                return await messagechain_sender(event=event, msg=messagechain_builder(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
         else:
             card = tarotcards.drawcards(userid=event.sender.id)[0]
             return await bot.send(event, messagechain_builder(imgbase64=card.imgcontent))

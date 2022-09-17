@@ -226,87 +226,37 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-仿生喵.jpg
-    - index: 45
-      name: 立直棒-恋之反省
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/立直棒-恋之反省.jpg
-    - index: 46
-      name: 桌布-恋之见证
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/桌布-恋之见证.jpg
-    - index: 47
-      name: 牌背-恋之背影
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/牌背-恋之背影.jpg
-    - index: 48
-      name: 和牌-恋之降临
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/和牌-恋之降临.jpg
-    - index: 49
-      name: 立直-恋之箭矢
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/立直-恋之箭矢.jpg
     - index: 50
       name: 立直棒-陨石法杖
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-陨石法杖.jpg
-    - index: 51
+    - index: 49
       name: 立直-雷电环锁
       rare: 3
       type: decoration
       url: ./Images/decoration/立直-雷电环锁.jpg
-    - index: 52
+    - index: 48
       name: 和牌-天罚
       rare: 3
       type: decoration
       url: ./Images/decoration/和牌-天罚.jpg
-    - index: 53
+    - index: 47
       name: 和牌-无间契印
       rare: 3
       type: decoration
       url: ./Images/decoration/和牌-无间契印.jpg
-    - index: 54
+    - index: 46
       name: 立直-灵魂契约
       rare: 3
       type: decoration
       url: ./Images/decoration/立直-灵魂契约.jpg
-    - index: 55
+    - index: 45
       name: 立直棒-虚无传送门
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-虚无传送门.jpg
-    - index: 56
-      name: 和牌-泰山鸭顶
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/和牌-泰山鸭顶.jpg
-    - index: 57
-      name: 桌布-小黄鸭冲浪里
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/桌布-小黄鸭冲浪里.jpg
-    - index: 58
-      name: 牌背-鸭鸭牌背
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/牌背-鸭鸭牌背.jpg
-    - index: 59
-      name: 立直棒-波子汽水
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/立直棒-波子汽水.jpg
-    - index: 60
-      name: 立直-立直鸭
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/立直-立直鸭.jpg
-    length: 61
+    length: 51
   gift:
     item:
     - index: 0
@@ -558,36 +508,11 @@ lottery:
       type: person
       url: ./Images/person/雏桃.png
     - index: 25
-      name: 白银御行
-      rare: 4
-      type: person
-      url: ./Images/person/白银御行.png
-    - index: 26
-      name: 早坂爱
-      rare: 4
-      type: person
-      url: ./Images/person/早坂爱.png
-    - index: 27
-      name: 四宫辉夜
-      rare: 4
-      type: person
-      url: ./Images/person/四宫辉夜.png
-    - index: 28
-      name: 白银圭
-      rare: 4
-      type: person
-      url: ./Images/person/白银圭.png
-    - index: 29
       name: 柚
       rare: 4
       type: person
       url: ./Images/person/柚.png
-    - index: 30
-      name: 北原莉莉
-      rare: 4
-      type: person
-      url: ./Images/person/北原莉莉.png
-    length: 31
+    length: 26
 up:
   decoration:
   - 牌背-鸭鸭牌背

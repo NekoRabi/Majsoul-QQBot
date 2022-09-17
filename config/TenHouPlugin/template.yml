@@ -1,13 +1,13 @@
-matching: '%target% 正在天凤对局,速来围观: %url%\n %players%'
+matching: "%target% 正在天凤对局,速来围观: %url%\n %players%"
 result:
   4:
-    1: ' %player% 轻松拿下一位,实在太强啦'
-    2: ' %player% 悄悄拿下二位,稳稳上分'
-    3: ' %player% 精准避四，避开重大损失'
-    4: ' %player% 被安排了一个四位,库鲁西~'
+    1: " %player% 轻松拿下一位,实在太强啦"
+    2: " %player% 悄悄拿下二位,稳稳上分"
+    3: " %player% 精准避四，避开重大损失"
+    4: " %player% 被安排了一个四位,库鲁西~"
   3:
-    1: ' %player% 轻松拿下一位,实在太强啦'
-    2: ' %player% 悄悄拿二,韬光养晦'
-    3: ' %player% 忍痛吃三，太苦了'
-  header: 检测到新的对局信息\n
-  main: ' %model% \n开始时间: %starttime% 对局时长:%duration%\n %players%'
+    1: " %player% 轻松拿下一位,实在太强啦"
+    2: " %player% 悄悄拿二,韬光养晦"
+    3: " %player% 忍痛吃三，太苦了"
+  header: "检测到新的对局信息"
+  main: " %model% \n开始时间: %starttime% 对局时长:%duration%\n %players%"

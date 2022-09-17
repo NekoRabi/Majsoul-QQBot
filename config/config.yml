@@ -59,7 +59,6 @@ settings: # 功能开关
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
   help: true          # 是否显示帮助
-  voice: false        # 语音功能
   saveflashimg: false # 保存闪照
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
@@ -70,18 +69,3 @@ repeatconfig:         # 回复、打断相关，要求值从上到下排序为�
 
   autoreply: true     # 是否开启机器人互动
   kwreply: true       # 是否开启关键词回复
-
-
-#语音设置
-voicesetting:
-  # 腾讯云文本转语音系统，请在使用前仔细看使用手册
-  # https://cloud.tencent.com/document/product/1073/37995
-  # 密钥可前往https://console.cloud.tencent.com/cam/capi网站进行获取
-  volume: 1       # 音量或是音高
-  speed: 0.9      # 语速
-  voicetype: 1002 # 音色或是音质
-  private: true   # 因为该功能可能需要机器人主人承担一定的费用，因此你可以设置该功能是否为私人使用
-                  # 即 设置private 为 true，则只有你可以让机器人说话
-  secretId: ''
-  secretKey: ''
-  codec: 'mp3'

@@ -1,8 +1,8 @@
 """
 :Author:  NekoRabi
-:Update Time: 2022/8/18 2:38
+:Update Time: 2022/9/14 16:58
 :Describe: 消息自动回复插件
-:Version: 0.0.3
+:Version: 0.0.4
 """
 import random
 import re
@@ -10,20 +10,23 @@ from mirai import GroupMessage, Plain, FriendMessage, At
 
 from core import bot, bot_cfg, config, commandpre, commands_map, replydata
 from utils.MessageChainBuilder import messagechain_builder
-from utils.MessageChainSender import sendMsgChain
-from utils.cfg_loader import w_cfg_to_file
+from utils.MessageChainSender import messagechain_sender
+
+from plugin.AutoReply.config_init import *
 
 settings = config.get('settings')
 whitelist = config['whitelist']
 silencegroup = config['silencegroup']
-repeatconfig = config['repeatconfig']
-norepeatgroup = config['norepeatgroup']
 botname = bot_cfg.get('nickname', '')
 admin = config['admin']
 black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
 
 __all__ = ['duideduide', 'randominterrupt', 'diyreply', 'config_group_repeat', 'sendgroupat', 'sendmsgtogroup',
            'fabing', 'crazy_thursday']
+_arcfg = read_file(r'./config/AutoReply/config.yml')
+
+repeatconfig = _arcfg['repeatconfig']
+norepeatgroup = _arcfg['norepeatgroup']
 
 
 @bot.on(GroupMessage)
@@ -52,7 +55,7 @@ async def duideduide(event: GroupMessage):
 
                 elif msg in ['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急了']:
                     if random.random() < 0.3:
-                        await sendMsgChain(messagechain_builder(
+                        await messagechain_sender(messagechain_builder(
                             text=random.choice(['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急'])),
                             event=event)
 
@@ -61,8 +64,6 @@ async def duideduide(event: GroupMessage):
 async def randominterrupt(event: GroupMessage):
     """
     随即打断群友发言或者复读群友
-    :param event:
-    :return:
     """
     if not (settings['silence'] or settings['norepeat']):
         if event.group.id not in silencegroup:
@@ -94,41 +95,46 @@ async def randominterrupt(event: GroupMessage):
 @bot.on(GroupMessage)
 async def diyreply(event: GroupMessage):
     """
-    消息主体为机器人时，触发自定义回复
-    :param event:
-    :return:
+    消息对象为机器人时,触发自定义回复,可以选择At触发还是文本触发
     """
     if not settings['silence'] and repeatconfig['autoreply']:
         if event.group.id not in silencegroup:
             msg = "".join(map(str, event.message_chain[Plain]))
             senderid = event.sender.id
-            if botname == "":
-                return
-            if botname in event.message_chain:
-                if senderid in black_list['user']:
-                    return await bot.send(event, messagechain_builder(reply_choices=replydata['blackuser']))
-                msg = msg.replace(f"{botname}", "", 1)
-                if settings['r18talk']:
-                    if senderid in admin:
-                        for k, v in replydata['r18'].items():
-                            if k in msg:
-                                return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
-                        return await bot.send(event,
-                                              messagechain_builder(reply_choices=replydata['mismatch']['admin'],
-                                                                   rndimg=True))
-                    else:
-                        for k, v in replydata['common'].items():
-                            if k in msg:
-                                return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
-                        return await bot.send(event,
-                                              messagechain_builder(reply_choices=replydata['mismatch']['common'],
-                                                                   rndimg=True))
+            if _arcfg.get('useAt'):
+                if At not in event.message_chain:
+                    return
+                if event.message_chain.get_first(At).target != bot.qq:
+                    return
+            else:
+                if botname == "":
+                    return
+                if botname not in event.message_chain:
+                    return
+            if senderid in black_list['user']:
+                return await bot.send(event, messagechain_builder(reply_choices=replydata['blackuser']))
+            msg = msg.replace(f"{botname}", "", 1)
+            if settings['r18talk']:
+                if senderid in admin:
+                    for k, v in replydata['r18'].items():
+                        if k in msg:
+                            return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
+                    return await bot.send(event,
+                                          messagechain_builder(reply_choices=replydata['mismatch']['admin'],
+                                                               rndimg=True))
                 else:
                     for k, v in replydata['common'].items():
                         if k in msg:
                             return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
-                    return await bot.send(event, messagechain_builder(reply_choices=replydata['mismatch']['common'],
-                                                                      rndimg=True))
+                    return await bot.send(event,
+                                          messagechain_builder(reply_choices=replydata['mismatch']['common'],
+                                                               rndimg=True))
+            else:
+                for k, v in replydata['common'].items():
+                    if k in msg:
+                        return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
+                return await bot.send(event, messagechain_builder(reply_choices=replydata['mismatch']['common'],
+                                                                  rndimg=True))
 
 
 @bot.on(GroupMessage)
@@ -136,9 +142,7 @@ async def fabing(event: GroupMessage):
     """
     发病文
 
-    很多发病文斗太恶心了
-    :param event:
-    :return:
+    很多发病文都太恶心了,随便弄了两个
     """
     if not settings['silence'] and repeatconfig['autoreply']:
         if event.group.id not in silencegroup:
@@ -157,8 +161,6 @@ async def fabing(event: GroupMessage):
 async def config_group_repeat(event: GroupMessage):
     """
     关闭自动回复
-    :param event:
-    :return:
     """
     msg = "".join(map(str, event.message_chain[Plain]))
     userid = event.sender.id
@@ -170,24 +172,19 @@ async def config_group_repeat(event: GroupMessage):
                 print(f'已将{event.group.id}的复读关闭')
                 if event.group.id not in norepeatgroup:
                     norepeatgroup.append(event.group.id)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    write_file(content=config, path=r'./config/config.yml')
             else:
                 if event.group.id in norepeatgroup:
                     print(f'已将{event.group.id}的复读开启')
                     norepeatgroup.remove(event.group.id)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    write_file(content=config, path=r'./config/config.yml')
 
 
 @bot.on(GroupMessage)
 async def crazy_thursday(event: GroupMessage):
     """
     疯狂星期四
-    Args:
-        event:
-
-    Returns:
-
-    我也不知道返回说明好
+    我也没有文案,都是转发群友的
     """
 
     if not settings['silence'] and repeatconfig['autoreply']:
@@ -195,6 +192,8 @@ async def crazy_thursday(event: GroupMessage):
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match('[vV]我?(50|五十)', msg.strip())
             if m:
+                return await bot.send(event, messagechain_builder(text='我也想吃KFC'))
+            elif re.match('疯狂星期四', msg.strip()):
                 return await bot.send(event, messagechain_builder(text='我也想吃KFC'))
 
 
@@ -211,7 +210,7 @@ async def sendmsgtogroup(event: FriendMessage):
 
 @bot.on(GroupMessage)
 async def sendgroupat(event: GroupMessage):
-    """发送带有At的消息串"""
+    """发送带有At群友的消息链"""
     if event.sender.id in admin:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
@@ -221,12 +220,19 @@ async def sendgroupat(event: GroupMessage):
                 target = event.message_chain.get_first(At).target
                 return await bot.send(event, messagechain_builder(at=target, text=f" {m.group(1)}"))
 
-# 群龙王
-# @bot.on(GroupEvent)
-# async def dradonchange(event: MemberHonorChangeEvent):
-#     if event.member.id == bot.qq:
-#         if event.honor == 'TALKACTIVE':
-#             if event.action == 'lose':
-#                 await bot.send(event, "呜呜，我的龙王被抢走惹~")
-#             else:
-#                 await bot.send(event, "我是水群冠军！")
+
+from mirai.models import GroupEvent, MemberHonorChangeEvent
+
+
+@bot.on(GroupEvent)
+async def dradonchange(event: MemberHonorChangeEvent):
+    """群龙王改变时会发送信息
+
+    该功能尚未实现"""
+    # if event.member.id == bot.qq:
+    #     if event.honor == 'TALKACTIVE':
+    #         if event.action == 'lose':
+    #             await bot.send(event, "呜呜，我的龙王被抢走惹~")
+    #         else:
+    #             await bot.send(event, "我是水群冠军！")
+    pass

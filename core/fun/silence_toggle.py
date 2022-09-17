@@ -1,14 +1,14 @@
 """
 :Author:  NekoRabi
 :Update Time:  2022/8/16 16:01
-:Describe: 机器人安静模式切换
+:Describe: 机器人沉默模式切换
 """
 import re
 
 from mirai import GroupMessage, Plain, FriendMessage
 
 from core import bot, config, commandpre, commands_map
-from utils.cfg_loader import w_cfg_to_file
+from utils.cfg_loader import write_file
 
 settings = config.get('settings')
 admin = config['admin']
@@ -30,10 +30,10 @@ async def be_silence_from_friend(event: FriendMessage):
         if m:
             if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                 settings['silence'] = True
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                write_file(content=config, path=r'./config/config.yml')
             else:
                 settings['silence'] = False
-                w_cfg_to_file(content=config, path=r'./config/config.yml')
+                write_file(content=config, path=r'./config/config.yml')
 
 
 # 单群沉默 - 从群聊沉默
@@ -53,8 +53,8 @@ async def be_groupsilence_from_group(event: GroupMessage):
             if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                 if event.group.id not in silencegroup:
                     silencegroup.append(event.group.id)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    write_file(content=config, path=r'./config/config.yml')
             else:
                 if event.group.id in silencegroup:
                     silencegroup.remove(event.group.id)
-                    w_cfg_to_file(content=config, path=r'./config/config.yml')
+                    write_file(content=config, path=r'./config/config.yml')

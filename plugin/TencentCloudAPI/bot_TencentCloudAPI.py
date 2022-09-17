@@ -9,7 +9,7 @@ from utils.cfg_loader import *
 __all__ = []
 __plugin_enable = True
 master = config.get('master')
-_cfg: dict = loadcfg_from_file(r'./config/TencentCloudAPI/config.yml')
+_cfg: dict = read_file(r'./config/TencentCloudAPI/config.yml')
 _secretId = _cfg.get('secretId', None)
 _secretKey = _cfg.get('secretKey', None)
 if _secretId:

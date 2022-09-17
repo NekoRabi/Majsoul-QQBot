@@ -12,7 +12,7 @@ from mirai import GroupMessage, Plain
 
 from core import bot, commandpre, commands_map, scheduler
 from plugin.TenHouPlugin.TenHou import tenhou
-from utils.cfg_loader import loadcfg_from_file
+from utils.cfg_loader import read_file
 
 __all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
            'gettenhouwatcher']
@@ -21,12 +21,12 @@ from utils import text_to_image
 
 from utils.MessageChainBuilder import messagechain_builder
 
-from utils.MessageChainSender import sendMsgChain
+from utils.MessageChainSender import messagechain_sender
 
 from utils.bufferpool import *
-from utils.get_groupmember_authority import is_havingadmin
+from utils.get_groupmember_authority import is_having_admin_permission
 
-_cfg = loadcfg_from_file(r'./config/TenHouPlugin/config.yml')
+_cfg = read_file(r'./config/TenHouPlugin/config.yml')
 
 
 @bot.on(GroupMessage)
@@ -35,8 +35,8 @@ async def ranktenhouplayer(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['tenhou']['thpt']}", msg.strip())
     if m:
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
-            return sendMsgChain(event=event,
-                                msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+            return messagechain_sender(event=event,
+                                       msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
         reset = True
         if m.group(3):
             reset = m.group(3)
@@ -49,7 +49,7 @@ async def ranktenhouplayer(event: GroupMessage):
             else:
                 reset = False
         result = await tenhou.getthpt(m.group(2), reset)
-        await sendMsgChain(messagechain_builder(imgbase64=result['img64']), event=event, errortext=result['msg'])
+        await messagechain_sender(messagechain_builder(imgbase64=result['img64']), event=event, errortext=result['msg'])
         # await bot.send(event, tenhou.getthpt(m.group(2), reset))
 
 
@@ -58,11 +58,11 @@ async def addtenhouwatch(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['tenhou']['addwatch']}", msg.strip())
     if m:
-        if is_havingadmin(event):
-            await sendMsgChain(event=event,
-                               msg=messagechain_builder(text=tenhou.addthwatch(m.group(2), event.group.id)))
+        if is_having_admin_permission(event):
+            await messagechain_sender(event=event,
+                                      msg=messagechain_builder(text=tenhou.addthwatch(m.group(2), event.group.id)))
         else:
-            await sendMsgChain(event=event, msg=messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
+            await messagechain_sender(event=event, msg=messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
 
 
 @bot.on(GroupMessage)
@@ -70,7 +70,7 @@ async def deltenhouwatcher(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['tenhou']['delwatch']}", msg.strip())
     if m:
-        if is_havingadmin(event):
+        if is_having_admin_permission(event):
             await bot.send(event,
                            tenhou.removethwatch(playername=m.group(2), groupid=event.group.id))
         else:
@@ -82,7 +82,7 @@ async def cleartenhouwatcher(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['tenhou']['clearwatch']}", msg.strip())
     if m:
-        if is_havingadmin(event):
+        if is_having_admin_permission(event):
             await bot.send(event, tenhou.clearthwatch(groupid=event.group.id))
         else:
             await bot.send(event, messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
@@ -180,7 +180,7 @@ async def asyth_all():
         for group in msgobj['groups']:
             b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
             # await bot.send_group_message(group, msgobj['msg'])
-            await sendMsgChain(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+            await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
     print(
         f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')
     return

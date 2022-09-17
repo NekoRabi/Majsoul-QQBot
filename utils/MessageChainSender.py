@@ -14,11 +14,25 @@ from mirai.models import MessageComponent
 from core import bot, bot_cfg
 from utils.MessageChainBuilder import messagechain_builder
 
-__all__ = ['sendMsgChain']
+__all__ = ['messagechain_sender']
 
 
-async def sendMsgChain(msg: Union[MessageChain, str, MessageComponent], event: MessageEvent = None,
-                       grouptarget: int = None, friendtarget: int = None, errortext: str = None) -> int:
+async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], event: MessageEvent = None,
+                              grouptarget: int = None, friendtarget: int = None, errortext: str = None) -> int:
+    """
+    消息链发送工具
+    event,grouptarget,friendtarget三者有一个就行
+
+    Args:
+        msg: 消息,可以是字符串、消息组件、消息链
+        event: 群聊事件 或 私聊事件
+        grouptarget: 发送群消息的群号
+        friendtarget: 发送好友消息的QQ号
+        errortext: 发送失败时,尝试发送错误提示文本
+
+
+
+    """
     res = 0
     if not isinstance(msg, MessageChain):
         msg = MessageChain(msg)
