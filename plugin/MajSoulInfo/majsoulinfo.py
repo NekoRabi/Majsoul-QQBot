@@ -1,13 +1,12 @@
 """
 :Author:  NekoRabi
 :Update Time:  2022/8/28 3:14
-:Describe: 牌谱屋链接更新
+:Describe: 雀魂相关功能的实现
 :Version: 0.6.5
 """
 
 import asyncio
 import datetime
-import json
 import logging
 import math
 import os.path
@@ -19,7 +18,7 @@ import yaml
 from PIL import Image
 from mirai import MessageChain
 
-from plugin.MajSoulInfo.folder_init import *
+from plugin.MajSoulInfo.file_init import *
 from utils.MessageChainBuilder import messagechain_builder
 from utils.cfg_loader import read_file
 from utils.text_to_img import text_to_image
@@ -27,6 +26,8 @@ from utils.text_to_img import text_to_image
 asytimeout = aiohttp.ClientTimeout(total=60)
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
+
+_link_index = 1
 
 game_map = {
     4: {
@@ -70,52 +71,51 @@ aiotimeout = aiohttp.ClientTimeout(total=25)
 serverErrorHTML = '<html><body><h1>503 Service Unavailable</h1>'
 serverErrorCode = 503  # 牌谱屋炸了
 
+_template = read_file(r"./config/MajSoulInfo/template.yml")
+_config = read_file(r"./config/MajSoulInfo/config.yml")
 
-# aiohttp.TCPConnector(ssl=False, limit=10) = aiohttp.TCPConnector(ssl=False, limit=10)
 
 def get_qhpturl(playername, searchtype=3):
+    """查询玩家的URL"""
     if int(searchtype) == 3:
-        url = f"https://2.data.amae-koromo.com/api/v2/pl3/search_player/{playername}?limit=20&tag=all"
+        url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl3/search_player/{playername}?limit=20&tag=all"
     else:
-        url = f"https://2.data.amae-koromo.com/api/v2/pl4/search_player/{playername}?limit=20&tag=all"
+        url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/search_player/{playername}?limit=20&tag=all"
     return url
 
 
-def get_player_records_url(playerid, searchtype, end_time, start_time=None):
-    if not start_time:
-        start_time = 1262304000000
+def get_player_records_url(playerid, searchtype, end_time, start_time=1262304000000, total=599):
+    """获取玩家对局记录的URL"""
     if int(searchtype) == 4:
-        url = f"https://2.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{end_time}/{start_time}?limit=599&mode=8,9,11,12,15,16&descending=true"
+        url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{end_time}/{start_time}?limit={total}&mode=8,9,11,12,15,16&descending=true"
     else:
-        url = f"https://2.data.amae-koromo.com/api/v2/pl3/player_records/{playerid}/{end_time}/{start_time}?limit=599&mode=21,22,23,24,25,26&descending=true"
+        url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl3/player_records/{playerid}/{end_time}/{start_time}?limit={total}&mode=21,22,23,24,25,26&descending=true"
     return url
 
 
 def get_paipuurl(playerid, searchtype, count):
+    """获取玩家最近牌谱的URL"""
     nowtime = time.time()
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     if int(searchtype) == 4:
-        url = f"https://2.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={count}&mode=8,9,11,12,15,16&descending=true"
+        url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit={count}&mode=8,9,11,12,15,16&descending=true"
     else:
-        url = f"https://2.data.amae-koromo.com/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={count}&mode=21,22,23,24,25,26&descending=true"
+        url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit={count}&mode=21,22,23,24,25,26&descending=true"
     return url
 
 
 def get_player_extended_stats_url(playerid, searchtype, end_time=None, start_time=None):
+    """获取玩家数据的URL"""
     if not (start_time or end_time):
         nowtime = time.time()
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         start_time = 1262304000000
         end_time = nowtime
     if int(searchtype) == 4:
-        url = f'https://2.data.amae-koromo.com/api/v2/pl4/player_extended_stats/{playerid}/{start_time}/{end_time}?mode=8.9.11.12.15.16'
+        url = f'https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_extended_stats/{playerid}/{start_time}/{end_time}?mode=8.9.11.12.15.16'
     else:
-        url = f'https://2.data.amae-koromo.com/api/v2/pl3/player_extended_stats/{playerid}/{start_time}/{end_time}?mode=21.22.23.24.25.26'
+        url = f'https://{_link_index}.data.amae-koromo.com/api/v2/pl3/player_extended_stats/{playerid}/{start_time}/{end_time}?mode=21.22.23.24.25.26'
     return url
-
-
-_template = read_file(r"./config/MajSoulInfo/template.yml")
-_config = read_file(r"./config/MajSoulInfo/config.yml")
 
 
 class MajsoulQuery:
@@ -128,11 +128,15 @@ class MajsoulQuery:
                               model='基本') -> MessageChain:
         """
         获取玩家详情
-        @param playername: 玩家名
-        @param selecttype: 查询类别
-        @param selectlevel: 查询场况
-        @param model: 查询模式
-        @return:
+
+        Args:
+            playername:     玩家名
+            selecttype:     三麻 or 四麻 (3/4)
+            selectlevel:    查询场况 金玉王
+            model:          查询类型
+
+        Returns:    包含结果的Mirai消息链
+
         """
         if model not in ['基本', '更多', '立直', '血统', 'all']:
             return messagechain_builder(text="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'")
@@ -200,6 +204,18 @@ class MajsoulQuery:
             return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
 
     async def getsomeqhpaipu(self, playername: str, type="4", counts=5) -> MessageChain:
+        """
+        获取玩家牌谱
+
+        Args:
+            playername:玩家名
+            type: 3 or 4
+            counts: 查询数量
+
+        Returns: 包含结果的Mirai消息链
+
+        """
+
         ptupdate = 0
         ERROR = False
 
@@ -270,7 +286,17 @@ class MajsoulQuery:
             # result['img64'] = text_to_image(text=paipuInfo, needtobase64=True)
         return result
 
-    def drawcards(self, userid: int, up=False) -> dict:
+    def drawcards(self, userid: int, up=None) -> dict:
+        """
+        雀魂模拟抽卡
+
+        Args:
+            userid:抽卡人QQ号
+            up: 目前是决定池子是否up,之后改成选择up池
+
+        Returns: 抽卡结果信息,还需要解析
+
+        """
         if not os.path.exists('./images/MajsoulInfo'):
             os.mkdir('./images/MajsoulInfo')
 
@@ -400,6 +426,15 @@ class MajsoulQuery:
         return dict(drawcounts=drawcounts, results=results, resultsmsg=resultsmsg, baodi=baodi, error=False)
 
     def getmycard(self, userid):
+        """
+        获取某人的抽卡累计结果
+
+        Args:
+            userid: 抽卡人QQ
+
+        Returns:
+
+        """
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -425,6 +460,16 @@ class MajsoulQuery:
         return msg
 
     def addwatch(self, playername: str, groupid: int):
+        """
+        添加雀魂关注
+
+        Args:
+            playername: 玩家名
+            groupid: 群组号
+
+        Returns: 添加是否成功
+
+        """
         print(f'groupid= {groupid},playername= {playername}')
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
@@ -449,8 +494,12 @@ class MajsoulQuery:
             f'select * from watchedplayer where playerid = {playerid}')
         watchedplayers = cursor.fetchall()
         if len(watchedplayers) == 0:
-            cursor.execute(
-                f'insert into watchedplayer(playerid,playername) values({playerid},"{playername}")')
+            try:
+                cursor.execute(
+                    f'insert into watchedplayer(playerid,playername) values({playerid},"{playername}")')
+            except sqlite3.IntegrityError:
+                cursor.execute(
+                    f"update watchedplayer set playerid = {playerid} and watchedgroupcount = watchedgroupcount + 1")
             cx.commit()
             print(f"已将{playername}添加到雀魂关注数据库")
         cursor.execute(
@@ -482,12 +531,26 @@ class MajsoulQuery:
 
     async def getmonthreport(self, playername: str, selecttype: str = None, year: str = None,
                              month: str = None) -> MessageChain:
+        """
+        获取玩家月报
+
+        Args:
+            playername: 玩家名
+            selecttype: 3 or 4
+            year: 年
+            month: 月
+
+        Returns: 包含结果的Mirai消息链
+
+        """
+
         def getrank(playerinfo: dict):
+            """自定义sort方法"""
             return playerinfo['score']
 
         ptchange = 0
         msg = ""
-        getrecent=False
+        getrecent = False
         if not selecttype:
             selecttype = "4"
         if not year or not month:
@@ -517,7 +580,7 @@ class MajsoulQuery:
         playerid = playerid[0][0]
         selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
         if getrecent:
-            nextmontht = int(time.time()*1000)
+            nextmontht = int(time.time() * 1000)
             selectmontht = nextmontht - 2592000 * 1000
         else:
             nextmontht = int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
@@ -605,6 +668,7 @@ class MajsoulQuery:
         return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
 
     def removewatch(self, playername: str, groupid: int) -> str:
+        """雀魂取消关注"""
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -639,6 +703,15 @@ class MajsoulQuery:
             return "删除成功"
 
     def getallwatcher(self, groupid: int) -> str:
+        """
+        获取某个群组的全部关注
+
+        Args:
+            groupid: QQ群号
+
+        Returns:包含结果的Mirai消息链
+
+        """
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -652,6 +725,7 @@ class MajsoulQuery:
         return msg
 
     def clearallwatch(self, groupid: int):
+        """清除某个群的全部雀魂关注"""
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         print(f'开始执行清除群聊{groupid}的雀魂关注')
@@ -665,21 +739,28 @@ class MajsoulQuery:
         return "清除成功"
 
     async def asygetqhpaipu(self):
+        """
+        对局异步查询
+
+        Returns: 分析整理后的新对局
+
+        """
         nowtime = time.time()
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
-        cursor.execute(f"select playerid from watchedplayer where watchedgroupcount > 0")
-        res = cursor.fetchall()
+        cursor.execute(f"select playerid from watchedplayersview where watchedgroupcount > 0")
+        playerids = cursor.fetchall()
         cursor.close()
         cx.close()
         playeridlist = []
-        for item in res:
+        for item in playerids:
             playeridlist.append(item[0])
-        results = await paipu_pl3(playeridlist, nowtime) + await paipu_pl4(playeridlist, nowtime)
+        results = await getmatchresult(playeridlist, nowtime)
         return msganalysis(results)
 
     async def query(self, username: str, selecttype: str = "", selectindex: int = 1) -> MessageChain:
+        """查pt"""
         userinfo = await asyqhpt(username)
         if userinfo['error']:
             if userinfo['offline']:
@@ -739,6 +820,7 @@ class MajsoulQuery:
 
     async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = 1) -> MessageChain:
         """
+        精确查pt
 
         Args:
             username:   玩家名
@@ -812,6 +894,18 @@ class MajsoulQuery:
                 return messagechain_builder(imgbase64=text_to_image(text=prtmsg, needtobase64=True))
 
     def tagonplayer(self, playername, tagname, userid, groupid):
+        """
+        添加tag
+
+        Args:
+            playername: 玩家名
+            tagname: 要添加tag名
+            userid: 添加者的QQ
+            groupid: 添加的QQ群号
+
+        Returns:
+
+        """
         opertaionMsg = '添加成功'
         if len(tagname) > 10:
             return 'Tag太长啦，短一点短一点'
@@ -839,6 +933,18 @@ class MajsoulQuery:
         return opertaionMsg
 
     def tagoffplayer(self, groupid, playername=None, userid=None, tagname=None):
+        """
+        移除tag
+
+        Args:
+            groupid:  群号
+            playername: 玩家名
+            userid: 添加者QQ
+            tagname: 要移除的tag
+
+        Returns:
+
+        """
         deletemsg = '删除成功'
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
@@ -866,6 +972,7 @@ class MajsoulQuery:
         return deletemsg
 
     def tag_C_operation(self, groupid, source_playername, target_playername, operation_type: str = 'COPY'):
+        """tag批量操作"""
         opertaionMsg = '操作成功!'
         operation_type = operation_type.lower()
         if operation_type in ['cut', 'copy']:
@@ -891,6 +998,17 @@ class MajsoulQuery:
         return opertaionMsg
 
     def getalltags(self, groupid, target=None, searchtype='playername'):
+        """
+        查询指定目标的全部玩家
+
+        Args:
+            groupid: 组号
+            target: 玩家名或者tag名
+            searchtype: 查询类型，可选参数为 'playername' 或 'tagname'
+
+        Returns:
+
+        """
         querytable = f'''{'玩家名':^10}|{'tag':^10}\n'''
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
@@ -908,10 +1026,55 @@ class MajsoulQuery:
         cx.close()
         return querytable
 
+    async def set_link_node(self):
+        """
+        自动获取低延时链路并使用
 
-# 异步的qhpt
+        Returns:低延时链路编号  1~5
+
+        """
+        global _link_index
+        config_link = _config.get('link_num', None)
+        if config_link not in [1, 2, 3, 4, 5]:
+            print('未设置牌谱屋默认链路,将进行链路检测')
+            print('如需跳过,请设置 link_num 为 1-5')
+        else:
+            return config_link
+        link_time = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10),
+                                         timeout=aiohttp.ClientTimeout(total=30),
+                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            try:
+                for i in range(1, 6):
+                    url = f'https://{i}.data.amae-koromo.com/api/v2/pl3/search_player/天才麻将杏杏?limit=20&tag=all'
+                    start_time = time.time()
+                    async with session.get(url) as response:
+                        if response.status == 503:
+                            pass  # 先不做异常处理
+                            print(f'牌谱屋似乎离线了,测试默认节点{i}失败')
+                    end_time = time.time()
+                    link_time[i] = end_time - start_time
+            except asyncio.TimeoutError as e:
+                print(f'测试节点{i}超时')
+                link_time[i] = 30  # 失败了就用一个巨大的时延
+            except Exception as e:
+                print(f'出现未知错误,测试节点{i}失败')
+                print(f'错误为: {e}')
+                link_time[i] = 30
+        recommend_link_index = 1
+        for i in range(1, 6):
+            print(f'链路{i}时延:{link_time[i]:>2.2f}{" (30为超时或失败)" if link_time[i] >= 30 else ""}')
+            if link_time[i] < link_time[recommend_link_index]:
+                recommend_link_index = i
+        _link_index = recommend_link_index
+        if link_time[_link_index] >= 30:
+            print(f'所有链路延时均超过30s')
+        print(f'已将默认链路设置为 link{_link_index}')
+        return recommend_link_index
+
 
 async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None) -> dict:
+    """异步的qhpt"""
     muti3 = False
     muti4 = False
     if not selectindex:
@@ -1027,7 +1190,8 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
                     offline=False)
 
 
-async def paipu_pl3(playeridlist, nowtime) -> list:
+async def getmatchresult(playeridlist, nowtime) -> list:
+    """异步查询三麻对局"""
     contentlist = []
     if len(playeridlist) >= 25:
         timeout = aiohttp.ClientTimeout(total=15)
@@ -1038,10 +1202,18 @@ async def paipu_pl3(playeridlist, nowtime) -> list:
         for playerid in playeridlist:
             try:
                 #  url =f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nowtime}/1262304000000?limit=1&mode=21,22,23,24,25,26&descending=true"
-                url = get_player_records_url(playerid, 3, nowtime)
+                url = get_player_records_url(playerid, 3, nowtime, total=1)
                 async with session.get(url) as response:
-
-                    text: list = json.loads(await response.text())
+                    text = await response.json()
+                    if len(text) > 0:
+                        contentlist.append(
+                            dict(playerid=playerid, content=text[0]))
+                    else:
+                        contentlist.append(
+                            dict(playerid=playerid, content=text))
+                url = get_player_records_url(playerid, 4, nowtime, total=1)
+                async with session.get(url) as response:
+                    text = await response.json()
                     if len(text) > 0:
                         contentlist.append(
                             dict(playerid=playerid, content=text[0]))
@@ -1057,34 +1229,17 @@ async def paipu_pl3(playeridlist, nowtime) -> list:
     # 返回一个 list，内容为 [{groupid:groupid,msg:msg}]
 
 
-async def paipu_pl4(playeridlist, nowtime) -> list:
-    contentlist = []
-    if len(playeridlist) >= 25:
-        timeout = aiohttp.ClientTimeout(total=15)
-    else:
-        timeout = asytimeout
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=timeout,
-                                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
-        for playerid in playeridlist:
-            try:
-                # url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_records/{playerid}/{nowtime}/1262304000000?limit=1&mode=8,9,11,12,15,16&descending=true"
-                url = get_player_records_url(playerid, 4, nowtime)
-                async with session.get(url) as response:
-                    text: list = json.loads(await response.text())
-                    if len(text) > 0:
-                        contentlist.append(
-                            dict(playerid=playerid, content=text[0]))
-                    else:
-                        contentlist.append(dict(playerid=playerid, content={}))
-            except asyncio.TimeoutError as e:
-                logging.getLogger().exception(e)
-            except Exception as e:
-                logging.getLogger().exception(e)
-
-    return contentlist
-
-
 def jiexi(paipu: dict, playerid: int) -> list:
+    """
+    对局信息解析
+
+    Args:
+        paipu: 查到的所有牌谱
+        playerid: 筛选的玩家id
+
+    Returns: 合法的最新对局
+
+    """
     hasNewPaipu = False
     # paipuInfo = "检测到新的对局信息:\n"
     paipuInfo = ""
@@ -1146,6 +1301,17 @@ def jiexi(paipu: dict, playerid: int) -> list:
 
 
 def levelswitch(level, score, type):
+    """
+    玩家段位解析
+
+    Args:
+        level: 段位
+        score: 分数
+        type: 三麻或者四麻
+
+    Returns:
+
+    """
     stage_level = int(str(level)[2]) - 3
     score_level = int(str(level)[4]) - 1
     maxscore = 2000
@@ -1199,6 +1365,16 @@ def levelswitch(level, score, type):
 
 
 def prtlevelmsg(stagelevel, scorelevel):
+    """
+    段位显示
+
+    Args:
+        stagelevel: 大段
+        scorelevel: 小分
+
+    Returns:    例:三麻魂9
+
+    """
     msg = ""
     if stagelevel == 0:
         msg += "杰"
@@ -1222,6 +1398,7 @@ def mergeimg(imgurls: list) -> Image:
 
 
 def forwardmessage(msglist: list) -> list:
+    """将结果封装为便于转发的消息链"""
     messageChainList = []
     # cmdopt = []
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
@@ -1255,6 +1432,8 @@ def forwardmessage(msglist: list) -> list:
 
 
 def msganalysis(infos: list) -> list:
+    """消息解析"""
+
     def getScore(e):
         return e['score']
 
@@ -1301,7 +1480,6 @@ def msganalysis(infos: list) -> list:
             # print(f"存在uuid={item['uuid']}的记录")
             pass
     return forwardmessage(content)
-
 
 
 majsoul = MajsoulQuery()

@@ -9,6 +9,7 @@ import datetime
 import re
 
 from mirai import GroupMessage, Plain, FriendMessage
+from mirai.bot import Startup
 
 from core import bot, config, commandpre, scheduler
 from plugin.MajSoulInfo.majsoulinfo import majsoul
@@ -172,7 +173,8 @@ async def getrecentqhpaipu(event: GroupMessage):
 
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhpaipu')):
                 return messagechain_sender(event=event,
-                                           msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+                                           msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                    at=event.sender.id))
             playername = m.group(2)
             searchtype = m.group(3)
             searchnumber = 5
@@ -210,6 +212,8 @@ async def getplayerdetails(event: GroupMessage):
             selectlevel = m.group(5)
             if selectlevel:
                 pass
+            else:
+                selectlevel = 'all'
             if model is None:
                 model = '基本'
             detail = await majsoul.getplayerdetail(
@@ -305,28 +309,32 @@ async def qhdrawcards(event: GroupMessage):
                     if result['error']:
                         return await bot.send(event,
                                               messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
-                    mergeimgs(result.get('results'), event.sender.id)
-                    await bot.send(event, messagechain_builder(
-                        at=event.sender.id,
-                        text="抽卡结果:", imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
+                    # mergeimgs(result.get('results'), event.sender.id)
+                    # await bot.send(event, messagechain_builder(
+                    #     at=event.sender.id,
+                    #     text="抽卡结果:", imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
                     # return await bot.send(event, messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
                     # ]))
+                    await bot.send(event, messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                               imgbase64=mergeimgs(result.get('results'))))
                 elif m.group(2) in ['常驻', '普通', 'common', 'normal']:
                     result = majsoul.drawcards(userid=event.sender.id, up=False)
                     if result['error']:
                         return await bot.send(event,
                                               messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
-                    mergeimgs(result.get('results'), event.sender.id)
-                    await bot.send(event, messagechain_builder(
-                        at=event.sender.id,
-                        text="抽卡结果:",
-                        imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
+                    # mergeimgs(result.get('results'), event.sender.id)
+                    # await bot.send(event, messagechain_builder(
+                    #     at=event.sender.id,
+                    #     text="抽卡结果:",
+                    #     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
                     # return await bot.send(event, messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
                     # ]))
+                    await bot.send(event, messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                               imgbase64=mergeimgs(result.get('results'))))
                 else:
                     result = majsoul.drawcards(userid=event.sender.id, up=False)
                     if result['error']:
@@ -334,26 +342,30 @@ async def qhdrawcards(event: GroupMessage):
                                               messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
                     await bot.send(event,
                                    messagechain_builder(at=event.sender.id, text='参数输入有误，请输入“限时”或“常驻”，此次十连将输出常驻'))
-                    mergeimgs(
-                        result.get('results'), event.sender.id)
-                    await bot.send(event, messagechain_builder(
-                        at=event.sender.id,
-                        text="抽卡结果:",
-                        imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
+                    # mergeimgs(
+                    #     result.get('results'), event.sender.id)
+                    # await bot.send(event, messagechain_builder(
+                    #     at=event.sender.id,
+                    #     text="抽卡结果:",
+                    #     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
                     # return await bot.send(event, messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
                     # ]))
+                    await bot.send(event, messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                               imgbase64=mergeimgs(result.get('results'))))
             else:
                 result = majsoul.drawcards(userid=event.sender.id, up=False)
                 if result['error']:
                     return await bot.send(event, messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
-                mergeimgs(
-                    result.get('results'), event.sender.id)
-                await bot.send(event, messagechain_builder(
-                    at=event.sender.id,
-                    text="抽卡结果:",
-                    imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
+                # mergeimgs(
+                #     result.get('results'), event.sender.id)
+                # await bot.send(event, messagechain_builder(
+                #     at=event.sender.id,
+                #     text="抽卡结果:",
+                #     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
+                await bot.send(event, messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                           imgbase64=mergeimgs(result.get('results'))))
         else:
             return await bot.send(event, messagechain_builder(text="此群已禁用模拟抽卡"))
     return
@@ -459,7 +471,7 @@ async def freshqhpaipu(event: FriendMessage):
     if event.sender.id == master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr"^{commandpre}freshqhdb\s*$", msg.strip())
+            fr"^{commandpre}qhfreshdb\s*$", msg.strip())
         if m:
             print("牌谱刷新中")
             await messagechain_sender(msg="牌谱刷新中", event=event)
@@ -479,15 +491,22 @@ async def guan_wang(event: GroupMessage):
     return
 
 
+@bot.on(Startup)
+async def linksetting(_):
+    await majsoul.set_link_node()
+
+
 async def asyqh_autopaipu():
     """结合scheduler自定定时刷新数据库"""
     print("开始查询雀魂信息")
     result = await majsoul.asygetqhpaipu()
-    for msgobj in result:
-        for group in msgobj['groups']:
-            b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
-            # await bot.send_group_message(group, msgobj['msg'])
-            await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+    if len(result) > 0:
+        print(f'新的雀魂结算:{result}')
+        for msgobj in result:
+            for group in msgobj['groups']:
+                b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                # await bot.send_group_message(group, msgobj['msg'])
+                await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
     print(
         f"雀魂自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
     return
@@ -498,5 +517,10 @@ if qhsettings.get('autoquery', False):
     if int(_searchfrequency) < 1:
         print('查询频率不能为0,将自动设置为6')
         _searchfrequency = 6
-    scheduler.add_job(asyqh_autopaipu, 'cron', hour='*', minute=f'0/{_searchfrequency}')
+    scheduler.add_job(asyqh_autopaipu, 'cron', minute=f'0/{_searchfrequency}')
     print(f' |---已添加定时任务 "雀魂自动查询",查询周期{_searchfrequency}分钟')
+if qhsettings.get('link_update', True):
+    link_freshtime: str = qhsettings.get('link_freshtime', '2:33')
+    scheduler.add_job(majsoul.set_link_node, 'cron', hour=f'{link_freshtime.split(":")[0]}',
+                      minute=f'{link_freshtime.split(":")[1]}')
+    print(f' |---已添加定时任务 "定时刷新牌谱屋结点",将在每天{link_freshtime}执行')
