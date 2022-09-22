@@ -16,7 +16,7 @@ import aiohttp
 import pytz
 import re
 from plugin.TenHouPlugin.ptcalculation import ptcalculation
-from utils import text_to_image
+from utils import text_to_image, read_file
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -44,6 +44,8 @@ bordercast_temple = {
 }
 
 timeout = aiohttp.ClientTimeout(total=30)
+
+_cfg = read_file(r'./config/TenHouPlugin/config.yml')
 
 
 # 解压gz
@@ -204,7 +206,9 @@ async def asyautoget_th_matching() -> list:
                 eligible_Matches.append(tempmatch)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    print('正在天凤对局的玩家:', gamingplayer)
+    if not _cfg.get('silence_CLI', False):
+        if len(gamingplayer) > 0:
+            print('正在天凤对局的玩家:', gamingplayer)
     for item in gamingplayer:
         if item['isgaming'] == 2:
             cursor.execute(

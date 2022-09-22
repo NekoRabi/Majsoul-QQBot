@@ -29,24 +29,36 @@ levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
 _link_index = 1
 
-game_map = {
+match_level = {
     4: {
         "金东": 8,
-        "金": 9,
+        "金": '8.9',
+        "金南": '9',
         "玉东": 11,
-        "玉": 12,
+        "玉": '11.12',
+        '玉南': '12',
         "王座东": 15,
-        "王座": 16
+        "王座南": 16,
+        '王座': '15.16',
+        '王': '15.16',
+        'all': '8.9.11.12.15.16'
     },
     3: {
         "金东": 21,
-        "金": 22,
+        "金南": '22',
+        "金": '21.22',
         "玉东": 23,
-        "玉": 24,
+        "玉": '23.24',
+        '玉南': 24,
         "王座东": 25,
-        "王座": 26
+        "王座南": 26,
+        '王座': '25.26',
+        '王': '25.26',
+        'all': '21.22.23.24.25.26'
     }
 }
+
+_match_level_name = ['all', '金', '金东', '金南', '玉', '玉东', '玉南', '王', '王座', '王座东', '王座南']
 
 infomodel = dict(基本=['和牌率', '放铳率', '自摸率', '默听率', '流局率', '流听率', '副露率', '立直率', '和了巡数', '平均打点', '平均铳点', '平均顺位', '被飞率'],
                  立直=['立直率', '立直和了', '立直放铳A', '立直放铳B', '立直收支', '立直收入', '立直支出', '先制率', '追立率', '被追率', '立直巡目', '立直流局',
@@ -73,6 +85,14 @@ serverErrorCode = 503  # 牌谱屋炸了
 
 _template = read_file(r"./config/MajSoulInfo/template.yml")
 _config = read_file(r"./config/MajSoulInfo/config.yml")
+_query_limit = _config.get('query_limit', 10)
+
+if _query_limit < 1:
+    print('同时最大请求数量已自动调整为10')
+    _query_limit = 10
+if type(_query_limit) != int:
+    _query_limit = 10
+    print('同时最大请求数量已自动调整为10')
 
 
 def get_qhpturl(playername, searchtype=3):
@@ -85,7 +105,19 @@ def get_qhpturl(playername, searchtype=3):
 
 
 def get_player_records_url(playerid, searchtype, end_time, start_time=1262304000000, total=599):
-    """获取玩家对局记录的URL"""
+    """
+    获取玩家对局记录的URL
+
+    Args:
+        playerid: 玩家牌谱屋id
+        searchtype: 查询类型
+        end_time: 结束时间
+        start_time: 开始时间
+        total: 最多数量
+
+    Returns:
+
+    """
     if int(searchtype) == 4:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{end_time}/{start_time}?limit={total}&mode=8,9,11,12,15,16&descending=true"
     else:
@@ -94,7 +126,17 @@ def get_player_records_url(playerid, searchtype, end_time, start_time=1262304000
 
 
 def get_paipuurl(playerid, searchtype, count):
-    """获取玩家最近牌谱的URL"""
+    """
+    获取玩家最近牌谱的URL
+
+    Args:
+        playerid: 玩家牌谱屋id
+        searchtype: 查询类型
+        count: 查询数量
+
+    Returns:
+
+    """
     nowtime = time.time()
     nowtime = math.floor(nowtime / 10) * 10000 + 9999
     if int(searchtype) == 4:
@@ -104,17 +146,33 @@ def get_paipuurl(playerid, searchtype, count):
     return url
 
 
-def get_player_extended_stats_url(playerid, searchtype, end_time=None, start_time=None):
-    """获取玩家数据的URL"""
+def get_player_extended_stats_url(playerid, searchtype, end_time=None, start_time=None, mode=None):
+    """
+    获取玩家数据的URL
+
+    Args:
+        playerid: 玩家牌谱屋id
+        searchtype: 查询类型
+        end_time: 结束时间
+        start_time: 开始时间
+        mode: 查询场况的的字符串
+
+    Returns: URL
+
+    """
     if not (start_time or end_time):
         nowtime = time.time()
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         start_time = 1262304000000
         end_time = nowtime
-    if int(searchtype) == 4:
-        url = f'https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_extended_stats/{playerid}/{start_time}/{end_time}?mode=8.9.11.12.15.16'
+    if mode:
+        mode = match_level.get(int(searchtype), 3).get(mode)
     else:
-        url = f'https://{_link_index}.data.amae-koromo.com/api/v2/pl3/player_extended_stats/{playerid}/{start_time}/{end_time}?mode=21.22.23.24.25.26'
+        if int(searchtype) == 4:
+            mode = '8.9.11.12.15.16'
+        else:
+            mode = '21.22.23.24.25.26'
+    url = f'https://{_link_index}.data.amae-koromo.com/api/v2/pl{searchtype}/player_extended_stats/{playerid}/{start_time}/{end_time}?mode={mode}'
     return url
 
 
@@ -140,6 +198,8 @@ class MajsoulQuery:
         """
         if model not in ['基本', '更多', '立直', '血统', 'all']:
             return messagechain_builder(text="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'")
+        if selectlevel not in _match_level_name:
+            return messagechain_builder(text='match参数有误,请输入正确的参数,如"玉"、"金东"')
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 
         cursor = cx.cursor()
@@ -153,8 +213,9 @@ class MajsoulQuery:
             return messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         playerid = playerid[0][0]
         rule = "三麻"
+
         try:
-            url = get_player_extended_stats_url(playerid, selecttype)
+            url = get_player_extended_stats_url(playerid, selecttype, mode=selectlevel)
             # nowtime = time.time()
             # nowtime = math.floor(nowtime / 10) * 10000 + 9999
             if selecttype == "4":
@@ -162,8 +223,9 @@ class MajsoulQuery:
             #     url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=16.12.9.15.11.8"
             # else:
             #     url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/1262304000000/{nowtime}?mode=21.22.23.24.25.26"
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with aiohttp.ClientSession(
+                    connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                    headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
                         print('牌谱屋似乎离线了')
@@ -176,7 +238,9 @@ class MajsoulQuery:
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return messagechain_builder(text="查询超时,请稍后再试")
-        msg = f" 以下是玩家 {playername} 的{rule}数据:\n"
+        if content.get('error', False):
+            return messagechain_builder(text='未找到该玩家在这个场次的的对局')
+        msg = f" 以下是玩家 {playername} 的{rule}{selectlevel if selectlevel else ''}数据:\n"
         for (k, v) in content.items():
             if type(v) not in [list, dict]:
                 if str(k) in ["id", "count"]:
@@ -198,7 +262,8 @@ class MajsoulQuery:
                             msg += f"{k:<12} : {v:2.2f}\n"
                     else:
                         msg += f"{k:<12} : {v if v else 0}\n"
-        if _config.get('broadcast', 'image') in ['txt', 'text', 'str']:
+        _broadcast_type = _config.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
             return messagechain_builder(text=msg)
         else:
             return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
@@ -220,8 +285,9 @@ class MajsoulQuery:
         ERROR = False
 
         async def asyrecordsrequest(_playerid, _type, _counts) -> list:
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with aiohttp.ClientSession(
+                    connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                    headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 # nowtime = time.time()
                 # nowtime = math.floor(nowtime / 10) * 10000 + 9999
                 # if type == "4":
@@ -248,6 +314,7 @@ class MajsoulQuery:
             return messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         playerid = playerid[0][0]
         paipuInfo = f"最近{counts}场对局信息如下："
+        _paipu_link = ''
         # content = finish_all_asytasks(
         #     [asyrecordsrequest(playerid=playerid, type=type, counts=counts)])[0]
         try:
@@ -260,8 +327,10 @@ class MajsoulQuery:
                 endTime = time.strftime('%Y-%m-%d %H:%M:%S',
                                         time.localtime(item["endTime"]))
                 players = item['players']
-                if _config.get('broadcast', 'image') in ['txt', 'text', 'str']:
+                _broadcast_type = _config.get('broadcast', 'image').lower()
+                if _broadcast_type in ['txt', 'text', 'str']:
                     paipuInfo += f"\n牌谱连接: https://game.maj-soul.net/1/?paipu={paipuuid}\n"
+                    _paipu_link += f"https://game.maj-soul.net/1/?paipu={paipuuid}\n"
                 else:
                     paipuInfo += f"\n牌谱UID: {paipuuid}\n"
                 paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
@@ -277,9 +346,12 @@ class MajsoulQuery:
             paipuInfo = '牌谱查询超时,请稍后再试'
         result = messagechain_builder(text=paipuInfo)
         if not ERROR:
-
-            if _config.get('broadcast', 'image') in ['txt', 'text', 'str']:
+            _broadcast_type = _config.get('broadcast', 'image').lower()
+            if _broadcast_type in ['txt', 'text', 'str']:
                 return messagechain_builder(text=paipuInfo)
+            elif _broadcast_type in ['mix', 'mixed']:
+                return messagechain_builder(text=_paipu_link,
+                                            imgbase64=text_to_image(text=paipuInfo, needtobase64=True))
             else:
                 # text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
                 return messagechain_builder(imgbase64=text_to_image(text=paipuInfo, needtobase64=True))
@@ -591,79 +663,94 @@ class MajsoulQuery:
             # else:
             #     url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_records/{playerid}/{nextmontht}/{selectmontht}?limit=599&mode=21,22,23,24,25,26&descending=true"
             url = get_player_records_url(playerid, selecttype, nextmontht, selectmontht)
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with aiohttp.ClientSession(
+                    connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                    headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
                         return messagechain_builder(text='牌谱屋似乎离线了')
                     paipuresponse = await response.json()
-
-            if len(paipuresponse) == 0:
-                return messagechain_builder(text='该玩家这个月似乎没有进行过该类型的对局呢')
-            paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
-            for players in paipuresponse:
-                temp = players['players']
-                temp.sort(key=getrank)
-                playerslist.append(temp)
-            for playerrank in playerslist:
-                if selecttype == "4":
-                    rank = 4
-                else:
-                    rank = 3
-                for player in playerrank:
-                    if player['nickname'] == playername:
-                        ptchange += player['gradingScore']
-                        rankdict[f"{rank}"] += 1
-                        if player['score'] < 0:
-                            rankdict['fly'] += 1
-                        break
-                    rank = rank - 1
-            averagerank = (rankdict['1'] + rankdict['2'] * 2 +
-                           rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
-            if selecttype == "4":
-                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
-            else:
-                paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位"
-            if rankdict['fly'] > 0:
-                paipumsg += f",被飞了{rankdict['fly']}次"
-            paipumsg += f",平均顺位:{averagerank:1.2f}\nPT总得失: {ptchange}\n\n"
-            msg += paipumsg
-        except asyncio.exceptions.TimeoutError as e:
-            print(f'\n牌谱读取超时:\t{e}\n')
-            return messagechain_builder(text="查询超时,请稍后再试")
-
-        except aiohttp.client.ClientConnectorError as _e:
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
-            return messagechain_builder(text="查询超时,请稍后再试")
-        try:
-            # if selecttype == "4":
-            #     url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=16.12.9.15.11.8"
-            # else:
-            #     url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=21.22.23.24.25.26"
-            url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+                url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
                 async with session.get(url) as response:
                     if response.status == 503:
                         return messagechain_builder(text='牌谱屋似乎离线了')
                     inforesponse: dict = await response.json()
-            infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
-            infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
-            infomsg += f" 和牌率: {inforesponse.get('和牌率', None) * 100 if inforesponse.get('和牌率', None) else 0:2.2f}%\n"
-            infomsg += f" 放铳率: {inforesponse.get('放铳率', None) * 100 if inforesponse.get('放铳率', None) else 0:2.2f}% "
-            if inforesponse.get('默听率', None):
-                infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
-            else:
-                infomsg += '\t'
-            infomsg += f" 平均打点: {inforesponse.get('平均打点') if inforesponse.get('平均打点') else 0}\t 平均铳点 : {inforesponse.get('平均铳点') if inforesponse.get('平均铳点') else 0}"
+                if len(paipuresponse) == 0:
+                    return messagechain_builder(text='该玩家这个月似乎没有进行过该类型的对局呢')
+                paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
+                for players in paipuresponse:
+                    temp = players['players']
+                    temp.sort(key=getrank)
+                    playerslist.append(temp)
+                for playerrank in playerslist:
+                    if selecttype == "4":
+                        rank = 4
+                    else:
+                        rank = 3
+                    for player in playerrank:
+                        if player['nickname'] == playername:
+                            ptchange += player['gradingScore']
+                            rankdict[f"{rank}"] += 1
+                            if player['score'] < 0:
+                                rankdict['fly'] += 1
+                            break
+                        rank = rank - 1
+                averagerank = (rankdict['1'] + rankdict['2'] * 2 +
+                               rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
+                if selecttype == "4":
+                    paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
+                else:
+                    paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位"
+                if rankdict['fly'] > 0:
+                    paipumsg += f",被飞了{rankdict['fly']}次"
+                paipumsg += f",平均顺位:{averagerank:1.2f}\nPT总得失: {ptchange}\n\n"
+                msg += paipumsg
+                infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
+                infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
+                infomsg += f" 和牌率: {inforesponse.get('和牌率', None) * 100 if inforesponse.get('和牌率', None) else 0:2.2f}%\n"
+                infomsg += f" 放铳率: {inforesponse.get('放铳率', None) * 100 if inforesponse.get('放铳率', None) else 0:2.2f}% "
+                if inforesponse.get('默听率', None):
+                    infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
+                else:
+                    infomsg += '\t'
+                infomsg += f" 平均打点: {inforesponse.get('平均打点') if inforesponse.get('平均打点') else 0}\t 平均铳点 : {inforesponse.get('平均铳点') if inforesponse.get('平均铳点') else 0}"
             msg += infomsg
-        except asyncio.exceptions.TimeoutError as e:
-            print(f'\n玩家详情读取超时:\t{e}\n')
+        except asyncio.exceptions.TimeoutError as _e:
+            print(f'获取雀魂详情 请求超时:\t{_e}')
             return messagechain_builder(text="查询超时,请稍后再试")
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return messagechain_builder(text="查询超时,请稍后再试")
-        if _config.get('broadcast', 'image') in ['text', 'txt', 'str']:
+        # try:
+        #     # if selecttype == "4":
+        #     #     url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=16.12.9.15.11.8"
+        #     # else:
+        #     #     url = f"https://ak-data-1.sapk.ch/api/v2/pl3/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=21.22.23.24.25.26"
+        #     url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
+        #     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit),10, timeout=aiotimeout,
+        #                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
+        #         async with session.get(url) as response:
+        #             if response.status == 503:
+        #                 return messagechain_builder(text='牌谱屋似乎离线了')
+        #             inforesponse: dict = await response.json()
+        #     infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
+        #     infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
+        #     infomsg += f" 和牌率: {inforesponse.get('和牌率', None) * 100 if inforesponse.get('和牌率', None) else 0:2.2f}%\n"
+        #     infomsg += f" 放铳率: {inforesponse.get('放铳率', None) * 100 if inforesponse.get('放铳率', None) else 0:2.2f}% "
+        #     if inforesponse.get('默听率', None):
+        #         infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
+        #     else:
+        #         infomsg += '\t'
+        #     infomsg += f" 平均打点: {inforesponse.get('平均打点') if inforesponse.get('平均打点') else 0}\t 平均铳点 : {inforesponse.get('平均铳点') if inforesponse.get('平均铳点') else 0}"
+        #     msg += infomsg
+        # except asyncio.exceptions.TimeoutError as e:
+        #     print(f'\n玩家详情读取超时:\t{e}\n')
+        #     return messagechain_builder(text="查询超时,请稍后再试")
+        # except aiohttp.client.ClientConnectorError as _e:
+        #     print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+        #     return messagechain_builder(text="查询超时,请稍后再试")
+        _broadcast_type = _config.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
             return messagechain_builder(text=msg)
         return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
 
@@ -811,7 +898,8 @@ class MajsoulQuery:
         except AttributeError:
             print("查询不到四麻段位")
             prtmsg += "\n未查询到四麻段位。"
-        if _config.get('broadcast', 'image') in ['txt', 'text', 'str']:
+        _broadcast_type = _config.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
             return messagechain_builder(text=prtmsg)
         else:
             # text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
@@ -842,8 +930,9 @@ class MajsoulQuery:
             url = get_qhpturl(username, 4)
             typename = "四麻"
         try:
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with aiohttp.ClientSession(
+                    connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                    headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
                         return messagechain_builder(text="牌谱屋似乎离线了")
@@ -887,7 +976,8 @@ class MajsoulQuery:
                     f"update qhplayer set playerid = {playerid} where playername = '{username}'")
             cx.commit()
             cx.close()
-            if _config.get('broadcast', 'image') in ['txt', 'text', 'str']:
+            _broadcast_type = _config.get('broadcast', 'image').lower()
+            if _broadcast_type in ['txt', 'text', 'str']:
                 return messagechain_builder(text=prtmsg)
             else:
                 # text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
@@ -1026,7 +1116,7 @@ class MajsoulQuery:
         cx.close()
         return querytable
 
-    async def set_link_node(self):
+    async def set_link_node(self) -> int:
         """
         自动获取低延时链路并使用
 
@@ -1040,12 +1130,13 @@ class MajsoulQuery:
             print('如需跳过,请设置 link_num 为 1-5')
         else:
             return config_link
-        link_time = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10),
-                                         timeout=aiohttp.ClientTimeout(total=30),
-                                         headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            try:
-                for i in range(1, 6):
+        link_time = {1: 30, 2: 30, 3: 30, 4: 30, 5: 30}
+        async with aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)),
+                timeout=aiohttp.ClientTimeout(total=30),
+                headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            for i in range(1, 6):
+                try:
                     url = f'https://{i}.data.amae-koromo.com/api/v2/pl3/search_player/天才麻将杏杏?limit=20&tag=all'
                     start_time = time.time()
                     async with session.get(url) as response:
@@ -1054,13 +1145,11 @@ class MajsoulQuery:
                             print(f'牌谱屋似乎离线了,测试默认节点{i}失败')
                     end_time = time.time()
                     link_time[i] = end_time - start_time
-            except asyncio.TimeoutError as e:
-                print(f'测试节点{i}超时')
-                link_time[i] = 30  # 失败了就用一个巨大的时延
-            except Exception as e:
-                print(f'出现未知错误,测试节点{i}失败')
-                print(f'错误为: {e}')
-                link_time[i] = 30
+                except asyncio.TimeoutError:
+                    print(f'测试节点{i}超时')
+                except Exception as e:
+                    print(f'出现未知错误,测试节点{i}失败')
+                    print(f'错误为: {e}')
         recommend_link_index = 1
         for i in range(1, 6):
             print(f'链路{i}时延:{link_time[i]:>2.2f}{" (30为超时或失败)" if link_time[i] >= 30 else ""}')
@@ -1090,7 +1179,7 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
         #     url = urlp4
         #     typename = "四麻"
         # try:
-        #     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
+        #     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit),10, timeout=aiotimeout,
         #                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         #         async with session.get(url) as response:
         #             if response.status == 503:
@@ -1134,8 +1223,9 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
 
     else:
         try:
-            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=aiotimeout,
-                                             headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with aiohttp.ClientSession(
+                    connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                    headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(urlp3) as response:
                     if response.status == 503:
                         return dict(error=True, offline=True)
@@ -1197,7 +1287,8 @@ async def getmatchresult(playeridlist, nowtime) -> list:
         timeout = aiohttp.ClientTimeout(total=15)
     else:
         timeout = asytimeout
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=10), timeout=timeout,
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)),
+                                     timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         for playerid in playeridlist:
             try:
@@ -1411,7 +1502,8 @@ def forwardmessage(msglist: list) -> list:
         for g in results:
             groupids.append(g[0])
         messageChainList.append(
-            dict(groups=groupids, msg=item['msg'], playerid=item['playerid'], playername=results[0][1]))
+            dict(groups=groupids, msg=item['msg'], playerid=item['playerid'], playername=results[0][1],
+                 link=item['link']))
     cursor.close()
     cx.close()
     return messageChainList
@@ -1475,7 +1567,8 @@ def msganalysis(infos: list) -> list:
             paipuInfo += f"{startTime} ~ {endTime}\n对局玩家:\n"
             for player in players:
                 paipuInfo += f"{player['nickname']}:{player['score']} ({player['gradingScore']})\n"
-            content.append(dict(playerid=item['playerid'], msg=paipuInfo))
+            content.append(dict(playerid=item['playerid'], msg=paipuInfo,
+                                link=f'https://game.maj-soul.net/1/?paipu={msgitem["uuid"]}'))
         except sqlite3.IntegrityError:
             # print(f"存在uuid={item['uuid']}的记录")
             pass

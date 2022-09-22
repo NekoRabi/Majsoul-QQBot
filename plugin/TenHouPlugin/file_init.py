@@ -11,7 +11,7 @@ def file_init():
         os.mkdir("./config/TenHouPlugin")
 
     if not os.path.exists(r'./config/TenHouPlugin/config.yml'):
-        _cfg = dict(thpt=True, searchfrequency=6, autoquery=True, broadcast='image')
+        _cfg = dict(thpt=True, searchfrequency=6, autoquery=True, broadcast='image', silence_CLI=False)
         write_file(content=_cfg, path=r'./config/TenHouPlugin/config.yml')
 
     if not os.path.exists(r'./config/TenHouPlugin/template.yml'):
@@ -104,7 +104,6 @@ def file_init():
         commands['tenhou'] = thcmds
         write_file(commands, path=r'./config/command.yml')
 
-
     # if not os.path.exists(r'./config/TenHouPlugin/command.yml'):
     #     w_cfg_to_file(thcmds, path=r'./config/command.yml')
     # else:
@@ -114,5 +113,6 @@ def file_init():
     #             commands['tenhou'] = thcmds
     #             w_cfg_to_file(commands, path=r'./config/command.yml')
     #             break
+
 
 file_init()

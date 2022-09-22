@@ -1,14 +1,16 @@
 import base64
 from io import BytesIO
 
-from PIL import Image as IMG
+from PIL import Image
+
+__all__ = ['mergeimgs']
 
 
-def mergeimgs(urls: list) -> IMG:
-    imgback = IMG.new("RGB", (1020, 420), (255, 255, 255))
+def mergeimgs(urls: list) -> Image:
+    imgback = Image.new("RGB", (1020, 420), (255, 255, 255))
     for i in range(10):
-        img = IMG.open(f'./plugin/MajSoulInfo/{urls[i]}').convert("RGBA")
-        img = img.resize((180, 180), IMG.ANTIALIAS)
+        img = Image.open(f'./plugin/MajSoulInfo/{urls[i]}').convert("RGBA")
+        img = img.resize((180, 180), Image.ANTIALIAS)
         r, g, b, a = img.split()
         posx = 20 + (i % 5) * 200
         posy = 20 + (i // 5) * 200
@@ -17,7 +19,8 @@ def mergeimgs(urls: list) -> IMG:
     img = img_to_base64(imgback)
     return img
 
-def img_to_base64(PILimg: IMG = None):
+
+def img_to_base64(PILimg: Image = None):
     """
     图片转换为base64的格式
 

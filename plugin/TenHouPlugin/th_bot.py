@@ -36,7 +36,8 @@ async def ranktenhouplayer(event: GroupMessage):
     if m:
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
             return messagechain_sender(event=event,
-                                       msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+                                       msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                at=event.sender.id))
         reset = True
         if m.group(3):
             reset = m.group(3)
@@ -173,7 +174,8 @@ async def gettenhouwatcher(event: GroupMessage):
 
 
 async def asyth_all():
-    print("开始查询天凤信息")
+    if not _cfg.get('silence_CLI', False):
+        print("开始查询天凤信息")
     result = await tenhou.asythquery()
     # print(result)
     for msgobj in result:
@@ -181,8 +183,9 @@ async def asyth_all():
             b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
             # await bot.send_group_message(group, msgobj['msg'])
             await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
-    print(
-        f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')
+    if not _cfg.get('silence_CLI', False):
+        print(
+            f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')
     return
 
 

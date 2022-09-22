@@ -1,4 +1,5 @@
-autoquery: true
-broadcast: image
-searchfrequency: 6
-thpt: true
+autoquery: true     # 是否开启自动查询
+broadcast: "image"  # 广播类型
+searchfrequency: 6  # 自动查询频率
+thpt: true          # 是否开启天凤查分
+silence_CLI: false  # 减少控制台的信息输出

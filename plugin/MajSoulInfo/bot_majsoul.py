@@ -25,9 +25,9 @@ __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'get
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
            'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
            'freshqhpaipu', 'guan_wang']
-admin = config.get('admin')
+admin = config.get('admin', [])
 # qhsettings = config.get('qhsettings')
-master = config.get('master')
+master = config.get('master', 1215791340)
 
 qhsettings = read_file(r'./config/MajSoulInfo/config.yml')
 
@@ -217,7 +217,7 @@ async def getplayerdetails(event: GroupMessage):
             if model is None:
                 model = '基本'
             detail = await majsoul.getplayerdetail(
-                playername=playername, selecttype=selecttype, model=model)
+                playername=playername, selecttype=selecttype, model=model, selectlevel=selectlevel)
             await bot.send(event, detail)
             # if detail['error']:
             #     await bot.send(event, detail['msg'])
@@ -467,15 +467,30 @@ async def qhlisttag(event: GroupMessage):
 
 @bot.on(FriendMessage)
 async def freshqhpaipu(event: FriendMessage):
-    """手动刷新数据库"""
+    """机器人主人手动刷新数据库"""
     if event.sender.id == master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
-            fr"^{commandpre}qhfreshdb\s*$", msg.strip())
+            fr"^{commandpre}{_qhcmd.get('dbupdate','qhfreshdb$')}", msg.strip())
         if m:
             print("牌谱刷新中")
-            await messagechain_sender(msg="牌谱刷新中", event=event)
+            await messagechain_sender(msg="牌谱数据库刷新中", event=event)
             await asyqh_autopaipu()
+            await messagechain_sender(msg="牌谱刷新完成", event=event)
+
+
+@bot.on(FriendMessage)
+async def changenode(event: FriendMessage):
+    """机器人主人手动刷新链路"""
+    if event.sender.id == master:
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(
+            fr"^{commandpre}{_qhcmd.get('changlinke','qhfreshlink$')}", msg.strip())
+        if m:
+            print("牌谱刷新中")
+            await messagechain_sender(msg="自动选择牌谱屋链路中", event=event)
+            await majsoul.set_link_node()
+            await messagechain_sender(msg=f"自动切换至链路{await majsoul.set_link_node()}", event=event)
 
 
 @bot.on(GroupMessage)
@@ -498,17 +513,31 @@ async def linksetting(_):
 
 async def asyqh_autopaipu():
     """结合scheduler自定定时刷新数据库"""
-    print("开始查询雀魂信息")
+    if not qhsettings.get('silence_CLI', False):
+        print("开始查询雀魂信息")
     result = await majsoul.asygetqhpaipu()
     if len(result) > 0:
         print(f'新的雀魂结算:{result}')
-        for msgobj in result:
-            for group in msgobj['groups']:
-                b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
-                # await bot.send_group_message(group, msgobj['msg'])
-                await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
-    print(
-        f"雀魂自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
+        _broadcast_type = qhsettings.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
+            for msgobj in result:
+                for group in msgobj['groups']:
+                    await messagechain_sender(grouptarget=group, msg=messagechain_builder(text=msgobj['msg']))
+        elif _broadcast_type in ['mix', 'mixed']:
+            for msgobj in result:
+                for group in msgobj['groups']:
+                    b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                    await messagechain_sender(grouptarget=group,
+                                              msg=messagechain_builder(text=msgobj['link'], imgbase64=b64))
+        else:
+            for msgobj in result:
+                for group in msgobj['groups']:
+                    b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                    # await bot.send_group_message(group, msgobj['msg'])
+                    await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+    if not qhsettings.get('silence_CLI', False):
+        print(
+            f"雀魂自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
     return
 
 

@@ -23,8 +23,6 @@ commandpre: ''  # 指令前缀
 
 master: 0  # 机器人主人,必填
 
-searchfrequency: 6 # 查询频率，建议为 6
-
 replyimgpath : fox # 表情包路径
 
 loglevel: INFO # 日志等级

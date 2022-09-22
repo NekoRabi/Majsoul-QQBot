@@ -12,7 +12,7 @@ if not os.path.exists("./images/MajSoulInfo"):
 
 if not os.path.exists(r"./config/MajSoulInfo/config.yml"):
     print('未检测到雀魂配置文件,生成初始文件中...')
-    cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, broadcast='image', linknum=1,
+    cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, broadcast='image', query_limit=10, linknum=1,
                link_update=True, link_freshtime='2:33', autoquery=True, dailydrawcount=3, disptgroup=[0],
                disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0], dispaipugroup=[0])
     write_file(content=cfg, path=r"./config/MajSoulInfo/config.yml")
@@ -32,11 +32,12 @@ if not os.path.exists(r"./config/MajSoulInfo/command.yml"):
         'getwatch': r'(qhgetwatch|雀魂获取本群关注)\s*$',
         'addwatch': r'(qhadd|雀魂添加关注)\s*(\S+)\s*$',
         'delwatch': r'(qhdel|雀魂删除关注)\s*(\S+)\s*$',
+        'dbupdate': r'qhfreshdb\s*$',
+        'changlink': r'qhfreshlink\s*$',
         'clearwatch': r'(qhclearwatch|雀魂清除本群关注)\s*$',
         'tagon': r'(qhtagon|雀魂添加标记)\s*(\S+)\s*(\S+)\s*$',
         'tagoff': r'(qhtagoff|雀魂删除标记)\s*(\S+)\s*(\S+)?\s*$',
         'taglist': r'(qhtaglist)\s*(\S+)?\s*$',
-
         'tagopeartion': r'(qhtag)\s*(\S+)\s*(\S+)\s*(\S*)?\s*'
     }
     write_file(content=_cmd, path=r"./config/MajSoulInfo/command.yml")

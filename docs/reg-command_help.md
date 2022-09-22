@@ -11,10 +11,10 @@
 **yaml 与 python 的简单互转**
 
 **注意缩进,冒号后面要有空格 !!**
-```markdown
+```yaml
 # dict  <=> yaml
 # python:
-dict(name='nekorabi',like='lux',age=20,hobby=['sleep','code'])
+# dict(name='nekorabi',like='lux',age=20,hobby=['sleep','code'])
 # yaml:
 name: nekorabi
 like: lux
@@ -26,7 +26,7 @@ hobby:
 
 以雀魂模块的雀魂月报为例简单说明
 
-```markdown
+```yaml
 majsoul:
   qhyb: (qhyb|雀魂月报)\s*([\w_、,\.，@。\'\"!]+)\s*([34])?\s*([0-9]{4})?[-]?([0-9]{1,2})?\s*$
 ```

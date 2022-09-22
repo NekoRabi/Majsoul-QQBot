@@ -1,12 +1,17 @@
-qhpt: true # 是否启用查询雀魂PT功能
-qhinfo: true # 是否启用查询雀魂信息功能
-qhsl: true # 是否启用模拟雀魂抽卡
-qhyb: true # 是否启用查询雀魂月报功能
-qhpaipu: true # 是否启用查询雀魂牌谱功能
-autoquery: true  # 是否启用自动查询
-searchfrequency: 6 #  牌谱查询频率
-dailydrawcount: 3 # 每个用户每天抽卡次数上限
-broadcast: "image" # 广播类型,发送图片还是文本
+qhpt: true          # 是否启用查询雀魂PT功能
+qhinfo: true        # 是否启用查询雀魂信息功能
+qhsl: true          # 是否启用模拟雀魂抽卡
+qhyb: true          # 是否启用查询雀魂月报功能
+qhpaipu: true       # 是否启用查询雀魂牌谱功能
+autoquery: true     # 是否启用自动查询
+searchfrequency: 6  # 牌谱查询频率
+dailydrawcount: 3   # 每个用户每天抽卡次数上限
+query_limit: 10     # 同时查询的最大请求数量
+linknum: -1         # 选择的结点, 有效值为1-5, 填其他值会自动获取结点
+link_update: true   # 链路是否自动更新
+link_updatetime: "2:33" # 节点更新时间，可以用 *:20表示 在每小时20分自动更新, 用 0/2:00表示每2小时自动更新
+silence_CLI: false  # 减少控制台的信息输出
+broadcast: "image"  # 广播类型,发送图片还是文本
  # 分别在在某群禁用 相关功能
 disptgroup:
   - 0

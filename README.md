@@ -7,6 +7,9 @@
 
 # [自定义指令帮助](./docs/reg-command_help.md)
 
+
+# [简单的插件编写教程](./docs/HowToCreateYourFirstPlugin.md)
+
 # 效果展示
 
 ## 十连模拟抽卡
@@ -36,11 +39,11 @@
 
 # 如何实现
 
-雀魂数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
+雀魂数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/), 通过定时爬取来获取牌谱。
 
 以后可能会改成从雀魂直接获取数据 ( 等我会使用 websocket )
 
-天凤数据来自角田提供的数据接口，自行存储数据
+天凤数据来自角田提供的 [数据接口](https://tenhou.net/sc/raw/), 自行存储数据
 
 
 # 常见错误
@@ -87,6 +90,8 @@ exe不包含资源文件，需要另外下载，下载好后需要放到对应�
 
 有python基础的人可以尝试参考 [模板](./plugin/Template/helloworld.py) 自己编写插件
 
+## [这是一个简单的教程](./docs/HowToCreateYourFirstPlugin.md)
+
 也可以联系我帮忙做一些插件(看心情做)
 
 编写好后记得要 <font color='red'>import</font>
@@ -101,7 +106,7 @@ exe不包含资源文件，需要另外下载，下载好后需要放到对应�
 
 ### config.yml
  ``` 注意, '冒号' (:) 后必须有空格 ```
- ```
+ ```yaml
 ### 请注意 ， 冒号(:)和横线(-)  后面必须要有 '空格'
 
 adapter: # Mirai-Api-Http
@@ -128,8 +133,6 @@ mutegrouplist:
 commandpre: ''  # 指令前缀
 
 master: 0  # 机器人主人,必填
-
-searchfrequency: 6 # 查询频率，建议为 6
 
 replyimgpath : fox # 表情包路径
 
@@ -165,7 +168,6 @@ settings: # 功能开关
   silence: false      # 全局沉默,降低发言频率
   norepeat: false     # 全局自动回复
   help: true          # 是否显示帮助
-  voice: false        # 语音功能
   saveflashimg: false # 保存闪照
 
 repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
@@ -178,30 +180,13 @@ repeatconfig:         # 回复、打断相关，要求值从上到下排序为�
   kwreply: true       # 是否开启关键词回复
 
 
-#语音设置
-voicesetting:
-  # 腾讯云文本转语音系统，请在使用前仔细看使用手册
-  # https://cloud.tencent.com/document/product/1073/37995
-  # 密钥可前往https://console.cloud.tencent.com/cam/capi网站进行获取
-  volume: 1       # 音量或是音高
-  speed: 0.9      # 语速
-  voicetype: 1002 # 音色或是音质
-  private: true   # 因为该功能可能需要机器人主人承担一定的费用，因此你可以设置该功能是否为私人使用
-                  # 即 设置private 为 true，则只有你可以让机器人说话
-  secretId: ''
-  secretKey: ''
-  codec: 'mp3'
-
-
-
 
  ```
 ## 回复文本相关
 ### 以 commonreply.json 为例
-```
+#### 都是最简单的 key:[value0,value1...]  ,触发时随机抽取一条消息进行回复。前面是与机器人互动的关键词 string ，后面是回复消息的 list 
+```json
 {
-  <!-- 都是最简单的 key:[value0,value1...]  ,触发时随机抽取一条消息进行回复
-  前面是与机器人互动的关键词 string ，后面是回复消息的 list -->
   "贴": [
       "贴什么贴.....只......只能......一下哦！",
       "贴...贴贴（靠近）",
@@ -213,72 +198,14 @@ voicesetting:
 }
 ```
 
-### 雀魂十连的配置 drawcards.yml 
-#### 我会不定期更新配置和图片资源
-
-```
-lottery:    # 奖池
-  decoration:  # 装饰品类
-    item: # 物品
-    - index: 0 # 编号
-      name: 24K金棒 # 物品名称
-      rare: 3  #稀有度
-      type: decoration # 物品类型
-      url: ./Images/decoration/24K金棒.jpg  # 物品图片链接
-    - index: 1
-      name: 一触即发
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/一触即发.jpg
-    - index: 2
-  gift:  # 礼物类
-    item:
-    - index: 0
-      name: 手工曲奇
-      rare: 0 
-      type: gift
-      url: ./Images/gift/00-手工曲奇.jpg
-    - index: 1
-      name: 蓝罐曲奇
-      rare: 1
-      type: gift
-      url: ./Images/gift/01-蓝罐曲奇.jpg
-    - index: 2
-      name: 香喷喷曲奇
-      rare: 2 
-      type: gift
-      url: ./Images/gift/02-香喷喷曲奇.jpg
-  person:
-    item:
-    - index: 0
-      name: 七海礼奈
-      rare: 4
-      type: person
-      url: ./Images/person/七海礼奈.png
-    - index: 1
-      name: 三上千织
-      rare: 4
-      type: person
-      url: ./Images/person/三上千织.png
-
-up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物出率将提高(与雀魂一致)
-    # 直接填名字
-  decoration:
-  - 和牌-安可
-  - 立直-开场曲
-  - 立直棒-应援棒
-  person:
-  - 八木唯
-  - 北见纱和子
-```
 
 
  # 功能
 
- - 雀魂相关功能，如模拟抽卡，查询玩家信息，定时播报玩家最近战绩
+ - 雀魂相关功能，如模拟抽卡，查询玩家信息，定时播报玩家最近战绩  &nbsp; [雀魂帮助](./plugin/MajSoulInfo/doc.md)
  - 天凤对局播报，段位查询
  - 入群欢迎
- - 摸头、互亲、举牌、色图、占卜等图片相关功能
+ - [摸头](./plugin/Petpet)、[互亲](./plugin/KissKiss)、[举牌](./plugin/jupai)、[色图](./plugin/Setu)、占卜等图片相关功能
  - 强交互性，提供自定义回复、图片回复和语音回复
  - 支持自定义指令，可以自定义自己喜欢的触发方式
  - 支持插件
@@ -299,7 +226,7 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
 
   [x] 打包成exe,或者一键启动与更新
 
-  [ ] 做一份完整的说明书
+  [x] 做一份完整的说明书
 
 # 其他
 语音模块是使用的腾讯云的api，是收费的，默认关闭，有想法可以打开玩玩，约 0.02 或 0.03 元  
