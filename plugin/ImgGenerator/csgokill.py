@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/23 14:07
+:Update: /
+:Describe: 生成CSGO的击杀图片
+:Version: 0.0.1
+"""
 import base64
 import random
 import re
@@ -5,7 +12,6 @@ import os
 from io import BytesIO
 from PIL import Image as IMG, ImageFont, ImageDraw
 from mirai import GroupMessage, Plain, At
-# from plugin.preinit.create_bot import bot
 from core import bot
 
 __all__ = ['cskill']
@@ -19,12 +25,12 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
     target: 击杀目标
     击杀图片生成消息链
     """
-    gun_file = random.choice(os.listdir(f'./plugin/ImgOperation/image/cs/')).replace('.png', '')
+    gun_file = random.choice(os.listdir(f'./plugin/ImgGenerator/image/cs/')).replace('.png', '')
     while gun_file in ['headshot', 'penetrate']:
-        gun_file = random.choice(os.listdir(f'./plugin/ImgOperation/image/cs/')).replace('.png', '')
+        gun_file = random.choice(os.listdir(f'./plugin/ImgGenerator/image/cs/')).replace('.png', '')
     # gun_file = random.choice(['ak47', 'awp', 'knife', 'm4a1', 'p90', 'deagle', 'fn57', 'hegrenade', 'usp'])
-    gun = f'./plugin/ImgOperation/image/cs/{gun_file}.png'
-    font = ImageFont.truetype('./plugin/ImgOperation/MiSans-Bold.ttf', 30)
+    gun = f'./plugin/ImgGenerator/image/cs/{gun_file}.png'
+    font = ImageFont.truetype('./plugin/ImgGenerator/MiSans-Bold.ttf', 30)
     headshot = random.random()
     headshot_img = None
     himg_a = None
@@ -34,9 +40,9 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
     if gun_file not in ['hegrenade', 'defuser', 'flashbang', 'diversion', 'fists', 'inferno', 'headshot', 'penetrate']:
         if not gun_file.startswith('knife'):
             if headshot < 0.1:
-                headshot_img = IMG.open(f'./plugin/ImgOperation/image/cs/headshot.png')
+                headshot_img = IMG.open(f'./plugin/ImgGenerator/image/cs/headshot.png')
             if penetrate < 0.1:
-                penetrate_img = IMG.open(f'./plugin/ImgOperation/image/cs/penetrate.png')
+                penetrate_img = IMG.open(f'./plugin/ImgGenerator/image/cs/penetrate.png')
     width, height = font.getsize(user)
     width2, height2 = font.getsize(target)
     img_gun = IMG.open(gun)

@@ -1,3 +1,9 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/8/13 20:13
+:Update: /
+:Describe: 一个'迫害'群友的插件
+"""
 import base64
 import re
 import aiohttp
@@ -11,12 +17,7 @@ from utils.MessageChainBuilder import messagechain_builder
 default_fontsize = 48
 default_maxwidth = default_fontsize * 15
 
-"""
-:Author:  NekoRabi
-:Create:  2022/8/13 20:13
-:Update: /
-:Describe: 一个'迫害'群友的插件
-"""
+
 
 __all__ = ['groupmessage_screenshot']
 

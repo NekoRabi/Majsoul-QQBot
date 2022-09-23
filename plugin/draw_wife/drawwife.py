@@ -5,7 +5,7 @@ import re
 
 from io import BytesIO
 from mirai import GroupMessage, Plain
-from core import bot
+from core import bot, add_help
 from utils.MessageChainBuilder import messagechain_builder
 from PIL import Image, ImageDraw
 
@@ -23,6 +23,7 @@ user_agent_list = [
 asytimeout = aiohttp.ClientTimeout(total=60)
 
 __all__ = ['drawwife']
+
 
 async def download_img(url):
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=asytimeout,
@@ -55,3 +56,6 @@ async def drawwife(event: GroupMessage):
         img = await download_img(f'https://www.thiswaifudoesnotexist.net/example-{index}.jpg')
         return await bot.send(event, messagechain_builder(at=event.sender.id,
                                                           imgbase64=img))
+
+
+add_help('group', "抽老婆 : 返回一张算法随机生成的老婆\n")

@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/23 14:07
+:Update: /
+:Describe: 亲亲群友
+:Version: 0.0.1
+"""
 import re
 import numpy
 import aiohttp
@@ -11,8 +18,8 @@ from io import BytesIO
 from core import bot, commands_map, commandpre
 from utils.MessageChainBuilder import messagechain_builder
 
-if not os.path.exists("./images/KissKiss"):
-    os.mkdir("./images/KissKiss")
+if not os.path.exists("./images/ImgGenerator/KissKiss"):
+    os.mkdir("./images/ImgGenerator/KissKiss")
 
 __all__ = ['on_kiss']
 
@@ -28,7 +35,7 @@ async def kiss_make_frame(operator, target, i):
     operator_y = [64, 40, 105, 110, 82, 96, 80, 55, 65, 100, 80, 65, 65]
     target_x = [58, 62, 42, 50, 56, 18, 28, 54, 46, 60, 35, 20, 40]
     target_y = [90, 95, 100, 100, 100, 120, 110, 100, 100, 100, 115, 120, 96]
-    bg = IMG.open(f"./plugin/KissKiss/KissFrames/{i}.png")
+    bg = IMG.open(f"./plugin/ImgGenerator/KissKiss/KissFrames/{i}.png")
     gif_frame = IMG.new('RGB', (200, 200), (255, 255, 255))
     gif_frame.paste(bg, (0, 0))
     gif_frame.paste(target, (target_x[i - 1], target_y[i - 1]), target)
@@ -37,10 +44,6 @@ async def kiss_make_frame(operator, target, i):
 
 
 async def kiss(operator_id, target_id) -> None:
-    if not os.path.exists("./images/KissKiss"):
-        os.mkdir("./images/KissKiss")
-    if not os.path.exists("./images/KissKiss/temp"):
-        os.mkdir("./images/KissKiss/temp")
     operator_url = f'http://q1.qlogo.cn/g?b=qq&nk={operator_id}&s=640'
     target_url = f'http://q1.qlogo.cn/g?b=qq&nk={target_id}&s=640'
     gif_frames = []
@@ -76,7 +79,7 @@ async def kiss(operator_id, target_id) -> None:
 
     for i in range(1, 14):
         gif_frames.append(await kiss_make_frame(operator, target, i))
-    await save_gif(gif_frames, f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif', fps=25)
+    await save_gif(gif_frames, f'./images/ImgGenerator/KissKiss/tempKiss-{operator_id}-{target_id}.gif', fps=25)
 
 
 # 亲亲
@@ -94,4 +97,4 @@ async def on_kiss(event: GroupMessage):
             else:
                 await kiss(operator_id=operator_id, target_id=target_id)
                 await bot.send(event, messagechain_builder(
-                    imgpath=f'./images/KissKiss/temp/tempKiss-{operator_id}-{target_id}.gif'))
+                    imgpath=f'./images/ImgGenerator/KissKiss/tempKiss-{operator_id}-{target_id}.gif'))

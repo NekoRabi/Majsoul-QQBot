@@ -7,17 +7,16 @@
 """
 import sys
 
-from utils import text_to_image
 from utils.cfg_loader import *
 
 __all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map', 'load_replydata', 'load_commands',
-           'load_config', 'create_helpimg', 'create_init_config']
+           'load_config', 'create_init_config']
 
 config = {}
 replydata = {}
 _syskey = {'admin', 'whitelist', 'blacklist', 'settings', 'welcomeinfo', 'alarmclockgroup', 'commandpre', 'botconfig',
-           'silencegroup', 'nudgeconfig', 'loglevel', 'master', 'mutegrouplist',
-           'welcomeinfo', 'replyimgpath'}
+           'silencegroup', 'nudgeconfig', 'loglevel', 'master', 'mutegrouplist', 'trash_folders', 'welcomeinfo',
+           'replyimgpath'}
 
 
 def load_config() -> dict:
@@ -81,19 +80,12 @@ def load_commands() -> dict:
         print(f"发生未知错误{_e}")
 
 
-def create_helpimg():
-    """生成帮助图片"""
-    _help = read_file(r'./data/sys/help.yml')
-    grouphelp = _help['grouphelp']
-    friendhelp = _help['friendhelp']
-    text_to_image(text=grouphelp, path='grouphelp.png')
-    text_to_image(text=friendhelp, path='friendhelp.png')
-
-
 def create_init_config():
     """生成默认配置"""
     sys_config = dict(admin=[0], whitelist=[0], blacklist=[0], mutegrouplist=[0],
                       welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
+                      trash_folders=['./images/MajSoulInfo', './images/PetPet', './images/Remake',
+                                     './images/ImgGenerator'],
                       silencegroup=[0], disnudgegroup=[0], commandpre="",
                       master=0, loglevel="INFO", replyimgpath='fox', botconfig=dict(qq=123456, botname=""),
                       nudgeconfig=dict(disnudgegroup=[0], sendnudgechance=0.3, supernudgequantity=10,
@@ -101,7 +93,7 @@ def create_init_config():
                       adapter=dict(verify_key='NekoRabi',
                                    host='localhost', port=17280),
                       settings=dict(autowelcome=True, help=True, r18talk=True, nudgereply=True,
-                                    silence=False,  saveflashimg=True))
+                                    silence=False, saveflashimg=True))
     write_file(sys_config, r'./config/config.yml')
 
 

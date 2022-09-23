@@ -3,36 +3,42 @@
 :Create:  2022/9/5 16:45
 :Update: /
 :Describe: 天凤与机器人交互组件
-:Version: 0.0.1
+:Version: 0.0.3
 """
 import datetime
 import re
 
 from mirai import GroupMessage, Plain
 
-from core import bot, commandpre, commands_map, scheduler
+from core import bot, commandpre, scheduler, add_help
 from plugin.TenHouPlugin.TenHou import tenhou
 from utils.cfg_loader import read_file
-
-__all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
-           'gettenhouwatcher']
-
 from utils import text_to_image
-
 from utils.MessageChainBuilder import messagechain_builder
-
 from utils.MessageChainSender import messagechain_sender
-
 from utils.bufferpool import *
 from utils.get_groupmember_authority import is_having_admin_permission
 
+add_help('group', [
+    "thpt / 天凤pt / 天凤分数 [玩家名] : 查询玩家的天凤pt \n",
+    "thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n",
+    "thdel / 天凤删除关注 [玩家名] :将一个玩家从天凤自动查询中移除，不再自动广播对局记录\n",
+    "thgetwatch / 天凤获取本群关注 :获取本群所有的天凤关注的玩家\n",
+    "牌理[114514p1919m810s4z] : 天凤一般型牌理分析\n"
+])
+__all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
+           'gettenhouwatcher']
+
+
 _cfg = read_file(r'./config/TenHouPlugin/config.yml')
+
+_cmd = read_file(r'./config/TenHouPlugin/command.yml')
 
 
 @bot.on(GroupMessage)
 async def ranktenhouplayer(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}{commands_map['tenhou']['thpt']}", msg.strip())
+    m = re.match(fr"^{commandpre}{_cmd.get('thpt')}", msg.strip())
     if m:
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
             return messagechain_sender(event=event,
@@ -57,7 +63,7 @@ async def ranktenhouplayer(event: GroupMessage):
 @bot.on(GroupMessage)
 async def addtenhouwatch(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}{commands_map['tenhou']['addwatch']}", msg.strip())
+    m = re.match(fr"^{commandpre}{_cmd.get('addwatch')}", msg.strip())
     if m:
         if is_having_admin_permission(event):
             await messagechain_sender(event=event,
@@ -69,7 +75,7 @@ async def addtenhouwatch(event: GroupMessage):
 @bot.on(GroupMessage)
 async def deltenhouwatcher(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}{commands_map['tenhou']['delwatch']}", msg.strip())
+    m = re.match(fr"^{commandpre}{_cmd.get('delwatch')}", msg.strip())
     if m:
         if is_having_admin_permission(event):
             await bot.send(event,
@@ -81,7 +87,7 @@ async def deltenhouwatcher(event: GroupMessage):
 @bot.on(GroupMessage)
 async def cleartenhouwatcher(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}{commands_map['tenhou']['clearwatch']}", msg.strip())
+    m = re.match(fr"^{commandpre}{_cmd.get('clearwatch')}", msg.strip())
     if m:
         if is_having_admin_permission(event):
             await bot.send(event, tenhou.clearthwatch(groupid=event.group.id))
@@ -93,7 +99,7 @@ async def cleartenhouwatcher(event: GroupMessage):
 async def gettenhouwatcher(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     # 匹配指令
-    m = re.match(fr"^{commandpre}{commands_map['tenhou']['getwatch']}", msg.strip())
+    m = re.match(fr"^{commandpre}{_cmd.get('getwatch')}", msg.strip())
     if m:
         await bot.send(event, tenhou.getthwatch(event.group.id))
 
@@ -102,7 +108,7 @@ async def gettenhouwatcher(event: GroupMessage):
 # @bot.on(GroupMessage)
 # async def thaddtag(event: GroupMessage):
 #     msg = "".join(map(str, event.message_chain[Plain]))
-#     m = re.match(fr"^{commandpre}{commands_map['tenhou']['tagon']}", msg.strip())
+#     m = re.match(fr"^{commandpre}{_cmd.get('tagon')}", msg.strip())
 #     if m:
 #         if not m.group(3):
 #             return await sendMsgChain(event=event, msg=messagechain_builder(text='请输入你要添加tag哦'))
@@ -119,7 +125,7 @@ async def gettenhouwatcher(event: GroupMessage):
 # @bot.on(GroupMessage)
 # async def thdeltag(event: GroupMessage):
 #     msg = "".join(map(str, event.message_chain[Plain]))
-#     m = re.match(fr"^{commandpre}{commands_map['tenhou']['tagoff']}", msg.strip())
+#     m = re.match(fr"^{commandpre}{_cmd.get('tagoff')}", msg.strip())
 #     if m:
 #         if is_havingadmin(event):
 #             tagnames = None
@@ -135,7 +141,7 @@ async def gettenhouwatcher(event: GroupMessage):
 # @bot.on(GroupMessage)
 # async def thtagoperate(event: GroupMessage):
 #     msg = "".join(map(str, event.message_chain[Plain]))
-#     m = re.match(fr"^{commandpre}{commands_map['tenhou']['tagopeartion']}", msg.strip())
+#     m = re.match(fr"^{commandpre}{_cmd.get('tagopeartion')}", msg.strip())
 #     ope_type = 'add'
 #     p1 = 'xyshu'
 #     p2 = '帅哥'
@@ -161,7 +167,7 @@ async def gettenhouwatcher(event: GroupMessage):
 # @bot.on(GroupMessage)
 # async def thlisttag(event: GroupMessage):
 #     msg = "".join(map(str, event.message_chain[Plain]))
-#     m = re.match(fr"^{commandpre}{commands_map['tenhou']['taglist']}", msg.strip())
+#     m = re.match(fr"^{commandpre}{_cmd.get('taglist')}", msg.strip())
 #     if m:
 #         target = m.group(2)
 #         searchtype = 'playername'

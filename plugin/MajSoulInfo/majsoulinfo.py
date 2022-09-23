@@ -22,7 +22,7 @@ from plugin.MajSoulInfo.file_init import *
 from utils.MessageChainBuilder import messagechain_builder
 from utils.cfg_loader import read_file
 from utils.text_to_img import text_to_image
-
+fontsize=36, 
 asytimeout = aiohttp.ClientTimeout(total=60)
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
@@ -266,7 +266,7 @@ class MajsoulQuery:
         if _broadcast_type in ['txt', 'text', 'str']:
             return messagechain_builder(text=msg)
         else:
-            return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
+            return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
 
     async def getsomeqhpaipu(self, playername: str, type="4", counts=5) -> MessageChain:
         """
@@ -351,11 +351,11 @@ class MajsoulQuery:
                 return messagechain_builder(text=paipuInfo)
             elif _broadcast_type in ['mix', 'mixed']:
                 return messagechain_builder(text=_paipu_link,
-                                            imgbase64=text_to_image(text=paipuInfo, needtobase64=True))
+                                            imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
             else:
-                # text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
-                return messagechain_builder(imgbase64=text_to_image(text=paipuInfo, needtobase64=True))
-            # result['img64'] = text_to_image(text=paipuInfo, needtobase64=True)
+                # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
+                return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+            # result['img64'] = text_to_image(fontsize=36, text=paipuInfo, needtobase64=True)
         return result
 
     def drawcards(self, userid: int, up=None) -> dict:
@@ -752,7 +752,7 @@ class MajsoulQuery:
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
             return messagechain_builder(text=msg)
-        return messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
+        return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
 
     def removewatch(self, playername: str, groupid: int) -> str:
         """雀魂取消关注"""
@@ -902,8 +902,8 @@ class MajsoulQuery:
         if _broadcast_type in ['txt', 'text', 'str']:
             return messagechain_builder(text=prtmsg)
         else:
-            # text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
-            return messagechain_builder(imgbase64=text_to_image(text=prtmsg, needtobase64=True))
+            # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
+            return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=prtmsg, needtobase64=True))
         # return dict(msg=prtmsg, error=False)
 
     async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = 1) -> MessageChain:
@@ -980,8 +980,8 @@ class MajsoulQuery:
             if _broadcast_type in ['txt', 'text', 'str']:
                 return messagechain_builder(text=prtmsg)
             else:
-                # text_to_image(path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
-                return messagechain_builder(imgbase64=text_to_image(text=prtmsg, needtobase64=True))
+                # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
+                return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=prtmsg, needtobase64=True))
 
     def tagonplayer(self, playername, tagname, userid, groupid):
         """

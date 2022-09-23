@@ -10,10 +10,9 @@ import numpy
 import os
 from PIL import ImageDraw, ImageFont, Image as IMG
 from mirai import GroupMessage, Plain, MessageChain, Image
-from core import bot, commandpre, commands_map
+from core import bot, commandpre, commands_map, add_help
 from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import *
-
 
 if not os.path.exists("./images/Remake"):
     os.mkdir("./images/Remake")
@@ -166,3 +165,6 @@ async def getremakeimg(event: GroupMessage):
                          worlddifficulty=worlddifficulty)
         await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
     return
+
+
+add_help('group', "重开 / remake : 异世界转生\n")

@@ -9,17 +9,22 @@ import os
 
 __all__ = ['cleaner', 'FileCleaner']
 
+from utils.cfg_loader import read_file
+
 
 class FileCleaner:
 
     def __init__(self, foldernames: list):
-        self.target = foldernames
+        self.target_folders = foldernames
         self.do_clean()
+        print(f'需要清理垃圾的文件路径为{self.target_folders}')
 
     def do_clean(self):
+        if len(self.target_folders) == 0:
+            return
         _allfile = []
         print("开始清理文件")
-        for folderpath in self.target:
+        for folderpath in self.target_folders:
             if os.path.exists(folderpath):
                 _allfile.extend(list_allfile(path=folderpath))
         try:
@@ -30,6 +35,18 @@ class FileCleaner:
         except FileNotFoundError as e:
             print(f"清理失败\t{e}")
 
+    def addtarget(self, folder_path: str or list):
+        if type(folder_path) is list:
+            for path in folder_path:
+                try:
+                    self.target_folders.append(f'{path}')
+                except Exception as _e:
+                    print(_e)
+        elif type(folder_path) is str:
+            self.target_folders.append(folder_path)
+        else:
+            raise TypeError('垃圾文件夹路径类型无效,仅接受str和list')
+
 
 def list_allfile(path, all_files=None):
     if all_files is None:
@@ -37,7 +54,7 @@ def list_allfile(path, all_files=None):
     if os.path.exists(path):
         files = os.listdir(path)
     else:
-        # print('文件不存在')
+        # print('路径不存在')
         return all_files
     for file in files:
         if os.path.isdir(os.path.join(path, file)):
@@ -47,8 +64,6 @@ def list_allfile(path, all_files=None):
     return all_files
 
 
-# TODO 垃圾清理的路径自定义,而不是通过代码写死
+_folders = read_file(r'./config/config.yml').get('trash_folders', [])
 
-cleaner = FileCleaner(
-    ['./images/KissKiss', './images/jupai', './images/MajSoulInfo', './images/PetPet', './images/Remake',
-     './images/ImgOperation', './images/daibu'])
+cleaner = FileCleaner(_folders)

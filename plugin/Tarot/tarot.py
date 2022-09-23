@@ -16,11 +16,14 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from mirai import GroupMessage, Plain
 from mirai.models import ForwardMessageNode, Forward
-from core import bot, commandpre, commands_map
+from core import bot, commandpre, commands_map,add_help
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 from utils.cfg_loader import write_file
-
+add_help('group', [
+    "(1-9张)塔罗牌: 抽n张塔罗牌\n",
+    "我的塔罗牌 : 获取你的塔罗牌记录\n"
+])
 __all__ = ['getsometarots', 'getmytarots', 'tarotcards']
 
 

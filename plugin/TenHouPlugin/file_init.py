@@ -1,5 +1,6 @@
 import os
 import sqlite3
+
 from utils.cfg_loader import write_file, read_file
 
 
@@ -82,8 +83,6 @@ def file_init():
     cx.commit()
     cursor.close()
     cx.close()
-
-    commands = read_file(r'./config/command.yml')
     thcmds = {
         "thpt": r"(thpt|天凤pt|天凤分数)\s*(\S+)\s*(\S+)?\s*$",
         "addwatch": r"(thadd|天凤添加关注)\s*(\S+)\s*$",
@@ -94,25 +93,11 @@ def file_init():
         "tagoff": r"(thtagoff|天凤删除标记)\s*(\S+)\s*(\S+)?\s*$",
         "taglist": r"(qhtaglist)\s*(\S+)?\s*$"
     }
-    if commands.get('tenhou', None):
-        for key in ['thpt', 'addwatch', 'delwatch', 'getwatch', 'clearwatch', 'tagon', 'tagoff', 'taglist']:
-            if key not in commands.get('tenhou').keys():
-                commands['tenhou'] = thcmds
-                write_file(commands, path=r'./config/command.yml')
-                break
-    else:
-        commands['tenhou'] = thcmds
-        write_file(commands, path=r'./config/command.yml')
 
-    # if not os.path.exists(r'./config/TenHouPlugin/command.yml'):
-    #     w_cfg_to_file(thcmds, path=r'./config/command.yml')
-    # else:
-    #     commands = loadcfg_from_file(r'./config/TenHouPlugin/command.yml')
-    #     for key in ['thpt', 'addwatch', 'delwatch', 'getwatch', 'clearwatch', 'tagon', 'tagoff', 'taglist']:
-    #         if key not in commands.keys():
-    #             commands['tenhou'] = thcmds
-    #             w_cfg_to_file(commands, path=r'./config/command.yml')
-    #             break
+    if not os.path.exists(r'./config/TenHouPlugin/command.yml'):
+        write_file(thcmds, path=r'./config/TenHouPlugin/command.yml')
+
 
 
 file_init()
+

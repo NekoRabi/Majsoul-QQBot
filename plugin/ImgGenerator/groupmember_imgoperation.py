@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2022/9/23 14:08
+:Update: /
+:Describe: 群成员图片制作
+:Version: 0.0.1
+"""
 import random
 
 from utils.MessageChainBuilder import *
@@ -11,8 +18,8 @@ import re
 import os
 import base64
 
-if not os.path.exists("./images/ImgOperation"):
-    os.mkdir("./images/ImgOperation")
+if not os.path.exists("./images/ImgGenerator"):
+    os.mkdir("./images/ImgGenerator")
 
 __all__ = ['xka', 'daiburen', 'diuren', 'chiren', 'juren']
 
@@ -34,7 +41,7 @@ def addfont(img: Image, text, position=(0, 0), fontcolor=(0, 0, 0), fontsize=Non
             fontsize = min(maxs, fontsize)
     draw = ImageDraw.Draw(img)
     fontstyle = ImageFont.truetype(
-        font='./plugin/ImgOperation/MiSans-Bold.ttf', size=fontsize)
+        font='./plugin/ImgGenerator/MiSans-Bold.ttf', size=fontsize)
     if center:
         pxlength = fontstyle.getsize(text)[0]
         pos_x = (img.width - pxlength) // 2
@@ -81,7 +88,7 @@ async def get_head_sculpture(userid) -> Image:
 async def makedaibu(userid):
     avatar = await get_head_sculpture(userid)
     ima = avatar.resize((130, 130), Image.ANTIALIAS)
-    bgk = Image.open('./plugin/ImgOperation/image/daibu.png').convert("RGBA")
+    bgk = Image.open('./plugin/ImgGenerator/image/daibu.png').convert("RGBA")
     bgk.paste(ima, (68, 85, 68 + ima.width, 85 + ima.height))
     return img_to_base64(bgk)
 
@@ -102,13 +109,13 @@ async def makesmalllove(userid, username, sex: str = None):
         addfont(bgk, text=f'你们看到{username}了吗?', maxsize=(300, 30))
     addfont(bgk, text=f'非常可爱,简直就是小天使', maxsize=(50, 20), position=(0, 250))
     addfont(bgk, text=f'{sex}没失踪也没怎么样,我只是觉得你们都该看一下', position=(0, 280))
-    bgk.save(fp=f'./images/ImgOperation/xiaokeai_{userid}.png')
+    bgk.save(fp=f'./images/ImgGenerator/xiaokeai_{userid}.png')
 
 
 async def throwpeople(userid):
     headimg = await get_head_sculpture(userid)
     headimg = circle_corner(headimg.resize((160, 160), Image.ANTIALIAS), 80)
-    bgk = Image.open('./plugin/ImgOperation/image/diu.png').convert("RGBA")
+    bgk = Image.open('./plugin/ImgGenerator/image/diu.png').convert("RGBA")
     bgk.paste(headimg, (10, 170, 10 + headimg.width, 170 + headimg.height), mask=headimg.split()[3])
     return img_to_base64(bgk)
 
@@ -116,7 +123,7 @@ async def throwpeople(userid):
 async def eatpeople(userid):
     headimg = await get_head_sculpture(userid)
     headimg = circle_corner(headimg.resize((160, 160), Image.ANTIALIAS), 80)
-    bgkimg = Image.open('./plugin/ImgOperation/image/eat.png').convert("RGBA")
+    bgkimg = Image.open('./plugin/ImgGenerator/image/eat.png').convert("RGBA")
     bgk = Image.new('RGB', bgkimg.size, (255, 255, 255))
     bgk.paste(headimg, (90, 350, 90 + headimg.width, 350 + headimg.height), mask=headimg.split()[3])
     bgk.paste(bgkimg, (0, 0), mask=bgkimg.split()[3])
@@ -126,7 +133,7 @@ async def eatpeople(userid):
 async def holdup(userid):
     headimg = await get_head_sculpture(userid)
     headimg = circle_corner(headimg.resize((240, 240), Image.ANTIALIAS), 120)
-    bgkimg = Image.open('./plugin/ImgOperation/image/ju.png').convert("RGBA")
+    bgkimg = Image.open('./plugin/ImgGenerator/image/ju.png').convert("RGBA")
     bgk = Image.new('RGB', bgkimg.size, (255, 255, 255))
     bgk.paste(headimg, (80, 10, 80 + headimg.width, 10 + headimg.height), mask=headimg.split()[3])
     bgk.paste(bgkimg, (0, 0), mask=bgkimg.split()[3])
@@ -147,7 +154,7 @@ async def daiburen(event: GroupMessage):
             userid = event.message_chain.get_first(At).target
         if userid:
             # await makedaibu(userid)
-            # return bot.send(event, messagechain_builder(imgpath=f'./images/ImgOperation/daibu_{userid}.png'))
+            # return bot.send(event, messagechain_builder(imgpath=f'./images/ImgGenerator/daibu_{userid}.png'))
             return await bot.send(event, messagechain_builder(imgbase64=await makedaibu(userid)))
 
 
@@ -170,7 +177,7 @@ async def xka(event: GroupMessage):
                     await makesmalllove(userid, memberinfo.member_name, member_profile.sex)
                 else:
                     await makesmalllove(userid, member_profile.nickname, member_profile.sex)
-                await bot.send(event, messagechain_builder(imgpath=f'./images/ImgOperation/xiaokeai_{userid}.png'))
+                await bot.send(event, messagechain_builder(imgpath=f'./images/ImgGenerator/xiaokeai_{userid}.png'))
             except Exception as e:
                 print(e)
                 pass

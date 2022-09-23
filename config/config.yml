@@ -49,6 +49,12 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 whitelist:
   - 0   # 白名单
 
+trash_folders: # 需要清理垃圾的文件夹
+  - './images/MajSoulInfo'
+  - './images/PetPet'
+  - './images/Remake'
+  - './images/ImgGenerator'
+
 settings: # 功能开关
   autogetpaipu: true  # 自动获取雀魂牌谱
   autowelcome: true   # 自动欢迎新人
