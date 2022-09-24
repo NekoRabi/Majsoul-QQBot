@@ -22,7 +22,8 @@ from plugin.MajSoulInfo.file_init import *
 from utils.MessageChainBuilder import messagechain_builder
 from utils.cfg_loader import read_file
 from utils.text_to_img import text_to_image
-fontsize=36, 
+
+fontsize = 36,
 asytimeout = aiohttp.ClientTimeout(total=60)
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
@@ -1281,7 +1282,7 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
 
 
 async def getmatchresult(playeridlist, nowtime) -> list:
-    """异步查询三麻对局"""
+    """异步查询雀魂对局"""
     contentlist = []
     if len(playeridlist) >= 25:
         timeout = aiohttp.ClientTimeout(total=15)
@@ -1537,8 +1538,13 @@ def msganalysis(infos: list) -> list:
         if len(msgitem) == 0:
             continue
         paipuInfo = ""
-        # paipuurl = f'https://game.maj-soul.net/1/?paipu={msgitem["uuid"]}'
-        paipuurl = f'{msgitem["uuid"]}'
+        broadcast_type = _config.get('broadcast','image').lower()
+        if broadcast_type in ['str','txt','text']:
+            paipuurl = f'https://game.maj-soul.net/1/?paipu={msgitem["uuid"]}'
+        elif broadcast_type in ['img','image']:
+            paipuurl = f'{msgitem["uuid"]}'
+        else:
+            paipuurl = ''
         startTime = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.localtime(msgitem["startTime"]))
         endTime = time.strftime('%Y-%m-%d %H:%M:%S',

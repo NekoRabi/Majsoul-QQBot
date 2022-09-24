@@ -29,7 +29,6 @@ add_help('group', [
 __all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
            'gettenhouwatcher']
 
-
 _cfg = read_file(r'./config/TenHouPlugin/config.yml')
 
 _cmd = read_file(r'./config/TenHouPlugin/command.yml')
@@ -184,11 +183,28 @@ async def asyth_all():
         print("开始查询天凤信息")
     result = await tenhou.asythquery()
     # print(result)
-    for msgobj in result:
-        for group in msgobj['groups']:
-            b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
-            # await bot.send_group_message(group, msgobj['msg'])
-            await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+    broadcast_type = _cfg.get('broadcast', 'img').lower()
+    if broadcast_type in ['mix', 'mixed']:
+        for msgobj in result:
+            for group in msgobj['groups']:
+                b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                # await bot.send_group_message(group, msgobj['msg'])
+                if msgobj.get('url', None):
+                    await messagechain_sender(grouptarget=group,
+                                              msg=messagechain_builder(imgbase64=b64, text=msgobj['url']))
+                else:
+                    await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+    elif broadcast_type in ['str', 'txt', 'text']:
+        for msgobj in result:
+            for group in msgobj['groups']:
+                await messagechain_sender(grouptarget=group, msg=messagechain_builder(text=msgobj['msg']))
+    else:
+        for msgobj in result:
+            for group in msgobj['groups']:
+                b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
+                # await bot.send_group_message(group, msgobj['msg'])
+                await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+
     if not _cfg.get('silence_CLI', False):
         print(
             f'天凤自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}')

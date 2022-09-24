@@ -430,10 +430,10 @@ def forwardmessage(msglist: list) -> list:
             f'''select groupid from group2player where playername = "{item['playername']}" and iswatching = 1''')
         for g in cursor.fetchall():
             groupids.append(g[0])
-        messageChainList.append(
-            dict(groups=groupids, msg=item['msg'], playername=item['playername']
-                 # ,imgbase=text_to_image(text=item['msg'], needtobase64=True)
-                 ))
+        data = dict(groups=groupids, msg=item['msg'], playername=item['playername'])
+        if item.get('url',None):
+            data['url'] = item['url']
+        messageChainList.append(data)
     cursor.close()
     cx.close()
     return messageChainList
