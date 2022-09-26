@@ -5,7 +5,7 @@ import re
 
 from io import BytesIO
 from mirai import GroupMessage, Plain
-from core import bot, add_help
+from core import bot, add_help, blacklist
 from utils.MessageChainBuilder import messagechain_builder
 from PIL import Image, ImageDraw
 
@@ -48,13 +48,15 @@ async def download_img(url):
 
 @bot.on(GroupMessage)
 async def drawwife(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^抽老婆$", msg.strip())
     if m:
         index = random.randint(1, 9999)
         img = await download_img(f'https://www.thiswaifudoesnotexist.net/example-{index}.jpg')
-        return await bot.send(event, messagechain_builder(at=event.sender.id,
+        return await bot.send(event, await messagechain_builder(at=event.sender.id,
                                                           imgbase64=img))
 
 

@@ -10,7 +10,7 @@ import re
 
 from mirai import GroupMessage, FriendMessage, Plain
 
-from core import bot, commandpre, commands_map
+from core import bot, commandpre, commands_map, blacklist
 from utils.MessageChainBuilder import messagechain_builder
 
 
@@ -63,6 +63,8 @@ async def roll_item(event: GroupMessage or FriendMessage):
     roll_re = commands_map.get('sys', dict()).get('roll', r'roll\s*([\s\S]+)?')
     m = re.match(
         fr"^{commandpre}{roll_re}", msg.strip())
+    if event.sender.id in blacklist:
+        return
     if m:
         content = m.group(1)
         if content:
@@ -70,18 +72,18 @@ async def roll_item(event: GroupMessage or FriendMessage):
             if len(content) > 0:
                 m1 = re.match(r'^(\d+)$', content)
                 if m1:
-                    return await bot.send(event, messagechain_builder(text=f'{_random_int_general(upper=m1.group(1))}'))
+                    return await bot.send(event, await messagechain_builder(text=f'{_random_int_general(upper=m1.group(1))}'))
                 m2 = re.match(r'^(\d+)\s*[\-~]\s*(\d+)$', content)
                 if m2:
                     return await bot.send(event,
-                                          messagechain_builder(text=f'{_random_int_general(m2.group(1), m2.group(2))}'))
+                                          await messagechain_builder(text=f'{_random_int_general(m2.group(1), m2.group(2))}'))
                 m3 = re.match(r'[Dd](\d+)$', content)
                 if m3:
                     dice = int(m3.group(1))
                     if dice < 2 or dice > 100:
-                        return await bot.send(event, messagechain_builder(text='没有这样的骰子'))
+                        return await bot.send(event, await messagechain_builder(text='没有这样的骰子'))
                     return await bot.send(event,
-                                          messagechain_builder(text=f'{_random_int_general(dn=dice)}'))
+                                          await messagechain_builder(text=f'{_random_int_general(dn=dice)}'))
                 m4 = content.split(' ')
-                return await bot.send(event, messagechain_builder(text=_random_item(m4)))
-        return await bot.send(event, messagechain_builder(text=f'{_random_int_general()}'))
+                return await bot.send(event, await messagechain_builder(text=_random_item(m4)))
+        return await bot.send(event, await messagechain_builder(text=f'{_random_int_general()}'))

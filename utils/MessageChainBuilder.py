@@ -18,7 +18,7 @@ if len(replydata.get('img')) > 0:
 __all__ = ['messagechain_builder']
 
 
-def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, rndimg=False,
+async def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, rndimg=False,
                          imgurl: str = None, imgbase64=None, at: int = None, atall=False) -> MessageChain:
     """
     通过给定参数来快速构造一个合法消息链
@@ -53,12 +53,12 @@ def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: 
         if enable_countenance:
             msgchain.append(Plain("\n"))
             msgchain.append(
-                Image(path=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
+                await Image.from_local(filename=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
     if imgpath:
         if reply_choices or text:
             msgchain.append(Plain("\n"))
         msgchain.append(
-            Image(path=f"{imgpath}"))
+            await Image.from_local(filename=f"{imgpath}"))
     if imgbase64:
         if reply_choices or text:
             msgchain.append(Plain("\n"))

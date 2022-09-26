@@ -16,10 +16,11 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from mirai import GroupMessage, Plain
 from mirai.models import ForwardMessageNode, Forward
-from core import bot, commandpre, commands_map,add_help
+from core import bot, commandpre, commands_map, add_help
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 from utils.cfg_loader import write_file
+
 add_help('group', [
     "(1-9张)塔罗牌: 抽n张塔罗牌\n",
     "我的塔罗牌 : 获取你的塔罗牌记录\n"
@@ -237,7 +238,7 @@ async def getsometarots(event: GroupMessage):
                     fmn = ForwardMessageNode(
                         sender_id=event.sender.id,
                         sender_name=event.sender.get_name(),
-                        message_chain=messagechain_builder(
+                        message_chain=await messagechain_builder(
                             imgbase64=card.imgcontent)
                     )
                     # fmn = ForwardMessageNode.create(event.sender,MessageChain([Image(base64=card.imgcontent)]))
@@ -246,10 +247,11 @@ async def getsometarots(event: GroupMessage):
                 # ForwardMessageNode(event.sender,MessageChain(msgC))
                 return await bot.send(event, Forward(node_list=msgC))
             else:
-                return await messagechain_sender(event=event, msg=messagechain_builder(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
+                return await messagechain_sender(event=event,
+                                                 msg=await messagechain_builder(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
         else:
             card = tarotcards.drawcards(userid=event.sender.id)[0]
-            return await bot.send(event, messagechain_builder(imgbase64=card.imgcontent))
+            return await bot.send(event, await messagechain_builder(imgbase64=card.imgcontent))
 
 
 # 获取塔罗牌抽卡记录
@@ -260,4 +262,4 @@ async def getmytarots(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['sys']['getmytarot']}", msg.strip())
     if m:
         msg = tarotcards.getmydrawcardsinfo(event.sender.id)
-        return await bot.send(event, messagechain_builder(text=msg))
+        return await bot.send(event, await messagechain_builder(text=msg))

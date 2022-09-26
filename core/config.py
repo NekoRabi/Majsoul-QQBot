@@ -9,8 +9,8 @@ import sys
 
 from utils.cfg_loader import *
 
-__all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'commands_map', 'load_replydata', 'load_commands',
-           'load_config', 'create_init_config']
+__all__ = ['config', 'replydata', 'admin', 'master', 'commandpre', 'blacklist', 'commands_map', 'load_replydata',
+           'load_commands', 'load_config', 'create_init_config']
 
 config = {}
 replydata = {}
@@ -132,6 +132,7 @@ except Exception as e:
 
 commandpre = config.get('commandpre', '')
 commands_map = load_commands()
-admin = config['admin']
+admin = config.get('admin', [])
+blacklist = config.get('blacklist', [])
 if master != 0 and master not in admin:
     admin.append(master)

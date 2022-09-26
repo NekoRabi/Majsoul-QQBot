@@ -198,9 +198,9 @@ class MajsoulQuery:
 
         """
         if model not in ['基本', '更多', '立直', '血统', 'all']:
-            return messagechain_builder(text="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'")
+            return await messagechain_builder(text="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'")
         if selectlevel not in _match_level_name:
-            return messagechain_builder(text='match参数有误,请输入正确的参数,如"玉"、"金东"')
+            return await messagechain_builder(text='match参数有误,请输入正确的参数,如"玉"、"金东"')
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
 
         cursor = cx.cursor()
@@ -211,7 +211,7 @@ class MajsoulQuery:
         cx.close()
         if len(playerid) == 0:
             print("数据库中无此用户，请先查询该用户。")
-            return messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
+            return await messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         playerid = playerid[0][0]
         rule = "三麻"
 
@@ -230,17 +230,17 @@ class MajsoulQuery:
                 async with session.get(url) as response:
                     if response.status == 503:
                         print('牌谱屋似乎离线了')
-                        return messagechain_builder(text="牌谱屋似乎离线了~")
+                        return await messagechain_builder(text="牌谱屋似乎离线了~")
                     content = await response.json()
         except asyncio.exceptions.TimeoutError as e:
             print(f"查询超时:\t{e}\n")
-            return messagechain_builder(text="查询超时,请稍后再试")
+            return await messagechain_builder(text="查询超时,请稍后再试")
 
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
-            return messagechain_builder(text="查询超时,请稍后再试")
+            return await messagechain_builder(text="查询超时,请稍后再试")
         if content.get('error', False):
-            return messagechain_builder(text='未找到该玩家在这个场次的的对局')
+            return await messagechain_builder(text='未找到该玩家在这个场次的的对局')
         msg = f" 以下是玩家 {playername} 的{rule}{selectlevel if selectlevel else ''}数据:\n"
         for (k, v) in content.items():
             if type(v) not in [list, dict]:
@@ -265,9 +265,9 @@ class MajsoulQuery:
                         msg += f"{k:<12} : {v if v else 0}\n"
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
-            return messagechain_builder(text=msg)
+            return await messagechain_builder(text=msg)
         else:
-            return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
 
     async def getsomeqhpaipu(self, playername: str, type="4", counts=5) -> MessageChain:
         """
@@ -312,7 +312,7 @@ class MajsoulQuery:
         cx.close()
         if len(playerid) == 0:
             print("数据库中无此用户，请先查询该用户。")
-            return messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
+            return await messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         playerid = playerid[0][0]
         paipuInfo = f"最近{counts}场对局信息如下："
         _paipu_link = ''
@@ -345,17 +345,19 @@ class MajsoulQuery:
             print(e)
             ERROR = True
             paipuInfo = '牌谱查询超时,请稍后再试'
-        result = messagechain_builder(text=paipuInfo)
+        result = await messagechain_builder(text=paipuInfo)
         if not ERROR:
             _broadcast_type = _config.get('broadcast', 'image').lower()
             if _broadcast_type in ['txt', 'text', 'str']:
-                return messagechain_builder(text=paipuInfo)
+                return await messagechain_builder(text=paipuInfo)
             elif _broadcast_type in ['mix', 'mixed']:
-                return messagechain_builder(text=_paipu_link,
-                                            imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+                return await messagechain_builder(text=_paipu_link,
+                                                  imgbase64=text_to_image(fontsize=36, text=paipuInfo,
+                                                                          needtobase64=True))
             else:
                 # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
-                return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+                return await messagechain_builder(
+                    imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
             # result['img64'] = text_to_image(fontsize=36, text=paipuInfo, needtobase64=True)
         return result
 
@@ -649,7 +651,7 @@ class MajsoulQuery:
         cx.close()
         if len(playerid) == 0:
             print("数据库中无此用户，请先查询该用户。")
-            return messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
+            return await messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         playerid = playerid[0][0]
         selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
         if getrecent:
@@ -669,15 +671,15 @@ class MajsoulQuery:
                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
-                        return messagechain_builder(text='牌谱屋似乎离线了')
+                        return await messagechain_builder(text='牌谱屋似乎离线了')
                     paipuresponse = await response.json()
                 url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
                 async with session.get(url) as response:
                     if response.status == 503:
-                        return messagechain_builder(text='牌谱屋似乎离线了')
+                        return await messagechain_builder(text='牌谱屋似乎离线了')
                     inforesponse: dict = await response.json()
                 if len(paipuresponse) == 0:
-                    return messagechain_builder(text='该玩家这个月似乎没有进行过该类型的对局呢')
+                    return await messagechain_builder(text='该玩家这个月似乎没有进行过该类型的对局呢')
                 paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
                 for players in paipuresponse:
                     temp = players['players']
@@ -718,10 +720,10 @@ class MajsoulQuery:
             msg += infomsg
         except asyncio.exceptions.TimeoutError as _e:
             print(f'获取雀魂详情 请求超时:\t{_e}')
-            return messagechain_builder(text="查询超时,请稍后再试")
+            return await messagechain_builder(text="查询超时,请稍后再试")
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
-            return messagechain_builder(text="查询超时,请稍后再试")
+            return await messagechain_builder(text="查询超时,请稍后再试")
         # try:
         #     # if selecttype == "4":
         #     #     url = f"https://ak-data-5.sapk.ch/api/v2/pl4/player_extended_stats/{playerid}/{selectmontht}/{nextmontht}?mode=16.12.9.15.11.8"
@@ -732,7 +734,7 @@ class MajsoulQuery:
         #                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         #         async with session.get(url) as response:
         #             if response.status == 503:
-        #                 return messagechain_builder(text='牌谱屋似乎离线了')
+        #                 return await messagechain_builder(text='牌谱屋似乎离线了')
         #             inforesponse: dict = await response.json()
         #     infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
         #     infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
@@ -746,14 +748,14 @@ class MajsoulQuery:
         #     msg += infomsg
         # except asyncio.exceptions.TimeoutError as e:
         #     print(f'\n玩家详情读取超时:\t{e}\n')
-        #     return messagechain_builder(text="查询超时,请稍后再试")
+        #     return await messagechain_builder(text="查询超时,请稍后再试")
         # except aiohttp.client.ClientConnectorError as _e:
         #     print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
-        #     return messagechain_builder(text="查询超时,请稍后再试")
+        #     return await messagechain_builder(text="查询超时,请稍后再试")
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
-            return messagechain_builder(text=msg)
-        return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+            return await messagechain_builder(text=msg)
+        return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
 
     def removewatch(self, playername: str, groupid: int) -> str:
         """雀魂取消关注"""
@@ -852,14 +854,14 @@ class MajsoulQuery:
         userinfo = await asyqhpt(username)
         if userinfo['error']:
             if userinfo['offline']:
-                return messagechain_builder(text='牌谱屋似乎离线了')
+                return await messagechain_builder(text='牌谱屋似乎离线了')
                 # return dict(msg="牌谱屋服务器离线", error=True)
-            return messagechain_builder(text='查询超时,请稍后再试')
+            return await messagechain_builder(text='查询超时,请稍后再试')
             # return dict(msg="查询超时,请稍后再试", error=True)
         prtmsg = username
         playerid = userinfo.get('playerid', None)
         if not playerid:
-            return messagechain_builder(text='该玩家不存在或未进行金之间及以上对局')
+            return await messagechain_builder(text='该玩家不存在或未进行金之间及以上对局')
             # return dict(msg="该用户不存在", error=True)
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
@@ -901,10 +903,10 @@ class MajsoulQuery:
             prtmsg += "\n未查询到四麻段位。"
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
-            return messagechain_builder(text=prtmsg)
+            return await messagechain_builder(text=prtmsg)
         else:
             # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
-            return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=prtmsg, needtobase64=True))
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=prtmsg, needtobase64=True))
         # return dict(msg=prtmsg, error=False)
 
     async def getcertaininfo(self, username: str, selecttype: str = "4", selectindex: int = 1) -> MessageChain:
@@ -936,21 +938,21 @@ class MajsoulQuery:
                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
-                        return messagechain_builder(text="牌谱屋似乎离线了")
+                        return await messagechain_builder(text="牌谱屋似乎离线了")
                     playerinfo = await response.json()
         except asyncio.exceptions.TimeoutError as e:
             print(f"查询超时\t {e}")
-            return messagechain_builder(text="查询超时,请稍后再试")
+            return await messagechain_builder(text="查询超时,请稍后再试")
 
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
-            return messagechain_builder(text="查询超时,请稍后再试")
+            return await messagechain_builder(text="查询超时,请稍后再试")
         if len(playerinfo) == 0:
-            return messagechain_builder(text="不存在该玩家")
+            return await messagechain_builder(text="不存在该玩家")
         elif len(playerinfo) < selectindex:
-            return messagechain_builder(text=f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo)}")
+            return await messagechain_builder(text=f"序号有误，共查询到{len(playerinfo)}名玩家,序号最大值为{len(playerinfo)}")
         elif selectindex < 0:
-            return messagechain_builder(text=f"序号有误，序号大于0")
+            return await messagechain_builder(text=f"序号有误，序号大于0")
         else:
             playerinfo = playerinfo[selectindex]
         if playerinfo:
@@ -979,10 +981,10 @@ class MajsoulQuery:
             cx.close()
             _broadcast_type = _config.get('broadcast', 'image').lower()
             if _broadcast_type in ['txt', 'text', 'str']:
-                return messagechain_builder(text=prtmsg)
+                return await messagechain_builder(text=prtmsg)
             else:
                 # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
-                return messagechain_builder(imgbase64=text_to_image(fontsize=36, text=prtmsg, needtobase64=True))
+                return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=prtmsg, needtobase64=True))
 
     def tagonplayer(self, playername, tagname, userid, groupid):
         """
@@ -1538,10 +1540,10 @@ def msganalysis(infos: list) -> list:
         if len(msgitem) == 0:
             continue
         paipuInfo = ""
-        broadcast_type = _config.get('broadcast','image').lower()
-        if broadcast_type in ['str','txt','text']:
+        broadcast_type = _config.get('broadcast', 'image').lower()
+        if broadcast_type in ['str', 'txt', 'text']:
             paipuurl = f'https://game.maj-soul.net/1/?paipu={msgitem["uuid"]}'
-        elif broadcast_type in ['img','image']:
+        elif broadcast_type in ['img', 'image']:
             paipuurl = f'{msgitem["uuid"]}'
         else:
             paipuurl = ''

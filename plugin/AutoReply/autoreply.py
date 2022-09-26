@@ -7,7 +7,7 @@
 import random
 import re
 from mirai import GroupMessage, Plain, FriendMessage, At
-
+from mirai.models import GroupEvent, MemberHonorChangeEvent
 from core import bot, bot_cfg, config, commandpre, commands_map, replydata
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
@@ -28,36 +28,35 @@ _arcfg = read_file(r'./config/AutoReply/config.yml')
 repeatconfig = _arcfg['repeatconfig']
 norepeatgroup = _arcfg['norepeatgroup']
 
+_blacklist = config.get('blacklist', [])
+
 
 @bot.on(GroupMessage)
 async def duideduide(event: GroupMessage):
     if not settings['silence']:
         if event.group.id not in silencegroup:
-            if len(event.message_chain[Plain]) == 1:
-                msg = str(event.message_chain[Plain][0]).strip()
+            msg = "".join(map(str, event.message_chain[Plain]))
+            if event.sender.id in _blacklist:
+                return
+            if msg in ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的', '一针见血的',
+                       '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分', '的离题万里的',
+                       '不痛不痒的']:
+                if random.random() < 0.3:
+                    await bot.send(event, random.choice(
+                        ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的', '一针见血的',
+                         '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分的', '离题万里的',
+                         '不痛不痒的']))
+            # 方舟肉鸽词库
+            elif msg in ['迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']:
+                if random.random() < 0.3:
+                    await bot.send(event, random.choice(
+                        ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
 
-                if msg in ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的', '一针见血的',
-                           '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分',
-                           '的离题万里的',
-                           '不痛不痒的']:
-                    if random.random() < 0.3:
-                        await bot.send(event, random.choice(
-                            ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的',
-                             '一针见血的',
-                             '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分的',
-                             '离题万里的',
-                             '不痛不痒的']))
-                # 方舟肉鸽词库
-                elif msg in ['迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']:
-                    if random.random() < 0.3:
-                        await bot.send(event, random.choice(
-                            ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
-
-                elif msg in ['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急了']:
-                    if random.random() < 0.3:
-                        await messagechain_sender(messagechain_builder(
-                            text=random.choice(['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急'])),
-                            event=event)
+            elif msg in ['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急了']:
+                if random.random() < 0.3:
+                    await messagechain_sender(await messagechain_builder(
+                        text=random.choice(['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急'])),
+                                              event=event)
 
 
 @bot.on(GroupMessage)
@@ -68,6 +67,8 @@ async def randominterrupt(event: GroupMessage):
     if not (settings['silence'] or settings['norepeat']):
         if event.group.id not in silencegroup:
             if event.group.id not in norepeatgroup:
+                if event.sender.id in _blacklist:
+                    return
                 count = random.random() * 100
                 msg = event.message_chain[Plain]
                 senderid = event.sender.id
@@ -101,6 +102,8 @@ async def diyreply(event: GroupMessage):
         if event.group.id not in silencegroup:
             msg = "".join(map(str, event.message_chain[Plain]))
             senderid = event.sender.id
+            if senderid in _blacklist:
+                return
             if _arcfg.get('useAt'):
                 if At not in event.message_chain:
                     return
@@ -112,29 +115,29 @@ async def diyreply(event: GroupMessage):
                 if botname not in event.message_chain:
                     return
             if senderid in black_list['user']:
-                return await bot.send(event, messagechain_builder(reply_choices=replydata['blackuser']))
+                return await bot.send(event, await messagechain_builder(reply_choices=replydata['blackuser']))
             msg = msg.replace(f"{botname}", "", 1)
             if settings['r18talk']:
                 if senderid in admin:
                     for k, v in replydata['r18'].items():
                         if k in msg:
-                            return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
+                            return await bot.send(event, await messagechain_builder(reply_choices=v, rndimg=True))
                     return await bot.send(event,
-                                          messagechain_builder(reply_choices=replydata['mismatch']['admin'],
-                                                               rndimg=True))
+                                          await messagechain_builder(reply_choices=replydata['mismatch']['admin'],
+                                                                     rndimg=True))
                 else:
                     for k, v in replydata['common'].items():
                         if k in msg:
-                            return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
+                            return await bot.send(event, await messagechain_builder(reply_choices=v, rndimg=True))
                     return await bot.send(event,
-                                          messagechain_builder(reply_choices=replydata['mismatch']['common'],
-                                                               rndimg=True))
+                                          await messagechain_builder(reply_choices=replydata['mismatch']['common'],
+                                                                     rndimg=True))
             else:
                 for k, v in replydata['common'].items():
                     if k in msg:
-                        return await bot.send(event, messagechain_builder(reply_choices=v, rndimg=True))
-                return await bot.send(event, messagechain_builder(reply_choices=replydata['mismatch']['common'],
-                                                                  rndimg=True))
+                        return await bot.send(event, await messagechain_builder(reply_choices=v, rndimg=True))
+                return await bot.send(event, await messagechain_builder(reply_choices=replydata['mismatch']['common'],
+                                                                        rndimg=True))
 
 
 @bot.on(GroupMessage)
@@ -146,6 +149,8 @@ async def fabing(event: GroupMessage):
     """
     if not settings['silence'] and repeatconfig['autoreply']:
         if event.group.id not in silencegroup:
+            if event.sender.id in _blacklist:
+                return
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match(fr"^{commandpre}{commands_map['reply']['jida']}", msg.strip())
             if m:
@@ -189,12 +194,14 @@ async def crazy_thursday(event: GroupMessage):
 
     if not settings['silence'] and repeatconfig['autoreply']:
         if event.group.id not in silencegroup:
+            if event.sender.id in _blacklist:
+                return
             msg = "".join(map(str, event.message_chain[Plain]))
             m = re.match('[vV]我?(50|五十)', msg.strip())
             if m:
-                return await bot.send(event, messagechain_builder(text='我也想吃KFC'))
+                return await bot.send(event, await messagechain_builder(text='我也想吃KFC'))
             elif re.match('疯狂星期四', msg.strip()):
-                return await bot.send(event, messagechain_builder(text='我也想吃KFC'))
+                return await bot.send(event, await messagechain_builder(text='我也想吃KFC'))
 
 
 @bot.on(FriendMessage)
@@ -218,10 +225,7 @@ async def sendgroupat(event: GroupMessage):
         if m:
             if At in event.message_chain:
                 target = event.message_chain.get_first(At).target
-                return await bot.send(event, messagechain_builder(at=target, text=f" {m.group(1)}"))
-
-
-from mirai.models import GroupEvent, MemberHonorChangeEvent
+                return await bot.send(event, await messagechain_builder(at=target, text=f" {m.group(1)}"))
 
 
 @bot.on(GroupEvent)

@@ -8,6 +8,7 @@ from utils.text_to_img import text_to_image
 
 __all__ = ['paili_calculator']
 
+
 # 焰胡
 def yanhu(hc: str):
     hc = convert_hc_to_list(hc)
@@ -165,7 +166,7 @@ def calc_shanten_14(hc: str):
         msg += f"""打{convert_num_to_card(x[0])}  摸: {[convert_num_to_card(x) for x in x[1]]} {x[2]}枚\n"""
     if not xt:
         print("出现错误.")
-        return '出错了'
+        return text_to_image(text="分析异常", needtobase64=True)
     return text_to_image(text=msg, needtobase64=True)
 
 
@@ -177,6 +178,6 @@ async def paili_calculator(event: GroupMessage):
     if m:
         shoupai = m.group(3)
         try:
-            await bot.send(event, messagechain_builder(at=event.sender.id, imgbase64=calc_shanten_14(shoupai)))
+            await bot.send(event, await messagechain_builder(at=event.sender.id, imgbase64=calc_shanten_14(shoupai)))
         except ValueError:
-            await bot.send(event, messagechain_builder(at=event.sender.id, text='请输入14位手牌'))
+            await bot.send(event, await messagechain_builder(at=event.sender.id, text='请输入14位手牌'))

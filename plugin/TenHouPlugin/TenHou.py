@@ -202,7 +202,7 @@ async def asyautoget_th_matching() -> list:
                     dict(playername=player_t, url=match['url'], isgaming=2))
                 tempmatch = dict(playername=player_t, match=match)
                 tempmatch = dict(playername=player_t,
-                                 msg=matching2string(tempmatch))
+                                 msg=matching2string(tempmatch), url=match['url'])
                 eligible_Matches.append(tempmatch)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
@@ -431,7 +431,7 @@ def forwardmessage(msglist: list) -> list:
         for g in cursor.fetchall():
             groupids.append(g[0])
         data = dict(groups=groupids, msg=item['msg'], playername=item['playername'])
-        if item.get('url',None):
+        if item.get('url', None):
             data['url'] = item['url']
         messageChainList.append(data)
     cursor.close()

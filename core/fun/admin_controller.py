@@ -7,7 +7,6 @@
 """
 
 import re
-import time
 
 from mirai import FriendMessage, Plain, GroupMessage
 
@@ -44,7 +43,7 @@ async def addadmin(event: FriendMessage):
                 await messagechain_sender(event=event, msg=f"{m.group(1)} 已经是管理员了")
 
     else:
-        await messagechain_sender(event=event, msg=messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
+        await messagechain_sender(event=event, msg=await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
 
     return
 
@@ -65,7 +64,7 @@ async def deladmin(event: FriendMessage):
             else:
                 return await messagechain_sender(event=event, msg=f"{m.group(1)} 不是再管理员了")
     else:
-        await bot.send(event, messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
+        await bot.send(event, await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
     return
 
 
@@ -153,11 +152,11 @@ async def tell_to_master(event: GroupMessage):
     qqid = event.sender.id
     if m:
         if qqid in _black_list:
-            return await bot.send(event, messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
+            return await bot.send(event, await messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
         if master != 0:
             if not cmdbuffer.updategroupcache(LongTimeGroupCommand(event.group.id, event.sender.id, 'tell_master')):
-                return bot.send(event, messagechain_builder(text="只能每5分钟发一条消息哦~", at=event.sender.id))
+                return bot.send(event, await messagechain_builder(text="只能每5分钟发一条消息哦~", at=event.sender.id))
 
             message = m.group(1)
-            await bot.send_friend_message(master, messagechain_builder(text=f'qq {qqid} 的人说:{message}'))
-            await bot.send(event, messagechain_builder(text='已转告主人'))
+            await bot.send_friend_message(master, await messagechain_builder(text=f'qq {qqid} 的人说:{message}'))
+            await bot.send(event, await messagechain_builder(text='已转告主人'))

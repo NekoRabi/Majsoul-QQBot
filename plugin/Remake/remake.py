@@ -4,25 +4,37 @@
 :Describe: 重开图片生成
 :Version: 0.0.2
 """
-
-import re
-import numpy
+import base64
 import os
+import re
+from io import BytesIO
+
+import numpy
 from PIL import ImageDraw, ImageFont, Image as IMG
 from mirai import GroupMessage, Plain, MessageChain, Image
-from core import bot, commandpre, commands_map, add_help
+
+from core import bot, commandpre, add_help, config
 from utils.MessageChainBuilder import messagechain_builder
 from utils.bufferpool import *
+from utils.cfg_loader import read_file
 
 if not os.path.exists("./images/Remake"):
     os.mkdir("./images/Remake")
 
 score = 0
-
+_remake_member = dict()
 __all__ = ['getremakeimg']
+_blackuser = config.get('blacklist', [])
+_cfg = read_file(r'./config/Remake/config.yml')
 
 
 def getattribute() -> list:
+    """
+    随机人物属性
+
+    Returns:
+
+    """
     global score
     attributelist = []
     for i in range(6):
@@ -36,6 +48,17 @@ def getattribute() -> list:
 
 
 def getstart(worlddifficulty: str = None, worldtype: str = None) -> list:
+    """
+
+    开始游戏
+
+    Args:
+        worlddifficulty: 世界难度
+        worldtype: 世界类型
+
+    Returns:
+
+    """
     global score
     startlist = []
     for i in range(5):
@@ -85,19 +108,22 @@ def getstart(worlddifficulty: str = None, worldtype: str = None) -> list:
 def addfont(img: IMG, senderid):
     """
     添加文字
+
     :param img: PIL.Image
     :param senderid: 发消息的用户id，用来生成图片的uid
     :return:
     """
     draw = ImageDraw.Draw(img)
     h1font = ImageFont.truetype(
-        font='./plugin/Remake/font/MiSans-Bold.ttf', size=40)
+        font='./data/fonts/MiSans-Bold.ttf', size=40)
     h4font = ImageFont.truetype(
-        font='./plugin/Remake/font/MiSans-Light.ttf', size=20)
+        font='./data/fonts/MiSans-Light.ttf', size=20)
     titlefont = ImageFont.truetype(
-        font='./plugin/Remake/font/MiSans-Bold.ttf', size=60)
+        font='./data/fonts/MiSans-Bold.ttf', size=60)
 
+    _time = time.strftime('%Y-%m-%d', time.localtime())
     draw.text((10, 10), text=f'No.{senderid}', font=h4font, fill=(0, 0, 0))
+    draw.text((710, 10), text=f'{_time}', font=h4font, fill=(0, 0, 0))
     draw.text((300, 10), text='重生档案', font=titlefont, fill=(0, 0, 0))
 
     draw.text((10, 80), text='基础能力', font=h1font, fill=(0, 0, 0))
@@ -107,9 +133,10 @@ def addfont(img: IMG, senderid):
     draw.text((190, 420), text='(种族/性别/局势/开局/审美)', font=h4font, fill=(0, 0, 0))
 
 
-def create_remakeimg(senderid: int, basic_score: int = 30, worlddifficulty: str = None, worldtype: str = None):
+def create_remakeimg(senderid: int, basic_score: int = 30, worlddifficulty: str = None, worldtype: str = None) -> IMG:
     """
     生成重开图片
+
     :param senderid: 发送人id
     :param basic_score: 基础分
     :param worlddifficulty: 世界难度
@@ -141,18 +168,49 @@ def create_remakeimg(senderid: int, basic_score: int = 30, worlddifficulty: str 
         count += 1
 
     addfont(bgk, senderid=senderid)
-    bgk.save(fp=f'./images/Remake/{senderid}.png')
+    # bgk.save(fp=f'./images/Remake/{senderid}.png')
+    return img_to_base64(bgk)
+
+
+def img_to_base64(PILimg: IMG):
+    """
+    图片转换为base64的格式
+
+    Args:
+        PILimg: PIL的图片
+
+    Returns:base64的图片
+
+    """
+    img_bytes = BytesIO()
+
+    PILimg.save(img_bytes, format='PNG')
+    b_content = img_bytes.getvalue()
+    imgcontent = base64.b64encode(b_content)
+    return imgcontent
 
 
 @bot.on(GroupMessage)
 async def getremakeimg(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}{commands_map['remake']['remake']}", msg.strip())
+    m = re.match(fr"^{commandpre}{_cfg['command']}", msg.strip())
     if m:
-
-        if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'remake')):
-            return bot.send(event, messagechain_builder(text="好快的重开", at=event.sender.id))
         senderid = event.sender.id
+        if senderid in _blackuser:
+            return await bot.send(event, await messagechain_builder(text='你已被列入黑名单', at=senderid))
+        if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, senderid, 'remake')):
+            return await bot.send(event, await messagechain_builder(text="好快的重开", at=senderid))
+        _today = time.strftime('%Y%m%d', time.localtime())
+        if _remake_member.get(senderid, None) is None:
+            _remake_member[senderid] = dict(time=_today, remakecount=0)
+        member_info = _remake_member.get(senderid)
+        if member_info['time'] != _today:
+            _remake_member[senderid] = dict(time=_today, remakecount=1)
+        else:
+            if member_info['remakecount'] >= _cfg['remake_perday']:
+                return await bot.send(event,
+                                      await messagechain_builder(text=f'每天只能重开{_cfg["remake_perday"]}次哦', at=senderid))
+            member_info['remakecount'] += 1
         if m.group(2):
             basic_score = int(m.group(2))
         else:
@@ -161,9 +219,10 @@ async def getremakeimg(event: GroupMessage):
             worlddifficulty = m.group(3)
         else:
             worlddifficulty = None
-        create_remakeimg(senderid, basic_score=basic_score,
-                         worlddifficulty=worlddifficulty)
-        await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
+        b64 = create_remakeimg(senderid, basic_score=basic_score,
+                               worlddifficulty=worlddifficulty)
+        # await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
+        await bot.send(event, MessageChain(Image(base64=b64)))
     return
 
 

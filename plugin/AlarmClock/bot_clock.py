@@ -21,12 +21,12 @@ async def group_fixed_clock():
     for groupid in _alarmclockgroup:
         if groupid != 0 and type(groupid) == int:
             await bot.send_group_message(groupid,
-                                         messagechain_builder(
+                                         await messagechain_builder(
                                              text=f"准点报时: {datetime.datetime.now().hour}:00",
                                              rndimg=True))
             if hour_now == 22:
                 await bot.send_group_message(groupid,
-                                             messagechain_builder(text=f"晚上10点了，大家可以休息了,{_botname}也要休息了", rndimg=True))
+                                             await messagechain_builder(text=f"晚上10点了，大家可以休息了,{_botname}也要休息了", rndimg=True))
 
 if len(_alarmclockgroup) > 0:
     scheduler.add_job(group_fixed_clock, 'cron', hour='8-22')

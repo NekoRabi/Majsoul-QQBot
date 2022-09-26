@@ -12,7 +12,7 @@ import sqlite3
 import time
 
 from mirai import GroupMessage, Plain
-from core import bot, commandpre, commands_map
+from core import bot, commandpre, commands_map, blacklist
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 
@@ -39,10 +39,10 @@ def db_init():
     cx.close()
 
 
-__all__ = ['sign_In', 'getuserscore']
+__all__ = ['sign_in', 'getuserscore']
 
 
-def sign_in(userid: int) -> tuple:
+def signin(userid: int) -> tuple:
     singinmsg = "签到成功,积分+1\n当前积分 : "
     cx = sqlite3.connect("./database/sys/sys.sqlite")
     cursor = cx.cursor()
@@ -89,36 +89,40 @@ def getscore(userid: int):
     cx.close()
     return f"当前积分 : {score}"
 
+
 # 签到获取积分
 
 @bot.on(GroupMessage)
-async def sign_In(event: GroupMessage):
+async def sign_in(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['sys']['signin']}", msg.strip())
     if m:
-        success, signmsg = sign_in(event.sender.id)
+        success, signmsg = signin(event.sender.id)
         if success:
             if usetarot:
                 from plugin.Tarot.tarot import tarotcards
                 card = tarotcards.drawcards(userid=event.sender.id)[0]
                 return await bot.send(event,
-                                      messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
+                                      await messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
             else:
-                return await messagechain_sender(messagechain_builder(at=event.sender.id, text=signmsg))
+                return await messagechain_sender(await messagechain_builder(at=event.sender.id, text=signmsg))
         else:
-            return await bot.send(event, messagechain_builder(at=event.sender.id, text=signmsg, rndimg=True))
+            return await bot.send(event, await messagechain_builder(at=event.sender.id, text=signmsg, rndimg=True))
 
 
 # 查询积分
 
 @bot.on(GroupMessage)
 async def getuserscore(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['sys']['getscore']}", msg.strip())
     if m:
         scoremsg = getscore(
             userid=event.sender.id)
-        return await bot.send(event, messagechain_builder(text=scoremsg, rndimg=True))
-
+        return await bot.send(event, await messagechain_builder(text=scoremsg, rndimg=True))
 
 db_init()

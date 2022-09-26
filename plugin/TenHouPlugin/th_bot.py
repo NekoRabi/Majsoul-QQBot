@@ -41,8 +41,8 @@ async def ranktenhouplayer(event: GroupMessage):
     if m:
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
             return messagechain_sender(event=event,
-                                       msg=messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
-                                                                at=event.sender.id))
+                                       msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                      at=event.sender.id))
         reset = True
         if m.group(3):
             reset = m.group(3)
@@ -55,7 +55,8 @@ async def ranktenhouplayer(event: GroupMessage):
             else:
                 reset = False
         result = await tenhou.getthpt(m.group(2), reset)
-        await messagechain_sender(messagechain_builder(imgbase64=result['img64']), event=event, errortext=result['msg'])
+        await messagechain_sender(await messagechain_builder(imgbase64=result['img64']), event=event,
+                                  errortext=result['msg'])
         # await bot.send(event, tenhou.getthpt(m.group(2), reset))
 
 
@@ -66,9 +67,11 @@ async def addtenhouwatch(event: GroupMessage):
     if m:
         if is_having_admin_permission(event):
             await messagechain_sender(event=event,
-                                      msg=messagechain_builder(text=tenhou.addthwatch(m.group(2), event.group.id)))
+                                      msg=await messagechain_builder(
+                                          text=tenhou.addthwatch(m.group(2), event.group.id)))
         else:
-            await messagechain_sender(event=event, msg=messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
 
 
 @bot.on(GroupMessage)
@@ -80,7 +83,7 @@ async def deltenhouwatcher(event: GroupMessage):
             await bot.send(event,
                            tenhou.removethwatch(playername=m.group(2), groupid=event.group.id))
         else:
-            await bot.send(event, messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
 
 
 @bot.on(GroupMessage)
@@ -91,7 +94,7 @@ async def cleartenhouwatcher(event: GroupMessage):
         if is_having_admin_permission(event):
             await bot.send(event, tenhou.clearthwatch(groupid=event.group.id))
         else:
-            await bot.send(event, messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
 
 
 @bot.on(GroupMessage)
@@ -110,13 +113,13 @@ async def gettenhouwatcher(event: GroupMessage):
 #     m = re.match(fr"^{commandpre}{_cmd.get('tagon')}", msg.strip())
 #     if m:
 #         if not m.group(3):
-#             return await sendMsgChain(event=event, msg=messagechain_builder(text='请输入你要添加tag哦'))
+#             return await sendMsgChain(event=event, msg=await messagechain_builder(text='请输入你要添加tag哦'))
 #         if is_havingadmin(event):
 #             await bot.send(event,
 #                            tenhou.tagonplayer(playername=m.group(2), tagname=m.group(3), userid=event.sender.id,
 #                                                groupid=event.group.id))
 #         else:
-#             await sendMsgChain(event=event, msg=messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
+#             await sendMsgChain(event=event, msg=await messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
 #
 #
 #
@@ -133,7 +136,7 @@ async def gettenhouwatcher(event: GroupMessage):
 #             await bot.send(event, tenhou.tagoffplayer(playername=m.group(2), groupid=event.group.id,
 #                                                        userid=event.sender.id, tagname=tagnames))
 #         else:
-#             await bot.send(event, messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
+#             await bot.send(event, await messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
 #
 #
 # # 昵称操作
@@ -158,7 +161,7 @@ async def gettenhouwatcher(event: GroupMessage):
 #             # result = majsoul.tagonplayer(playername=p1, tagname=p2, userid=event.sender.id,
 #             #                     groupid=event.group.id)
 #             result = tenhou.tag_C_operation(event.group.id, p1, p2, ope_type)
-#             await sendMsgChain(messagechain_builder(text=result), event)
+#             await sendMsgChain(await messagechain_builder(text=result), event)
 #
 #
 # # 获取所有tag
@@ -174,7 +177,7 @@ async def gettenhouwatcher(event: GroupMessage):
 #             if target.startswith('tag=') or target.startswith('tagname='):
 #                 target = target.split('=', 2)[1]
 #                 searchtype = 'tagname'
-#         await sendMsgChain(event=event, msg=messagechain_builder(
+#         await sendMsgChain(event=event, msg=await messagechain_builder(
 #             text=tenhou.getalltags(event.group.id, target=target, searchtype=searchtype)))
 
 
@@ -191,19 +194,20 @@ async def asyth_all():
                 # await bot.send_group_message(group, msgobj['msg'])
                 if msgobj.get('url', None):
                     await messagechain_sender(grouptarget=group,
-                                              msg=messagechain_builder(imgbase64=b64, text=msgobj['url']))
+                                              msg=await messagechain_builder(imgbase64=b64,
+                                                                             text=f"https://tenhou.net/3/?wg={msgobj['url']}"))
                 else:
-                    await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+                    await messagechain_sender(grouptarget=group, msg=await messagechain_builder(imgbase64=b64))
     elif broadcast_type in ['str', 'txt', 'text']:
         for msgobj in result:
             for group in msgobj['groups']:
-                await messagechain_sender(grouptarget=group, msg=messagechain_builder(text=msgobj['msg']))
+                await messagechain_sender(grouptarget=group, msg=await messagechain_builder(text=msgobj['msg']))
     else:
         for msgobj in result:
             for group in msgobj['groups']:
                 b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
                 # await bot.send_group_message(group, msgobj['msg'])
-                await messagechain_sender(grouptarget=group, msg=messagechain_builder(imgbase64=b64))
+                await messagechain_sender(grouptarget=group, msg=await messagechain_builder(imgbase64=b64))
 
     if not _cfg.get('silence_CLI', False):
         print(

@@ -18,6 +18,7 @@ from mirai.models import NudgeEvent
 from core import bot, config, replydata, commandpre, commands_map
 from utils.MessageChainBuilder import messagechain_builder
 
+blacklist = config.get('blacklist', [])
 __all__ = ['nudge_petpet']
 
 if not os.path.exists("./images/PetPet"):
@@ -171,24 +172,25 @@ async def nudge_petpet(event: NudgeEvent):
 
     if sender == bot.qq:
         return
+
+    if sender in blacklist:
+        return
     if (not _settings['silence']) or _settings['nudgereply']:
         if event.subject.kind == 'Group':
             if not (event.subject.id in _silencegroup or event.subject.id in _nudgeconfig['disnudgegroup']):
                 target = event.target
                 if target == bot.qq:
                     if sender in _admin:
-                        await bot.send_group_message(event.subject.id, messagechain_builder(
+                        await bot.send_group_message(event.subject.id, await messagechain_builder(
                             reply_choices=replydata['nudgedata']['admin']))
                         await petpet(target)
                         await bot.send_group_message(event.subject.id,
-                                                     MessageChain(
-                                                         await Image.from_local(
-                                                             filename=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+                                                     await messagechain_builder(imgpath=f'./images/PetPet/temp/tempPetPet-{target}.gif'))
                     else:
                         if random.random() < _nudgeconfig['sendnudgechance']:
                             if random.random() < _nudgeconfig['supersendnudgechance']:
                                 await bot.send_group_message(event.subject.id,
-                                                             messagechain_builder(
+                                                             await messagechain_builder(
                                                                  reply_choices=replydata['nudgedata'][
                                                                      'supernudgereply'],
                                                                  rndimg=True))
@@ -198,7 +200,7 @@ async def nudge_petpet(event: NudgeEvent):
                             else:
                                 await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
                                 return await bot.send_group_message(event.subject.id,
-                                                                    messagechain_builder(
+                                                                    await messagechain_builder(
                                                                         reply_choices=replydata['nudgedata'][
                                                                             'nudgereply'],
                                                                         rndimg=True))

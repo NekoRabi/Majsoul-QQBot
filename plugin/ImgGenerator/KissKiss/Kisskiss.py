@@ -15,7 +15,7 @@ from PIL import ImageDraw
 from mirai import GroupMessage, Plain, At
 from moviepy.editor import ImageSequenceClip as imageclip
 from io import BytesIO
-from core import bot, commands_map, commandpre
+from core import bot, commands_map, commandpre, blacklist
 from utils.MessageChainBuilder import messagechain_builder
 
 if not os.path.exists("./images/ImgGenerator/KissKiss"):
@@ -86,6 +86,8 @@ async def kiss(operator_id, target_id) -> None:
 
 @bot.on(GroupMessage)
 async def on_kiss(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{commands_map['reply']['kisskiss']}", msg.strip())
     if m:
@@ -93,8 +95,8 @@ async def on_kiss(event: GroupMessage):
             operator_id = event.sender.id
             target_id = event.message_chain.get_first(At).target
             if operator_id == target_id:
-                return await bot.send(event, messagechain_builder(text="请不要自交", rndimg=True))
+                return await bot.send(event, await messagechain_builder(text="请不要自交", rndimg=True))
             else:
                 await kiss(operator_id=operator_id, target_id=target_id)
-                await bot.send(event, messagechain_builder(
+                await bot.send(event, await messagechain_builder(
                     imgpath=f'./images/ImgGenerator/KissKiss/tempKiss-{operator_id}-{target_id}.gif'))

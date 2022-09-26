@@ -7,16 +7,19 @@
 """
 
 import re
+
 import aiohttp
 import mirai.exceptions
-from mirai import GroupMessage, MessageChain, Plain, Image
+from mirai import GroupMessage
+
 from core import bot, config
+from utils.MessageChainBuilder import messagechain_builder
 
 last_bvid = {}
 
 settings = config['settings']
 silencegroup = config['silencegroup']
-
+_blacklist = config.get('blacklist', [])
 __all__ = ['bili_resolve']
 
 
@@ -25,6 +28,8 @@ async def bili_resolve(event: GroupMessage):
     """bilibili链接解析"""
     if not settings['silence']:
         if event.group.id not in silencegroup:
+            if event.sender.id in _blacklist:
+                return
             global last_bvid
             text = str(event.message_chain.as_mirai_code)
             text = text.replace('\\n', '').replace('\\', '')
@@ -58,8 +63,7 @@ async def bili_resolve(event: GroupMessage):
                 app = event.message_chain[1].as_json()
                 url = app['meta']['detail_1']['preview']
                 img_url = f'http://{url}'''
-            message_chain = MessageChain(
-                [Image(url=img_url), Plain(text=msg)])
+            message_chain = await messagechain_builder(imgurl=img_url,text=msg)
             try:
                 await bot.send(event, message_chain)
             except mirai.exceptions.ApiError as _e:

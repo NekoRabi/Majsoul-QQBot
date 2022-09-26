@@ -10,13 +10,12 @@ import random
 import re
 import os
 from io import BytesIO
-from PIL import Image as IMG, ImageFont, ImageDraw
+from PIL import Image, ImageFont, ImageDraw
 from mirai import GroupMessage, Plain, At
-from core import bot
+from core import bot, blacklist
+from utils.MessageChainBuilder import messagechain_builder
 
 __all__ = ['cskill']
-
-from utils.MessageChainBuilder import messagechain_builder
 
 
 async def jisha(user: str, target: str, headshot=None, penetrate=None):
@@ -40,12 +39,12 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
     if gun_file not in ['hegrenade', 'defuser', 'flashbang', 'diversion', 'fists', 'inferno', 'headshot', 'penetrate']:
         if not gun_file.startswith('knife'):
             if headshot < 0.1:
-                headshot_img = IMG.open(f'./plugin/ImgGenerator/image/cs/headshot.png')
+                headshot_img = Image.open(f'./plugin/ImgGenerator/image/cs/headshot.png')
             if penetrate < 0.1:
-                penetrate_img = IMG.open(f'./plugin/ImgGenerator/image/cs/penetrate.png')
+                penetrate_img = Image.open(f'./plugin/ImgGenerator/image/cs/penetrate.png')
     width, height = font.getsize(user)
     width2, height2 = font.getsize(target)
-    img_gun = IMG.open(gun)
+    img_gun = Image.open(gun)
     width_gun, height_gun = img_gun.size
     g_a = img_gun.split()[3]  # 获取 A通道 信息
 
@@ -63,8 +62,8 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
         killed_posx += penetrate_img.size[0]
         pimg_a = penetrate_img.split()[3]
 
-    img = IMG.new('RGBA', (total_width, 50), (255, 0, 0))
-    img_bg = IMG.new('RGBA', (total_width - 10, 42), (0, 0, 0, 112))
+    img = Image.new('RGBA', (total_width, 50), (255, 0, 0))
+    img_bg = Image.new('RGBA', (total_width - 10, 42), (0, 0, 0, 112))
     img.paste(img_bg, (6, 4))
     img.paste(img_gun, (gun_posx, 10), g_a)
     if penetrate_img:
@@ -82,11 +81,13 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
     img.save(output_buffer, format='PNG')
     byte_data = output_buffer.getvalue()
     base64_str = base64.b64encode(byte_data)
-    return messagechain_builder(imgbase64=base64_str)
+    return await messagechain_builder(imgbase64=base64_str)
 
 
 @bot.on(GroupMessage)
 async def cskill(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^击杀(\S+)?$", msg.strip())

@@ -2,7 +2,7 @@
 :Author:  NekoRabi
 :Create:  2022/9/18 3:00
 :Update: /
-:Describe: 简单的文本转图片工具
+:Describe: 简单的文本转图片工具,可以在这个模板上进行魔改
 :Version: 0.0.1
 """
 import base64

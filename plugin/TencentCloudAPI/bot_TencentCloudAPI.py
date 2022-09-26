@@ -58,7 +58,7 @@ if __plugin_enable:
                             return
                     text = m.group(1).strip()
                     if len(text) > 40:
-                        return await bot.send(event, messagechain_builder(text="文本太长啦", rndimg=True))
+                        return await bot.send(event, await messagechain_builder(text="文本太长啦", rndimg=True))
                     voice = getbase64voice(text)
                     if not voice['error']:
                         return await bot.send(event, Voice(base64=voice['file']))
@@ -78,7 +78,7 @@ if __plugin_enable:
                     groupid = int(m.group(1))
                     text = m.group(2).strip()
                     if len(text) > 40:
-                        return await bot.send(event, messagechain_builder(text="文本太长啦", rndimg=True))
+                        return await bot.send(event, await messagechain_builder(text="文本太长啦", rndimg=True))
                     voice = getbase64voice(text)
                     if not voice['error']:
                         return await bot.send_group_message(groupid, Voice(base64=voice['file']))

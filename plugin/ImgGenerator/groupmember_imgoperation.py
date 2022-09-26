@@ -7,9 +7,9 @@
 """
 import random
 
-from utils.MessageChainBuilder import *
+from utils.MessageChainBuilder import messagechain_builder
 from mirai import GroupMessage, At, Plain
-from core import bot
+from core import bot, blacklist
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 
@@ -142,6 +142,8 @@ async def holdup(userid):
 
 @bot.on(GroupMessage)
 async def daiburen(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^逮捕(\w*)", msg.strip())
@@ -154,12 +156,14 @@ async def daiburen(event: GroupMessage):
             userid = event.message_chain.get_first(At).target
         if userid:
             # await makedaibu(userid)
-            # return bot.send(event, messagechain_builder(imgpath=f'./images/ImgGenerator/daibu_{userid}.png'))
-            return await bot.send(event, messagechain_builder(imgbase64=await makedaibu(userid)))
+            # return bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/daibu_{userid}.png'))
+            return await bot.send(event, await messagechain_builder(imgbase64=await makedaibu(userid)))
 
 
 @bot.on(GroupMessage)
 async def xka(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^(我是)?小可爱$", msg.strip())
@@ -177,7 +181,7 @@ async def xka(event: GroupMessage):
                     await makesmalllove(userid, memberinfo.member_name, member_profile.sex)
                 else:
                     await makesmalllove(userid, member_profile.nickname, member_profile.sex)
-                await bot.send(event, messagechain_builder(imgpath=f'./images/ImgGenerator/xiaokeai_{userid}.png'))
+                await bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/xiaokeai_{userid}.png'))
             except Exception as e:
                 print(e)
                 pass
@@ -186,6 +190,8 @@ async def xka(event: GroupMessage):
 
 @bot.on(GroupMessage)
 async def diuren(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^丢(\w+)?$", msg.strip())
     if m:
@@ -197,26 +203,30 @@ async def diuren(event: GroupMessage):
             userid = event.message_chain.get_first(At).target
         if userid:
             img = await throwpeople(userid)
-            await bot.send(event, messagechain_builder(imgbase64=img))
+            await bot.send(event, await messagechain_builder(imgbase64=img))
         # else:
-        #     await bot.send(event, messagechain_builder(text='请At要丢的人哦~'))
+        #     await bot.send(event, await messagechain_builder(text='请At要丢的人哦~'))
     return
 
 
 @bot.on(GroupMessage)
 async def chiren(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^吃掉?$", msg.strip())
     if m:
         if At in event.message_chain:
             userid = event.message_chain.get_first(At).target
             img = await eatpeople(userid)
-            await bot.send(event, messagechain_builder(imgbase64=img))
+            await bot.send(event, await messagechain_builder(imgbase64=img))
     return
 
 
 @bot.on(GroupMessage)
 async def juren(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^举(\w+)?$", msg.strip())
     if m:
@@ -228,5 +238,5 @@ async def juren(event: GroupMessage):
             userid = event.message_chain.get_first(At).target
         if userid:
             img = await holdup(userid)
-            await bot.send(event, messagechain_builder(imgbase64=img))
+            await bot.send(event, await messagechain_builder(imgbase64=img))
     return

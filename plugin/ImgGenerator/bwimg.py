@@ -1,10 +1,14 @@
 import os
 import re
+
 from PIL import Image as IMG, ImageDraw, ImageFont
-from mirai import GroupMessage, Plain, Image, MessageChain
-from core import bot, commandpre, commands_map
+from mirai import GroupMessage, Plain, Image
+
+from core import bot, commandpre, blacklist
 
 __all__ = ['bwimg']
+
+from utils.MessageChainBuilder import messagechain_builder
 
 if not os.path.exists("./images/ImgGenerator"):
     os.mkdir("./images/ImgGenerator")
@@ -49,6 +53,8 @@ def deletesource(imgname):
 
 @bot.on(GroupMessage)
 async def bwimg(event: GroupMessage):
+    if event.sender.id in blacklist:
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^{commandpre}\s*bw\s*(\S+)\s*$", msg.strip())
@@ -58,7 +64,7 @@ async def bwimg(event: GroupMessage):
         imgname = img.image_id
         await img.download(filename=f'./images/tempimg/{imgname}')
         makebwimg(imgname, m.group(1))
-        await bot.send(event, MessageChain([Image(path=f'./images/ImgGenerator/{imgname}')]))
+        await bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
         deletesource(imgname)
         # except Exception as e:
         #     print(e)
