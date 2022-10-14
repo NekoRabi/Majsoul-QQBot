@@ -5,13 +5,12 @@
 :Version: v0.6.5
 """
 import nest_asyncio
-from mirai import MessageEvent, FriendMessage, GroupMessage
-from mirai.models import FlashImage
-
+from mirai import MessageEvent
+from mirai.models import FlashImage, Source
 from core import *
 from plugin import *
-from utils.bufferpool import cmdbuffer
 from utils import *
+from utils.bufferpool import cmdbuffer
 
 nest_asyncio.apply()
 
@@ -19,8 +18,7 @@ if __name__ == '__main__':
 
     config = load_config()
     create_helpimg()
-    qqlogger = getQQlogger()
-    rootLogger = create_logger(config['loglevel'])
+    rootLogger = root_logger
     settings = config['settings']
     botname = config['botconfig']['botname']
 
@@ -35,9 +33,20 @@ if __name__ == '__main__':
             # infodict = dict(type=event.type,senderid=event.sender.id,sendername=event.sender.get_name(),
             # groupname=event.group.name,groupid=event.group.id,message=event.message_chain)
             # qqlogger.info(infodict)
-            qqlogger.info(event)
-        else:
-            qqlogger.info(event)
+            msgchain = []
+            for item in event.message_chain:
+                if type(item) != Source:
+                    msgchain.append(item)
+            _info = {'groupid': event.group.id, 'groupname': event.group.name, 'membername': event.sender.member_name,
+                  'message': msgchain}
+            root_logger.info(_info)
+        elif isinstance(event, FriendMessage):
+            msgchain = []
+            for item in event.message_chain:
+                if type(item) != Source:
+                    msgchain.append(item)
+            _info = {'friendid': event.sender.id, 'friendname': event.sender.nickname, 'message': msgchain}
+            root_logger.info(_info)
 
 
     @bot.on(MessageEvent)

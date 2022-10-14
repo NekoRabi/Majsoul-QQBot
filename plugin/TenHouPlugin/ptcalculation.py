@@ -6,6 +6,8 @@ import time
 
 import aiohttp
 
+__all__ = ['ptcalculation', 'levelmap']
+
 levelmap = {
     0: {'name': '新人', 'maxscore': 20, 'haslower': False, 'losescore': 0},
     1: {'name': '9级', 'maxscore': 20, 'haslower': False, 'losescore': 0},
@@ -169,7 +171,7 @@ class playerscore:
             if num > len(self.poslist.get(3)):
                 msg += f'{self.poslist.get(3)}'[1:-1]
             else:
-                msg += f'{self.poslist.get(3)[-num:]}'[1:-1]+'\n'
+                msg += f'{self.poslist.get(3)[-num:]}'[1:-1] + '\n'
         else:
             success += 1
         if self.rank[4] > 0:

@@ -178,6 +178,6 @@ async def paili_calculator(event: GroupMessage):
     if m:
         shoupai = m.group(3)
         try:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, imgbase64=calc_shanten_14(shoupai)))
+            await bot.send(event, await messagechain_builder(at=event.sender.id, imgbase64=calc_shanten_14(shoupai),text='牌理分析仅供参考, 有bug存在错误'))
         except ValueError:
             await bot.send(event, await messagechain_builder(at=event.sender.id, text='请输入14位手牌'))

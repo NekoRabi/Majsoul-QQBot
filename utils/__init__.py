@@ -1,4 +1,4 @@
-from utils.Logger import create_logger, getQQlogger
+from utils.Logger import *
 from utils.bufferpool import MessageBufferPool
 from utils.text_to_img import *
 from utils.cfg_loader import *

@@ -24,7 +24,7 @@ from utils.get_groupmember_authority import is_having_admin_permission
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
            'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
-           'freshqhpaipu', 'guan_wang']
+           'freshqhpaipu', 'game_guan_wang']
 admin = config.get('admin', [])
 # qhsettings = config.get('qhsettings')
 master = config.get('master', 1215791340)
@@ -527,7 +527,7 @@ async def changenode(event: FriendMessage):
 
 
 @bot.on(GroupMessage)
-async def guan_wang(event: GroupMessage):
+async def game_guan_wang(event: GroupMessage):
     """返回天凤 / 雀魂的游戏网站"""
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"(雀魂|天凤)官网", msg.strip())

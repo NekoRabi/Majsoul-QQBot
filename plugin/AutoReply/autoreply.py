@@ -42,15 +42,15 @@ async def duideduide(event: GroupMessage):
                        '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分', '的离题万里的',
                        '不痛不痒的']:
                 if random.random() < 0.3:
-                    await bot.send(event, random.choice(
+                    await bot.send(event, await messagechain_builder(text=random.choice(
                         ['正确的', '直接的', '中肯的', '雅致的', '客观的', '整体的', '立体的', '全面的', '辩证的', '形而上学的', '雅俗共赏的', '一针见血的',
                          '直击要害的', '错误的', '间接的', '虚伪的', '庸俗的', '主观的', '平面的', '片面的', '孤立的', '辩证法的', '雅俗之分的', '离题万里的',
-                         '不痛不痒的']))
+                         '不痛不痒的'])))
             # 方舟肉鸽词库
             elif msg in ['迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']:
                 if random.random() < 0.3:
-                    await bot.send(event, random.choice(
-                        ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的']))
+                    await bot.send(event, await messagechain_builder(text=random.choice(
+                        ['正确的', '错误的', '辩证的', '迷茫的', '盲目的', '孤独的', '生存的', '臆想的', '谨慎的', '暴怒的', '偏执的', '敏感的'])))
 
             elif msg in ['典', '孝', '麻', '盒', '急', '蚌', '赢', '乐', '创', '绝', '厥', '退', '急了']:
                 if random.random() < 0.3:
@@ -76,13 +76,13 @@ async def randominterrupt(event: GroupMessage):
                     return
                 if str(event.message_chain) in ['?', "？"] and count < repeatconfig['repeatQ']:
                     print(f"在{event.group.name}群,复读了一次?")
-                    return await bot.send(event, "?")
+                    return await bot.send(event, await messagechain_builder(text="?"))
                 if count < repeatconfig['interruptQQ']:
                     print(f"在{event.group.name}群,打断一次{msg}")
-                    return await bot.send(event, random.choice(["¿", "?????"]))
+                    return await bot.send(event, await messagechain_builder(text=random.choice(["¿", "?????", "???"])))
                 elif count < repeatconfig['interruptQ']:
                     print(f"在{event.group.name}群,打断一次{msg}")
-                    return await bot.send(event, "?")
+                    return await bot.send(event, await messagechain_builder(text="?"))
                 elif count < repeatconfig['repeatmsg']:
                     msg_component_type_list = []
                     for component in event.message_chain:

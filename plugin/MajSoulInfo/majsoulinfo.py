@@ -210,7 +210,8 @@ class MajsoulQuery:
         cursor.close()
         cx.close()
         if len(playerid) == 0:
-            print("数据库中无此用户，请先查询该用户。")
+            if not _config.get('silence_CLI', False):
+                print("数据库中无此用户，请先查询该用户。")
             return await messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         playerid = playerid[0][0]
         rule = "三麻"
@@ -229,15 +230,19 @@ class MajsoulQuery:
                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
                 async with session.get(url) as response:
                     if response.status == 503:
-                        print('牌谱屋似乎离线了')
+                        if not _config.get('silence_CLI', False):
+                            print('牌谱屋似乎离线了')
                         return await messagechain_builder(text="牌谱屋似乎离线了~")
                     content = await response.json()
         except asyncio.exceptions.TimeoutError as e:
-            print(f"查询超时:\t{e}\n")
+
+            if not _config.get('silence_CLI', False):
+                print(f"查询超时:\t{e}\n")
             return await messagechain_builder(text="查询超时,请稍后再试")
 
         except aiohttp.client.ClientConnectorError as _e:
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+            if not _config.get('silence_CLI', False):
+                print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
         if content.get('error', False):
             return await messagechain_builder(text='未找到该玩家在这个场次的的对局')
@@ -342,7 +347,9 @@ class MajsoulQuery:
                 paipuInfo += "\n"
             paipuInfo += f"\n总PT变化 : {ptupdate}"
         except asyncio.TimeoutError as e:
-            print(e)
+
+            if not _config.get('silence_CLI', False):
+                print(e)
             ERROR = True
             paipuInfo = '牌谱查询超时,请稍后再试'
         result = await messagechain_builder(text=paipuInfo)
@@ -422,7 +429,8 @@ class MajsoulQuery:
         for count in range(10):
             luck = random.random() * 100
             if count == 9 and drawcounts['2gift'] == 0:
-                print("出保底喽")
+                if not _config.get('silence_CLI', False):
+                    print("出保底喽")
                 gift_index = random.randint(0, 5) * 3 + 2
                 gf = gift['item'][gift_index]['name']
                 gfrare = gift['item'][gift_index]['rare']
@@ -483,7 +491,8 @@ class MajsoulQuery:
                     if gift['item'][gift_index]['rare'] == 2:
                         break
                     else:
-                        print("出保底喽")
+                        if not _config.get('silence_CLI', False):
+                            print("出保底喽")
                         gift_index = random.randint(0, 5) * 3 + 2
                         resultsmsg += '\n\n已触发保底。'
                 gf = gift['item'][gift_index]['name']
@@ -545,7 +554,9 @@ class MajsoulQuery:
         Returns: 添加是否成功
 
         """
-        print(f'groupid= {groupid},playername= {playername}')
+
+        if not _config.get('silence_CLI', False):
+            print(f'groupid= {groupid},playername= {playername}')
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cx.commit()
@@ -554,17 +565,20 @@ class MajsoulQuery:
             f"select playerid from qhplayer where playername = '{playername}'")
         playerid = cursor.fetchall()
         if len(playerid) == 0:
-            print("数据库中无此用户，请先查询该用户。")
+            if not _config.get('silence_CLI', False):
+                print("数据库中无此用户，请先查询该用户。")
             return "添加失败,数据库中无此用户,请先用 qhpt 查询该用户。"
         playerid = playerid[0][0]
         cursor.execute(f'select * from QQgroup where groupid = {groupid}')
         groups = cursor.fetchall()
         if len(groups) > 0:
-            print("该群已注册进雀魂观战数据库")
+            if not _config.get('silence_CLI', False):
+                print("该群已注册进雀魂观战数据库")
         else:
             cursor.execute(f'insert into QQgroup(groupid) values({groupid})')
             cx.commit()
-            print(f"已将群组{groupid}添加到数据库")
+            if not _config.get('silence_CLI', False):
+                print(f"已将群组{groupid}添加到数据库")
         cursor.execute(
             f'select * from watchedplayer where playerid = {playerid}')
         watchedplayers = cursor.fetchall()
@@ -576,7 +590,8 @@ class MajsoulQuery:
                 cursor.execute(
                     f"update watchedplayer set playerid = {playerid} and watchedgroupcount = watchedgroupcount + 1")
             cx.commit()
-            print(f"已将{playername}添加到雀魂关注数据库")
+            if not _config.get('silence_CLI', False):
+                print(f"已将{playername}添加到雀魂关注数据库")
         cursor.execute(
             f'select * from group2player where groupid = {groupid} and playerid = "{playerid}"')
         groupplayers = cursor.fetchall()
@@ -587,9 +602,11 @@ class MajsoulQuery:
                 cursor.execute(
                     f'update watchedplayer set watchedgroupcount = watchedgroupcount + 1 where playerid = {playerid}')
                 cx.commit()
-                print("已更新雀魂群关注")
+                if not _config.get('silence_CLI', False):
+                    print("已更新雀魂群关注")
             else:
-                print("该用户已添加进此群的关注列表")
+                if not _config.get('silence_CLI', False):
+                    print("该用户已添加进此群的关注列表")
                 cursor.close()
                 cx.close()
                 return "此群已关注该玩家"
@@ -599,7 +616,8 @@ class MajsoulQuery:
             cursor.execute(
                 f'update watchedplayer set watchedgroupcount = watchedgroupcount + 1 where playerid = {playerid}')
             cx.commit()
-            print(f"已将{playername}添加到群聊{groupid}的关注")
+            if not _config.get('silence_CLI', False):
+                print(f"已将{playername}添加到群聊{groupid}的关注")
         cursor.close()
         cx.close()
         return "添加成功"
@@ -700,13 +718,16 @@ class MajsoulQuery:
                         rank = rank - 1
                 averagerank = (rankdict['1'] + rankdict['2'] * 2 +
                                rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
-                if selecttype == "4":
-                    paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
+                if rankdict['1'] +rankdict['2'] + rankdict['3'] + rankdict['4'] < len(paipuresponse):
+                    paipumsg += f"玩家名疑似输入有误,分析顺位失败,请检查大小写"
                 else:
-                    paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位"
-                if rankdict['fly'] > 0:
-                    paipumsg += f",被飞了{rankdict['fly']}次"
-                paipumsg += f",平均顺位:{averagerank:1.2f}\nPT总得失: {ptchange}\n\n"
+                    if selecttype == "4":
+                        paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
+                    else:
+                        paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位"
+                    if rankdict['fly'] > 0:
+                        paipumsg += f",被飞了{rankdict['fly']}次"
+                    paipumsg += f",平均顺位:{averagerank:1.2f}\nPT总得失: {ptchange}\n\n"
                 msg += paipumsg
                 infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
                 infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
@@ -765,14 +786,16 @@ class MajsoulQuery:
             f"select playerid from qhplayer where playername = '{playername}'")
         playerid = cursor.fetchall()
         if len(playerid) == 0:
-            print("数据库中无此用户,删除未进行")
+            if not _config.get('silence_CLI', False):
+                print("数据库中无此用户,删除未进行")
             return "删除成功"
         playerid = playerid[0][0]
         cursor.execute(
             f'select * from group2player where groupid ={groupid} and playerid ={playerid}')
         groupplayers = cursor.fetchall()
         if len(groupplayers) == 0:
-            print("未关注该用户")
+            if not _config.get('silence_CLI', False):
+                print("未关注该用户")
             return "删除成功"
         cursor.execute(
             f'select * from watchedplayer where playerid = {playerid}')
@@ -782,14 +805,16 @@ class MajsoulQuery:
                 f"update group2player set iswatching = 0 where playerid = {playerid} and groupid = {groupid}")
             cursor.execute(
                 f"update watchedplayer set watchedgroupcount = watchedgroupcount - 1 where playerid = {playerid}")
-            print("删除成功")
+            if not _config.get('silence_CLI', False):
+                print("删除成功")
             cx.commit()
             cursor.close()
             cx.close()
             self.tagoffplayer(playername=playername, groupid=groupid)
             return "删除成功"
         else:
-            print("未关注该用户")
+            if not _config.get('silence_CLI', False):
+                print("未关注该用户")
             return "删除成功"
 
     def getallwatcher(self, groupid: int) -> str:
@@ -818,7 +843,9 @@ class MajsoulQuery:
         """清除某个群的全部雀魂关注"""
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
-        print(f'开始执行清除群聊{groupid}的雀魂关注')
+
+        if not _config.get('silence_CLI', False):
+            print(f'开始执行清除群聊{groupid}的雀魂关注')
         cursor.execute(
             f"update watchedplayer set watchedgroupcount = watchedgroupcount -1 where watchedgroupcount > 0 and playername in (select playername from group2player where groupid = {groupid} and iswatching = 1)")
         cursor.execute(f'update group2player set iswatching = 0 where groupid = {groupid}')
@@ -877,7 +904,8 @@ class MajsoulQuery:
         """三麻"""
         try:
             if userinfo['muti3']:
-                print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+                if not _config.get('silence_CLI',False):
+                    print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
                 prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
             user_p3_levelinfo: dict = userinfo.get('pl3')
             user_p3_levelinfo = user_p3_levelinfo.get("level")
@@ -886,12 +914,14 @@ class MajsoulQuery:
             prtmsg += levelswitch(p3_level, p3_score, "三麻")
 
         except AttributeError:
-            print("查询不到三麻段位")
+            if not _config.get('silence_CLI', False):
+                print("查询不到三麻段位")
             prtmsg += "\n未查询到三麻段位。"
         """四麻"""
         try:
             if userinfo['muti4']:
-                print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+                if not _config.get('silence_CLI',False):
+                    print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
                 prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
             user_p4_levelinfo = userinfo['pl4']
             user_p4_levelinfo = user_p4_levelinfo.get("level")
@@ -899,7 +929,8 @@ class MajsoulQuery:
             p4_score = int(user_p4_levelinfo.get("score")) + int(user_p4_levelinfo.get("delta"))
             prtmsg += levelswitch(p4_level, p4_score, "四麻")
         except AttributeError:
-            print("查询不到四麻段位")
+            if not _config.get('silence_CLI', False):
+                print("查询不到四麻段位")
             prtmsg += "\n未查询到四麻段位。"
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
@@ -941,11 +972,13 @@ class MajsoulQuery:
                         return await messagechain_builder(text="牌谱屋似乎离线了")
                     playerinfo = await response.json()
         except asyncio.exceptions.TimeoutError as e:
-            print(f"查询超时\t {e}")
+            if not _config.get('silence_CLI', False):
+                print(f"查询超时\t {e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
 
         except aiohttp.client.ClientConnectorError as _e:
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+            if not _config.get('silence_CLI', False):
+                print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
         if len(playerinfo) == 0:
             return await messagechain_builder(text="不存在该玩家")
@@ -1239,7 +1272,8 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
                     pl4 = await response.json()
 
         except asyncio.exceptions.TimeoutError as e:
-            print(f"qhpt查询超时,{e}")
+            if not _config.get('silence_CLI', False):
+                print(f"qhpt查询超时,{e}")
             return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
         except aiohttp.client.ClientConnectorError as _e:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")

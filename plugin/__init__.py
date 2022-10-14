@@ -7,6 +7,7 @@
 """
 
 # 如果不是exe,就使用这种方法自动导入包
+import logging
 import os
 
 _plugins = os.listdir(r'./plugin')
@@ -15,10 +16,11 @@ for name in _plugins:
     if os.path.isdir(f'./plugin/{name}'):
         if os.path.exists(f'./plugin/{name}/__init__.py'):
             print(f'加载插件 {name}')
+            logging.info(f'加载插件 {name}')
             exec(f"from plugin.{name} import *")
 
 print('\n所有插件加载完毕')
-
+logging.info('所有插件加载完毕')
 # 'Else'
 
 # from plugin.AlarmClock import *

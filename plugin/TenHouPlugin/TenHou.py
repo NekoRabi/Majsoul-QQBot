@@ -15,7 +15,7 @@ import sqlite3
 import aiohttp
 import pytz
 import re
-from plugin.TenHouPlugin.ptcalculation import ptcalculation
+from plugin.TenHouPlugin.ptcalculation import ptcalculation, levelmap
 from utils import text_to_image, read_file
 
 user_agent_list = [
@@ -42,7 +42,16 @@ bordercast_temple = {
         3: " %player% 忍痛吃三，太苦了"
     }
 }
-
+# 四麻特上是 1313和1314,但无法区分东风还是南方
+# 四凤是1616
+# 三特是也是1314
+# _matchtype = {
+#     "1314": "四特南喰赤",
+#     "1313": "四特東喰赤速",
+#     "1616": "四鳳南喰赤",
+#     # "1616": "四鳳東喰赤速",
+#     "1414": "三特南喰赤",
+# }
 timeout = aiohttp.ClientTimeout(total=30)
 
 _cfg = read_file(r'./config/TenHouPlugin/config.yml')
@@ -187,23 +196,24 @@ async def asyautoget_th_matching() -> list:
     eligible_Matches = []
     for match in nowmatches:
         matchplayer = get_thmatch_player(match)
-        player_t = ishaving_player_in_list(
+        _target_player = ishaving_player_in_list(
             player_list=matchplayer, target_list=watchedplayers)
-        if player_t:
+        if _target_player:
             for gameplayer in gamingplayer:
-                if player_t == gameplayer['playername'] and gameplayer['url'] == match['url']:
-                    # tempmatch = dict(playername=player_t, match=match)
-                    # tempmatch = dict(playername=player_t, msg=matching2string(tempmatch))
+                if _target_player == gameplayer['playername'] and gameplayer['url'] == match['url']:
+                    # tempmatch = dict(playername=_target_player, match=match)
+                    # tempmatch = dict(playername=_target_player, msg=matching2string(tempmatch))
                     # eligible_Matches.append(tempmatch)
                     gameplayer['isgaming'] = 1
                     break
             else:
                 gamingplayer.append(
-                    dict(playername=player_t, url=match['url'], isgaming=2))
-                tempmatch = dict(playername=player_t, match=match)
-                tempmatch = dict(playername=player_t,
+                    dict(playername=_target_player, url=match['url'], isgaming=2))
+                tempmatch = dict(playername=_target_player, match=match)
+                tempmatch = dict(playername=_target_player,
                                  msg=matching2string(tempmatch), url=match['url'])
                 eligible_Matches.append(tempmatch)
+    # print('eligible_Matches: ', eligible_Matches)
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
     if not _cfg.get('silence_CLI', False):
@@ -394,14 +404,34 @@ def ishaving_player_in_list(player_list: list, target_list: set):
 
 
 def matching2string(eligiblematch: dict) -> str:
+    """
+    将比赛信息转换为合法输出
+
+    Args:
+
+        eligiblematch: 合法比赛
+
+    Returns:
+        比赛信息字符串
+
+    """
+    # 以下为一个eligiblematch:
+    # {'playername': 'RAYMOK', 'match': {'url': '064E45DB', 'type': '1414', 'time': '15:10', 'numberX': '41',
+    # 'players': [{'playername': 'miku618', 'playerlevel': '15', 'playerrank': '2016.09'}, {'playername': 'RAYMOK',
+    # 'playerlevel': '14', 'playerrank': '1908.20'}, {'playername': '浦飯幽助', 'playerlevel': '14', 'playerrank':
+    # '1934.99'}, {'playername': '石丸電 化', 'playerlevel': '14', 'playerrank': '1906.34'}]}}
+
     playername = eligiblematch['playername']
     match = eligiblematch['match']
     # msg = f"{playername}正在{match['type']}乱杀，快来围观:\n"
     msg = f"{playername}正在天凤对局，快来围观:\n"
+    # print(f'eligiblematch:{eligiblematch}')
     msg += f"https://tenhou.net/3/?wg={match['url']}\n"
     # msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
-    for player in get_thmatch_player(match):
-        msg += f'{player}  '
+    players = match['players']
+    for player in players:
+        print(player["playerrank"], type(player["playerrank"]))
+        msg += f'{levelmap.get(int(player["playerlevel"])).get("name")}R{player["playerrank"]} {player["playername"]}\n'
     return msg
 
 
