@@ -719,7 +719,7 @@ class MajsoulQuery:
                 averagerank = (rankdict['1'] + rankdict['2'] * 2 +
                                rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
                 if rankdict['1'] +rankdict['2'] + rankdict['3'] + rankdict['4'] < len(paipuresponse):
-                    paipumsg += f"玩家名疑似输入有误,分析顺位失败,请检查大小写"
+                    paipumsg += f"玩家名疑似输入有误,分析顺位失败,请检查大小写\n"
                 else:
                     if selecttype == "4":
                         paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"

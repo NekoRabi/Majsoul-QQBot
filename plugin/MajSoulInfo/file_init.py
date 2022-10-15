@@ -112,13 +112,14 @@ def db_init():
                    ")")
     cursor.execute("create table if not exists tagnames("
                    "id integer primary key,"
-                   "tagname TEXT not null,"
+                   "tagname text not null,"
                    "userid integer not null,"
                    "gpid integer not null,"
                    "constraint gp_nickname "
                    "foreign key (gpid) "
                    "references group2player(id)"
                    ")")
+
     cursor.execute("create view if not exists groupwatches as "
                    "select groupid,"
                    "group_concat(playername) as watchedplayers,"
@@ -137,6 +138,7 @@ def db_init():
                    "from tagnames as tg join group2player as gp "
                    "where tg.gpid = gp.id "
                    "and gp.iswatching = 1")
+
     cx.commit()
     cursor.close()
     cx.close()
