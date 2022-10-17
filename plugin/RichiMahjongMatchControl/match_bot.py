@@ -19,7 +19,7 @@ from utils.MessageChainSender import messagechain_sender
 from utils.cfg_loader import write_file, read_file
 from utils.get_groupmember_authority import is_having_admin_permission
 
-__all__ = ['create_match', 'join_match', 'get_teammembers', 'remove_teammate']
+__all__ = ['create_match', 'join_match', 'get_teammembers', 'remove_teammate', 'create_team']
 
 
 @bot.on(GroupMessage)
@@ -34,7 +34,8 @@ async def create_match(event: GroupMessage):
             description = m.group(3)
         else:
             description = ""
-        res = MatchOperator.register_match(matchname=m.group(1), ddl=m.group(2), description=description)
+        res = MatchOperator.register_match(sourcegroup=event.group.id, host=event.sender.id, matchname=m.group(1),
+                                           ddl=m.group(2), description=description)
         await bot.send(event, await messagechain_builder(text=res))
 
 
@@ -42,7 +43,7 @@ async def create_match(event: GroupMessage):
 async def join_match(event: GroupMessage):
     """加入比赛"""
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}加入比赛\s*(\w+)\s*(\w+)?\s*(\w+)?\s*(\w+)?$", msg.strip())
+    m = re.match(fr"^{commandpre}加入比赛\s*(\w+)\s*(\S+)?\s*(\w+)?\s*(\S+)?$", msg.strip())
     if m:
         matchname = m.group(1)
         teamname = m.group(2)
@@ -59,30 +60,33 @@ async def join_match(event: GroupMessage):
 async def get_teammembers(event: GroupMessage):
     """获取队伍成员"""
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}查询队伍\s*(\w+)\s*(\w+)?$", msg.strip())
+    m = re.match(fr"^{commandpre}查询队伍\s*(\w+)\s*(\S+)?$", msg.strip())
     if m:
         matchname = m.group(1)
         teamname = m.group(2)
-        msg = f"{matchname}的{teamname}参赛名单:\n"
+        msg = f"{matchname} {teamname} 参赛名单:\n"
         if not m.group(2):
             teamname = matchname
-            msg = f"{matchname}的参赛名单:\n"
+            msg = f"{matchname} 参赛名单:\n"
         res = MatchOperator.get_teammembers(matchname=m.group(1), teamname=teamname)
         for item in res:
-            qq, playername, position = item
+            qqs, players, position = item
             if position is None:
                 position = ''
             else:
                 position += ' : '
-            if playername == '':
+            if players == '':
                 try:
-                    memberinfo = await bot.get_group_member(group=event.group.id, id_=qq)
-                    playername = memberinfo.member_name
-                    msg += f"{position}{playername}\n"
+                    msg += f"{position}"
+                    for i in range(len(qqs.silit(','))):
+                        memberinfo = await bot.get_group_member(group=event.group.id, id_=qqs)
+                        player = memberinfo.member_name
+                        msg += f"{player}({qqs[i]}),"
+                    msg = msg[:-1] + '\n'
                 except Exception:
-                    msg += f"{position}{qq}\n"
+                    msg += f"{position}{qqs}\n"
             else:
-                msg += f"{position}{playername}\n"
+                msg += f"{position}{players}\n"
         await bot.send(event, await messagechain_builder(text=msg[:-1]))
 
 
@@ -90,18 +94,33 @@ async def get_teammembers(event: GroupMessage):
 async def remove_teammate(event: GroupMessage):
     """删除队员"""
     msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(fr"^{commandpre}移除队员\s*(\w+)\s*(\w+)?\s*(%playername%=)?\s*(\w+)$", msg.strip())
+    m = re.match(fr"^{commandpre}移除队员\s*(\w+)\s*(\w+)?\s*(%playername%=)?\s*(\S+)\s*(\w+)?$", msg.strip())
     if m:
         matchname = m.group(1)
         teamname = m.group(2)
         if not teamname:
             teamname = matchname
         id = m.group(4)
+        position = m.group(5)
         if not m.group(3):
             try:
                 id = int(id)
             except ValueError:
-                msg = "请输入正确的qq,如需输入玩家名,请在玩家名前加上'%playername%='"
+                msg = "请输入正确的qq,如需输入玩家名,请在玩家名前加上' %playername%= '"
                 return await bot.send(event, await messagechain_builder(text=msg))
-        res = MatchOperator.remove_teammate(matchname=matchname, teamname=teamname, id=id)
+        res = MatchOperator.remove_teammate(matchname=matchname, teamname=teamname, _id=id, position=position)
+        return await bot.send(event, await messagechain_builder(text=res))
+
+
+@bot.on(GroupMessage)
+async def create_team(event: GroupMessage):
+    """创建队伍"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}创建队伍\s*(\w+)\s*(\S+)\s*(\S+)?$", msg.strip())
+    if m:
+        matchname = m.group(1)
+        teamname = m.group(2)
+        description = m.group(3)
+        res = MatchOperator.create_team(matchname=matchname, teamname=teamname, description=description,
+                                        leader=event.sender.id)
         return await bot.send(event, await messagechain_builder(text=res))

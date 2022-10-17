@@ -15,6 +15,8 @@ def db_init():
     cursor.execute("create table if not exists teamcompetition("
                    "id integer primary key,"
                    "name text not null unique,"
+                   "host integer not null,"
+                   "sourcegroup integer not null,"
                    "ddl text not null,"
                    "description text"
                    ")")
@@ -23,6 +25,7 @@ def db_init():
                    "id integer primary key,"
                    "name text not null,"
                    "matchid integer not null,"
+                   "leader integer,"
                    "description text,"
                    "constraint fk_matchid "
                    "foreign key (matchid) "
