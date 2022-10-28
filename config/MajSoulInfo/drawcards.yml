@@ -226,37 +226,47 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-仿生喵.jpg
-    - index: 50
+    - index: 45
       name: 立直棒-陨石法杖
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-陨石法杖.jpg
-    - index: 49
+    - index: 46
       name: 立直-雷电环锁
       rare: 3
       type: decoration
       url: ./Images/decoration/立直-雷电环锁.jpg
-    - index: 48
+    - index: 47
       name: 和牌-天罚
       rare: 3
       type: decoration
       url: ./Images/decoration/和牌-天罚.jpg
-    - index: 47
+    - index: 48
       name: 和牌-无间契印
       rare: 3
       type: decoration
       url: ./Images/decoration/和牌-无间契印.jpg
-    - index: 46
+    - index: 49
       name: 立直-灵魂契约
       rare: 3
       type: decoration
       url: ./Images/decoration/立直-灵魂契约.jpg
-    - index: 45
+    - index: 50
       name: 立直棒-虚无传送门
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-虚无传送门.jpg
-    length: 51
+    - index: 51
+      name: 牌背-冰晶
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-冰晶.jpg
+    - index: 52
+      name: 桌布-堆雪人
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-堆雪人.jpg
+    length: 53
   gift:
     item:
     - index: 0
@@ -515,10 +525,8 @@ lottery:
     length: 26
 up:
   decoration:
-  - 牌背-鸭鸭牌背
-  - 立直棒-波子汽水
-  - 立直-立直鸭
-  - 桌布-小黄鸭冲浪里
-  - 和牌-泰山鸭顶
+  - 牌背-冰晶
+  - 桌布-堆雪人
   person:
-  - 北原莉莉
+  - 藤田加奈
+  - 相原舞

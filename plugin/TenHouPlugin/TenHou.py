@@ -430,7 +430,7 @@ def matching2string(eligiblematch: dict) -> str:
     # msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
     players = match['players']
     for player in players:
-        print(player["playerrank"], type(player["playerrank"]))
+        # print(player["playerrank"], type(player["playerrank"]))
         msg += f'{levelmap.get(int(player["playerlevel"])).get("name")}R{player["playerrank"]} {player["playername"]}\n'
     return msg
 

@@ -191,17 +191,17 @@ async def crazy_thursday(event: GroupMessage):
     疯狂星期四
     我也没有文案,都是转发群友的
     """
-
-    if not settings['silence'] and repeatconfig['autoreply']:
-        if event.group.id not in silencegroup:
-            if event.sender.id in _blacklist:
-                return
-            msg = "".join(map(str, event.message_chain[Plain]))
-            m = re.match('[vV]我?(50|五十)', msg.strip())
-            if m:
-                return await bot.send(event, await messagechain_builder(text='我也想吃KFC'))
-            elif re.match('疯狂星期四', msg.strip()):
-                return await bot.send(event, await messagechain_builder(text='我也想吃KFC'))
+    pass
+    # if not settings['silence'] and repeatconfig['autoreply']:
+    #     if event.group.id not in silencegroup:
+    #         if event.sender.id in _blacklist:
+    #             return
+    #         msg = "".join(map(str, event.message_chain[Plain]))
+    #         m = re.match('[vV]我?(50|五十)', msg.strip())
+    #         if m:
+    #             return await bot.send(event, await messagechain_builder(text='我也想吃KFC'))
+    #         elif re.match('疯狂星期四', msg.strip()):
+    #             return await bot.send(event, await messagechain_builder(text='我也想吃KFC'))
 
 
 @bot.on(FriendMessage)
