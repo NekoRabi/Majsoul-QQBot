@@ -71,6 +71,20 @@ class MatchOperator:
             teamname = matchname
         cx = sqlite3.connect('./database/RichiMahjongMatchControl/match.sqlite')
         cursor = cx.cursor()
+        sql = f"select qq from ptmview where teamname='{teamname}' and matchname = '{matchname}' and playername = '{playername}'"
+        if position:
+            sql += f" and position = '{position}'"
+        qq = cursor.execute(sql).fetchall()
+        if len(qq) > 0:
+            cursor.close()
+            cx.close()
+            qq = qq[0][0]
+            msg = "加入队伍"
+            if position:
+                msg += "的该位置"
+            if qq == qqid:
+                return "你已" + msg
+            return "已有同名玩家" + msg
         matchid = cursor.execute(f"select id from teamcompetition where name = '{matchname}'").fetchall()
         if len(matchid) == 0:
             return "比赛不存在"

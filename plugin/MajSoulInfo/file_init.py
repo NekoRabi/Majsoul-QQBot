@@ -33,6 +33,8 @@ if not os.path.exists(r"./config/MajSoulInfo/command.yml"):
         'getwatch': r'(qhgetwatch|雀魂获取本群关注)\s*$',
         'addwatch': r'(qhadd|雀魂添加关注)\s*(\S+)\s*$',
         'delwatch': r'(qhdel|雀魂删除关注)\s*(\S+)\s*$',
+        'qhbind': r'(qhbind|雀魂绑定)\s*(\S+)$',
+        'qhm_operation':  r'qhm(pt|yb|info|paipu|help)\s*(\S+)?\s*(\d{4}-\d{1:2})?$',
         'dbupdate': r'qhfreshdb\s*$',
         'changlink': r'qhfreshlink\s*$',
         'clearwatch': r'(qhclearwatch|雀魂清除本群关注)\s*$',
@@ -120,6 +122,15 @@ def db_init():
                    "references group2player(id)"
                    ")")
 
+    cursor.execute("create table if not exists accountbind("
+                   "id integer primary key,"
+                   "qq integer not null,"
+                   "player_fkid integer not null,"
+                   "constraint fk_pid "
+                   "foreign key (player_fkid) "
+                   "references qhplayer(id)"
+                   ")")
+
     cursor.execute("create view if not exists groupwatches as "
                    "select groupid,"
                    "group_concat(playername) as watchedplayers,"
@@ -155,7 +166,8 @@ _qhhelp = [
     "qhdel / 雀魂删除关注 [玩家名] :将一个玩家从雀魂自动查询中移除，不再自动广播对局记录\n",
     "qhpaipu / 雀魂最近对局 [玩家名] (3/4) ({1-10}) :查询一个玩家最近n场3/4人对局记录\n",
     "qhinfo / 雀魂玩家详情 [玩家名] (3/4) ({基本/立直/血统/all}):查询一个玩家的详细数据\n",
-    "qhyb / 雀魂月报 [玩家名] (3/4) [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报\n"
+    "qhyb / 雀魂月报 [玩家名] (3/4) [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报\n",
+    "qhbind / 雀魂绑定 [玩家名] : 绑定雀魂账号"
 ]
 
 add_help('group', _qhhelp)

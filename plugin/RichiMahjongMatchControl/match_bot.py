@@ -78,13 +78,14 @@ async def get_teammembers(event: GroupMessage):
             if players == '':
                 try:
                     msg += f"{position}"
-                    for i in range(len(qqs.silit(','))):
-                        memberinfo = await bot.get_group_member(group=event.group.id, id_=qqs)
+                    qqs = qqs.silit(',')
+                    for i in range(len(qqs)):
+                        memberinfo = await bot.get_group_member(group=event.group.id, id_=qqs[i])
                         player = memberinfo.member_name
                         msg += f"{player}({qqs[i]}),"
                     msg = msg[:-1] + '\n'
                 except Exception:
-                    msg += f"{position}{qqs}\n"
+                    msg += f"{position}({qqs})\n"
             else:
                 msg += f"{position}{players}\n"
         await bot.send(event, await messagechain_builder(text=msg[:-1]))
@@ -100,15 +101,15 @@ async def remove_teammate(event: GroupMessage):
         teamname = m.group(2)
         if not teamname:
             teamname = matchname
-        id = m.group(4)
+        _id = m.group(4)
         position = m.group(5)
         if not m.group(3):
             try:
-                id = int(id)
+                _id = int(_id)
             except ValueError:
                 msg = "请输入正确的qq,如需输入玩家名,请在玩家名前加上' %playername%= '"
                 return await bot.send(event, await messagechain_builder(text=msg))
-        res = MatchOperator.remove_teammate(matchname=matchname, teamname=teamname, _id=id, position=position)
+        res = MatchOperator.remove_teammate(matchname=matchname, teamname=teamname, _id=_id, position=position)
         return await bot.send(event, await messagechain_builder(text=res))
 
 

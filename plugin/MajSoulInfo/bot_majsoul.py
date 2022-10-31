@@ -24,9 +24,8 @@ from utils.get_groupmember_authority import is_having_admin_permission
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
            'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
-           'freshqhpaipu', 'game_guan_wang']
+           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation']
 admin = config.get('admin', [])
-# qhsettings = config.get('qhsettings')
 master = config.get('master', 1215791340)
 
 qhsettings = read_file(r'./config/MajSoulInfo/config.yml')
@@ -38,11 +37,7 @@ _blacklist = config.get('blacklist', [])
 
 @bot.on(GroupMessage)
 async def disableqhplugin(event: GroupMessage):
-    """
-    禁用雀魂指令
-    :param event:
-    :return:
-    """
+    """禁用雀魂指令 """
     if is_having_admin_permission(event) or event.sender.id in admin:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{_qhcmd['disable']}", msg.strip())
@@ -52,44 +47,35 @@ async def disableqhplugin(event: GroupMessage):
             if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                 if group not in qhsettings['disptgroup']:
                     qhsettings['disptgroup'].append(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'查分功能禁用成功')
+                    return await messagechain_sender(event=event, msg=f'查分功能禁用成功')
             elif commandname in ['qhpaipu', '雀魂最近对局']:
                 if group not in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].append(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'牌谱查询功能禁用成功')
+                    return await messagechain_sender(event=event, msg=f'牌谱查询功能禁用成功')
             elif commandname in ['qhinfo', '雀魂玩家详情']:
                 if group not in qhsettings['disinfogroup']:
                     qhsettings['disinfogroup'].append(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'雀魂玩家详情功能禁用成功')
+                    return await messagechain_sender(event=event, msg=f'雀魂玩家详情功能禁用成功')
             elif commandname in ['qhsl', '雀魂十连']:
                 if group not in qhsettings['disslgroup']:
                     qhsettings['disslgroup'].append(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'模拟十连功能禁用成功')
+                    return await messagechain_sender(event=event, msg=f'模拟十连功能禁用成功')
             elif commandname in ['qhyb', '雀魂月报']:
                 if group not in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].append(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'牌谱查询功能禁用成功')
+                    return await messagechain_sender(event=event, msg=f'牌谱查询功能禁用成功')
             else:
-                return await bot.send(event, '无此功能,请重新输入参数')
+                return await messagechain_sender(event=event, msg='无此功能,请重新输入参数')
 
 
 @bot.on(GroupMessage)
 async def enableqhplugin(event: GroupMessage):
-    """
-    启用雀魂指令
-    :param event:
-    :return:
-    """
+    """启用雀魂指令"""
     if is_having_admin_permission(event) or event.sender.id in admin:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{_qhcmd['enable']}", msg.strip())
@@ -99,44 +85,35 @@ async def enableqhplugin(event: GroupMessage):
             if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
                 if group in qhsettings['disptgroup']:
                     qhsettings['disptgroup'].remove(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'查分功能启用成功')
+                    return await messagechain_sender(event=event, msg=f'查分功能启用成功')
             elif commandname in ['qhpaipu', '雀魂最近对局']:
                 if group in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].remove(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'牌谱查询功能启用成功')
+                    return await messagechain_sender(event=event, msg=f'牌谱查询功能启用成功')
             elif commandname in ['qhinfo', '雀魂玩家详情']:
                 if group in qhsettings['disinfogroup']:
                     qhsettings['disinfogroup'].remove(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'雀魂玩家详情功能启用成功')
+                    return await messagechain_sender(event=event, msg=f'雀魂玩家详情功能启用成功')
             elif commandname in ['qhsl', '雀魂十连']:
                 if group in qhsettings['disslgroup']:
                     qhsettings['disslgroup'].remove(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'模拟十连功能启用成功')
+                    return await messagechain_sender(event=event, msg=f'模拟十连功能启用成功')
             elif commandname in ['qhyb', '雀魂月报']:
                 if group in qhsettings['dispaipugroup']:
                     qhsettings['dispaipugroup'].remove(group)
-                    # w_cfg_to_file(content=config, path=r'./config/config.yml')
                     write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
-                    return await bot.send(event, f'牌谱查询功能启用成功')
+                    return await messagechain_sender(event=event, msg=f'牌谱查询功能启用成功')
             else:
-                return await bot.send(event, '无此功能,请重新输入参数')
+                return await messagechain_sender(event=event, msg='无此功能,请重新输入参数')
 
 
 @bot.on(GroupMessage)
 async def qhpt(event: GroupMessage):
-    """
-    查分
-    :param event:
-    :return:
-    """
+    """查分"""
     if event.sender.id in _blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -145,8 +122,9 @@ async def qhpt(event: GroupMessage):
         if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
 
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhpt')):
-                return bot.send(event,
-                                await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+                return messagechain_sender(event=event,
+                                           msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                          at=event.sender.id))
             if m.group(3):
                 selecttype = int(m.group(3))
                 selectindex = m.group(4)
@@ -156,15 +134,15 @@ async def qhpt(event: GroupMessage):
                 result = await majsoul.getcertaininfo(m.group(2), selecttype, selectindex)
             else:
                 result = await majsoul.query(m.group(2))
-            await bot.send(event, result)
+            await messagechain_sender(event=event, msg=result)
             # if result['error']:
-            #     # await bot.send(event, result['msg'])
+            #     # await messagechain_sender(event=event, result['msg'])
             #     await sendMsgChain(msg=result['msg'], event=event)
             # else:
             #     await sendMsgChain(msg=await messagechain_builder(imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'),
             #                        event=event,
             #                        errortext=result['msg'])
-            # await bot.send(event, imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
+            # await messagechain_sender(event=event, imgpath=f'./images/MajsoulInfo/qhpt{m.group(2)}.png'))
         return
 
 
@@ -186,20 +164,10 @@ async def getrecentqhpaipu(event: GroupMessage):
             searchtype = m.group(3)
             searchnumber = 5
             if searchtype:
-                if searchtype not in ['3', '4']:
-                    return await messagechain_sender(event=event, msg='牌局参数有误，请输入 3 或 4')
-
                 if m.group(4):
                     searchnumber = int(m.group(4))
-                    if not 0 < searchnumber < 11:
-                        return await bot.send(event, "牌局数量有误，最多支持10场牌局")
-                result = await majsoul.getsomeqhpaipu(playername=playername, type=searchtype,
+                result = await majsoul.getsomeqhpaipu(playername=playername, seatchtype=searchtype,
                                                       counts=searchnumber)
-                # if not result.get('err', True):
-                #     await sendMsgChain(event=event,
-                #                        msg=await messagechain_builder(imgbase64=result['img64']), errortext=result['msg'])
-                # else:
-                #     await sendMsgChain(event=event, msg=result['msg'])
                 await messagechain_sender(event=event, msg=result)
 
 
@@ -214,8 +182,9 @@ async def getplayerdetails(event: GroupMessage):
         if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
 
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhinfo')):
-                return bot.send(event,
-                                await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+                return messagechain_sender(event=event,
+                                           msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                          at=event.sender.id))
             playername = m.group(2)
             selecttype = m.group(3)
             model = m.group(4)
@@ -228,14 +197,14 @@ async def getplayerdetails(event: GroupMessage):
                 model = '基本'
             detail = await majsoul.getplayerdetail(
                 playername=playername, selecttype=selecttype, model=model, selectlevel=selectlevel)
-            await bot.send(event, detail)
+            await messagechain_sender(event=event, msg=detail)
             # if detail['error']:
-            #     await bot.send(event, detail['msg'])
+            #     await messagechain_sender(event=event, detail['msg'])
             # else:
-            #     res = await bot.send(event,
+            #     res = await messagechain_sender(event=event,
             #                          await messagechain_builder(imgpath=f'./images/MajsoulInfo/detail{playername}.png'))
             #     if res == -1:
-            #         await bot.send(event, detail['msg'])
+            #         await messagechain_sender(event=event, detail['msg'])
     return
 
 
@@ -249,24 +218,25 @@ async def getqhmonthreport(event: GroupMessage):
     if m:
         if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhyb')):
-                return bot.send(event,
-                                await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True, at=event.sender.id))
+                return messagechain_sender(event=event,
+                                           msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                          at=event.sender.id))
             playername = m.group(2)
             selecttype = m.group(3)
             year = m.group(4)
             month = m.group(5)
             report = await majsoul.getmonthreport(
                 playername=playername, selecttype=selecttype, year=year, month=month)
-            await bot.send(event, report)
+            await messagechain_sender(event=event, msg=report)
             # if report['error']:
-            #     await bot.send(event, report['msg'])
+            #     await messagechain_sender(event=event, report['msg'])
             # else:
-            #     res_id = await bot.send(event,
+            #     res_id = await messagechain_sender(event=event,
             #                             await messagechain_builder(imgpath=f'./images/MajsoulInfo/yb{playername}.png'))
             #     if res_id == -1:
             #         print(f"图片yb{playername}.png发送失败，尝试发送文本")
-            #         await bot.send(event, report['msg'])
-            # await bot.send(event,await messagechain_builder()(imgbase64=report['imgbase64']))
+            #         await messagechain_sender(event=event, report['msg'])
+            # await messagechain_sender(event=event,await messagechain_builder()(imgbase64=report['imgbase64']))
     return
 
 
@@ -278,7 +248,7 @@ async def getqhwatcher(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['getwatch']}", msg.strip())
     if m:
-        await bot.send(event, majsoul.getallwatcher(event.group.id))
+        await messagechain_sender(event=event, msg=majsoul.getallwatcher(event.group.id))
 
 
 @bot.on(GroupMessage)
@@ -291,10 +261,10 @@ async def addmajsoulwatch(event: GroupMessage):
     if m:
         if event.group.id:
             # if is_havingadmin(event):
-            #     await bot.send(event, addwatch(m.group(2), event.group.id))
+            #     await messagechain_sender(event=event, addwatch(m.group(2), event.group.id))
             # else:
-            #     await bot.send(event, await messagechain_builder(at=event.sender.id), text=" 抱歉，只有管理员才能这么做哦")]))
-            await bot.send(event, majsoul.addwatch(m.group(2), event.group.id))
+            #     await messagechain_sender(event=event, await messagechain_builder(at=event.sender.id), text=" 抱歉，只有管理员才能这么做哦")]))
+            await messagechain_sender(event=event, msg=majsoul.addwatch(m.group(2), event.group.id))
 
 
 @bot.on(GroupMessage)
@@ -307,11 +277,11 @@ async def delmajsoulwatch(event: GroupMessage):
     if m:
         if event.group.id:
             # if is_havingadmin(event):
-            #     await bot.send(event,
+            #     await messagechain_sender(event=event,
             #                    removewatch(playername=m.group(2), groupid=event.group.id))
             # else:
-            #     await bot.send(event, await messagechain_builder(at=event.sender.id), text=" 抱歉，只有管理员才能这么做哦")]))
-            await bot.send(event, majsoul.removewatch(m.group(2), event.group.id))
+            #     await messagechain_sender(event=event, await messagechain_builder(at=event.sender.id), text=" 抱歉，只有管理员才能这么做哦")]))
+            await messagechain_sender(event=event, msg=majsoul.removewatch(m.group(2), event.group.id))
     return
 
 
@@ -323,73 +293,86 @@ async def qhdrawcards(event: GroupMessage):
     if m:
         if qhsettings['qhsl'] and event.group.id not in qhsettings['disslgroup']:
             if event.sender.id in _blacklist:
-                return await bot.send(event, await messagechain_builder(text='你已被列入黑名单', at=event.sender.id))
+                return await messagechain_sender(event=event,
+                                                 msg=await messagechain_builder(text='你已被列入黑名单', at=event.sender.id))
             if m.group(2):
                 if m.group(2) in ['限时', '限定', 'up', 'UP']:
                     result = majsoul.drawcards(userid=event.sender.id, up=True)
                     if result['error']:
-                        return await bot.send(event,
-                                              await messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
+                        return await messagechain_sender(event=event,
+                                                         msg=await messagechain_builder(at=event.sender.id,
+                                                                                        text=result['resultsmsg']))
                     # mergeimgs(result.get('results'), event.sender.id)
-                    # await bot.send(event, await messagechain_builder(
+                    # await messagechain_sender(event=event, await messagechain_builder(
                     #     at=event.sender.id,
                     #     text="抽卡结果:", imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
-                    # return await bot.send(event, await messagechain_builder(
+                    # return await messagechain_sender(event=event, await messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
                     # ]))
-                    await bot.send(event, await messagechain_builder(at=event.sender.id, text='抽卡结果',
-                                                                     imgbase64=mergeimgs(result.get('results'))))
+                    await messagechain_sender(event=event,
+                                              msg=await messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                                             imgbase64=mergeimgs(
+                                                                                 result.get('results'))))
                 elif m.group(2) in ['常驻', '普通', 'common', 'normal']:
                     result = majsoul.drawcards(userid=event.sender.id, up=False)
                     if result['error']:
-                        return await bot.send(event,
-                                              await messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
+                        return await messagechain_sender(event=event,
+                                                         msg=await messagechain_builder(at=event.sender.id,
+                                                                                        text=result['resultsmsg']))
                     # mergeimgs(result.get('results'), event.sender.id)
-                    # await bot.send(event, await messagechain_builder(
+                    # await messagechain_sender(event=event, await messagechain_builder(
                     #     at=event.sender.id,
                     #     text="抽卡结果:",
                     #     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
-                    # return await bot.send(event, await messagechain_builder(
+                    # return await messagechain_sender(event=event, await messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
                     # ]))
-                    await bot.send(event, await messagechain_builder(at=event.sender.id, text='抽卡结果',
-                                                                     imgbase64=mergeimgs(result.get('results'))))
+                    await messagechain_sender(event=event,
+                                              msg=await messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                                             imgbase64=mergeimgs(
+                                                                                 result.get('results'))))
                 else:
                     result = majsoul.drawcards(userid=event.sender.id, up=False)
                     if result['error']:
-                        return await bot.send(event,
-                                              await messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
-                    await bot.send(event,
-                                   await messagechain_builder(at=event.sender.id, text='参数输入有误，请输入“限时”或“常驻”，此次十连将输出常驻'))
+                        return await messagechain_sender(event=event,
+                                                         msg=await messagechain_builder(at=event.sender.id,
+                                                                                        text=result['resultsmsg']))
+                    await messagechain_sender(event=event,
+                                              msg=await messagechain_builder(at=event.sender.id,
+                                                                             text='参数输入有误，请输入“限时”或“常驻”，此次十连将输出常驻'))
                     # mergeimgs(
                     #     result.get('results'), event.sender.id)
-                    # await bot.send(event, await messagechain_builder(
+                    # await messagechain_sender(event=event, await messagechain_builder(
                     #     at=event.sender.id,
                     #     text="抽卡结果:",
                     #     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
-                    # return await bot.send(event, await messagechain_builder(
+                    # return await messagechain_sender(event=event, await messagechain_builder(
                     #     at=event.sender.id),
                     #     text=result['resultsmsg'])
                     # ]))
-                    await bot.send(event, await messagechain_builder(at=event.sender.id, text='抽卡结果',
-                                                                     imgbase64=mergeimgs(result.get('results'))))
+                    await messagechain_sender(event=event,
+                                              msg=await messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                                             imgbase64=mergeimgs(
+                                                                                 result.get('results'))))
             else:
                 result = majsoul.drawcards(userid=event.sender.id, up=False)
                 if result['error']:
-                    return await bot.send(event,
-                                          await messagechain_builder(at=event.sender.id, text=result['resultsmsg']))
+                    return await messagechain_sender(event=event,
+                                                     msg=await messagechain_builder(at=event.sender.id,
+                                                                                    text=result['resultsmsg']))
                 # mergeimgs(
                 #     result.get('results'), event.sender.id)
-                # await bot.send(event, await messagechain_builder(
+                # await messagechain_sender(event=event, await messagechain_builder(
                 #     at=event.sender.id,
                 #     text="抽卡结果:",
                 #     imgpath=f"./images/MajSoulInfo/{event.sender.id}.png"))
-                await bot.send(event, await messagechain_builder(at=event.sender.id, text='抽卡结果',
-                                                                 imgbase64=mergeimgs(result.get('results'))))
+                await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id, text='抽卡结果',
+                                                                                      imgbase64=mergeimgs(
+                                                                                          result.get('results'))))
         else:
-            return await bot.send(event, await messagechain_builder(text="此群已禁用模拟抽卡"))
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text="此群已禁用模拟抽卡"))
     return
 
 
@@ -401,7 +384,7 @@ async def getmyqhdrawcards(event: GroupMessage):
     if event.sender.id in _blacklist:
         return
     if m:
-        return await bot.send(event, majsoul.getmycard(event.sender.id))
+        return await messagechain_sender(event=event, msg=majsoul.getmycard(event.sender.id))
 
 
 @bot.on(GroupMessage)
@@ -411,9 +394,10 @@ async def clearmajsoulwatcher(event: GroupMessage):
     m = re.match(fr"^{commandpre}{_qhcmd['clearwatch']}", msg.strip())
     if m:
         if is_having_admin_permission(event):
-            await bot.send(event, majsoul.clearallwatch(groupid=event.group.id))
+            await messagechain_sender(event=event, msg=majsoul.clearallwatch(groupid=event.group.id))
         else:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
 
 
 @bot.on(GroupMessage)
@@ -427,9 +411,10 @@ async def qhaddtag(event: GroupMessage):
         if not m.group(3):
             return await messagechain_sender(event=event, msg=await messagechain_builder(text='请输入你要添加tag哦'))
         if is_having_admin_permission(event):
-            await bot.send(event,
-                           majsoul.tagonplayer(playername=m.group(2), tagname=m.group(3), userid=event.sender.id,
-                                               groupid=event.group.id))
+            await messagechain_sender(event=event,
+                                      msg=majsoul.tagonplayer(playername=m.group(2), tagname=m.group(3),
+                                                              userid=event.sender.id,
+                                                              groupid=event.group.id))
         else:
             await messagechain_sender(event=event,
                                       msg=await messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
@@ -447,10 +432,12 @@ async def qhdeltag(event: GroupMessage):
             tagnames = None
             if m.group(3):
                 tagnames = m.group(3)
-            await bot.send(event, majsoul.tagoffplayer(playername=m.group(2), groupid=event.group.id,
-                                                       userid=event.sender.id, tagname=tagnames))
+            await messagechain_sender(event=event,
+                                      msg=majsoul.tagoffplayer(playername=m.group(2), groupid=event.group.id,
+                                                               userid=event.sender.id, tagname=tagnames))
         else:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(at=event.sender.id, text='抱歉，只有管理员才能这么做'))
 
 
 @bot.on(GroupMessage)
@@ -527,15 +514,41 @@ async def changenode(event: FriendMessage):
 
 
 @bot.on(GroupMessage)
+async def qhbind(event: GroupMessage):
+    """账号绑定"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    defaultcmd = r'(qhbind|雀魂绑定)\s*(\S+)$'
+    m = re.match(fr"^{commandpre}{_qhcmd.get('qhbind', defaultcmd)}", msg.strip())
+    if m:
+        playernamme = m.group(2)
+        await messagechain_sender(event=event, msg=await majsoul.bind_account(event.sender.id, playernamme))
+    return
+
+
+@bot.on(GroupMessage)
+async def qhbind_operation(event: GroupMessage):
+    """绑定账号可用的操作"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    defaultcmd = r'qhm(pt|yb|info|paipu)\s*(\S+)?\s*(\d{4}-\d{1:2})?$'
+    m = re.match(fr"^{commandpre}{_qhcmd.get('qhm_operation', defaultcmd)}", msg.strip())
+    if m:
+        operation = m.group(1)
+        search_type = m.group(2)
+        year_month = m.group(3)
+        await messagechain_sender(event=event, msg=await majsoul.bind_operation(qq=event.sender.id, opertaion=operation))
+    return
+
+
+@bot.on(GroupMessage)
 async def game_guan_wang(event: GroupMessage):
     """返回天凤 / 雀魂的游戏网站"""
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"(雀魂|天凤)官网", msg.strip())
     if m:
         if m.group(1) == '雀魂':
-            await bot.send(event, "https://game.maj-soul.net/1/")
+            await messagechain_sender(event=event, msg="https://game.maj-soul.net/1/")
         elif m.group(1) == '天凤':
-            await bot.send(event, 'https://tenhou.net/')
+            await messagechain_sender(event=event, msg='https://tenhou.net/')
     return
 
 
@@ -566,7 +579,7 @@ async def asyqh_autopaipu():
             for msgobj in result:
                 for group in msgobj['groups']:
                     b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
-                    # await bot.send_group_message(group, msgobj['msg'])
+                    # await messagechain_sender_group_message(group, msgobj['msg'])
                     await messagechain_sender(grouptarget=group, msg=await messagechain_builder(imgbase64=b64))
     if not qhsettings.get('silence_CLI', False):
         print(
