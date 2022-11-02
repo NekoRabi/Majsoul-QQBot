@@ -10,8 +10,9 @@ import re
 
 from mirai import GroupMessage, FriendMessage, Plain
 
-from core import bot, commandpre, commands_map, blacklist
+from core import bot, commandpre, commands_map, blacklist, add_help
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 
 
 def _random_int_general(lower: int or str = None, upper: int or str = None, dn: int = None) -> int:
@@ -52,6 +53,11 @@ def _random_item(items: list):
     Returns: list的一个元素
 
     """
+    # if len(items) ==1:
+    #     return "不可以只roll一个东西哦"
+    # item_list = list(set(items))
+    # if len(item_list) != items:
+    #     return "roll的选项概率要公平哦"
     return random.choice(items)
 
 
@@ -70,20 +76,40 @@ async def roll_item(event: GroupMessage or FriendMessage):
         if content:
             content = content.strip()
             if len(content) > 0:
+                if content in ['-h', '-help', 'help']:
+                    from utils.text_to_img import text_to_image
+                    return await messagechain_sender(event=event, msg=await messagechain_builder(
+                        imgbase64=text_to_image(text=_roll_help, needtobase64=True)))
                 m1 = re.match(r'^(\d+)$', content)
                 if m1:
-                    return await bot.send(event, await messagechain_builder(text=f'{_random_int_general(upper=m1.group(1))}'))
+                    return await messagechain_sender(event=event, msg=await messagechain_builder(
+                        text=f'{_random_int_general(upper=m1.group(1))}'))
                 m2 = re.match(r'^(\d+)\s*[\-~]\s*(\d+)$', content)
                 if m2:
-                    return await bot.send(event,
-                                          await messagechain_builder(text=f'{_random_int_general(m2.group(1), m2.group(2))}'))
+                    return await messagechain_sender(event=event, msg=await messagechain_builder(
+                        text=f'{_random_int_general(m2.group(1), m2.group(2))}'))
                 m3 = re.match(r'[Dd](\d+)$', content)
                 if m3:
                     dice = int(m3.group(1))
-                    if dice < 2 or dice > 100:
-                        return await bot.send(event, await messagechain_builder(text='没有这样的骰子'))
-                    return await bot.send(event,
-                                          await messagechain_builder(text=f'{_random_int_general(dn=dice)}'))
+                    if dice < 1 or dice > 100:
+                        return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id, text='我没有这样的骰子'))
+                    elif dice % 2 == 1 and dice > 9:
+                        return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id, text='我只有10面以下的奇数面骰子~'))
+                    return await messagechain_sender(event=event, msg=await messagechain_builder(
+                        text=f'{_random_int_general(dn=dice)}'))
                 m4 = content.split(' ')
-                return await bot.send(event, await messagechain_builder(text=_random_item(m4)))
-        return await bot.send(event, await messagechain_builder(text=f'{_random_int_general()}'))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text=_random_item(m4)))
+        return await messagechain_sender(event=event, msg=await messagechain_builder(text=f'{_random_int_general()}'))
+
+
+_roll_help = [
+    "roll : 返回 0-100的随机整数",
+    "roll 正整数a : 返回 0-a 的随机整数 ",
+    "roll a-b : 返回 a-b 之间的随机整数",
+    "roll itemA itemB …… : 返回随机一个元素",
+    "roll dn: 投掷n面骰"
+]
+add_help('group', [
+    'roll 返回100以内的随机整数',
+    'roll -help : 获取roll的更多使用方法'
+])

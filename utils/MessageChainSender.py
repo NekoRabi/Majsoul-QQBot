@@ -7,6 +7,7 @@
 """
 import logging
 import time
+import traceback
 from typing import Union
 
 import mirai.exceptions
@@ -99,4 +100,12 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
             print(f'Bot发送消息失败,MiraI错误码{_e}')
             logging.error(f'Bot发送消息失败,Mirai错误码{_e}')
         res = -1
+    except Exception as _e:
+        traceback.print_exc()
+        logging.error(f'出现未知错误:{_e}')
+        nowtime = int(time.time())
+        last_time = _last_error_message.get('groupmessage').get('time', 0)
+        if nowtime - last_time > 3600:
+            _last_error_message['groupmessage'] = dict(time=nowtime, target=target, message=msg, error=_e)
+        await bot.send_friend_message(master, f"发生未知错误消息发送失败,请到后台查看错误!")
     return res

@@ -94,6 +94,7 @@ class playerscore:
         self.score[playernum] = self.score[playernum] + int(score * magnification)
         if self.score[playernum] >= mxsc:
             self.rank[playernum] += 1
+            # print(f'{playernum}人麻将 在{time.strftime("%Y-%m-%d %H:%M ",time.localtime(matchtime))}升段到了{levelmap.get(self.rank[playernum]).get("name")},此前分数{self.score[playernum]}')
             if 9 < self.rank[playernum] < 21:
                 self.score[playernum] = levelmap[self.rank[playernum]]['maxscore'] // 2
             else:
@@ -110,20 +111,14 @@ class playerscore:
             if self.maxsc[playernum] < self.score[playernum]:
                 self.maxsc[playernum] = self.score[playernum]
                 self.maxsctime[playernum] = matchtime
-        # else:
-        #     if self.rank[4] > self.maxrk[4]:
-        #         self.maxrk[4] = self.rank[4]
-        #         self.maxsc[4] = self.maxsc[4]
-        #     elif self.rank[4] == self.maxrk[4]:
-        #         if self.maxsc[4] < self.score[4]:
-        #             self.maxsc[4] = self.score[4]
 
     def reducescore(self, playernum: int, magnification: int = 1, matchtime=0):
         rk = self.rank[playernum]
         self.lastplaytime = matchtime
         reducescore = int(levelmap[rk]['losescore'] * magnification)
         self.score[playernum] = self.score[playernum] - reducescore
-        if self.score[playernum] <= 0:
+        if self.score[playernum] < 0:
+            # print(f'{playernum}人麻将 在{time.strftime("%Y-%m-%d %H:%M",time.localtime(matchtime))}降段到了{levelmap.get(self.rank[playernum]).get("name")},此前分数{self.score[playernum]}')
             if 9 < self.rank[playernum] < 20:
                 self.rank[playernum] = self.rank[playernum] - 1
                 self.score[playernum] = levelmap[self.rank[playernum]]['maxscore'] // 2
@@ -219,7 +214,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
                 ps.reset()
                 matchcount = 0
 
-        if item.get('lobby'):
+        if item.get('lobby', None):
             # print("个室对战")
             continue
         # playernameList = [item.get('player1'), item.get('player2'), item.get('player3'), item.get('player4')]

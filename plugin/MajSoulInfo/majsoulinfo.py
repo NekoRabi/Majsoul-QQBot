@@ -106,7 +106,7 @@ def get_qhpturl(playername, searchtype=3):
     return url
 
 
-def get_player_records_url(playerid, searchtype, end_time, start_time=1262304000000, total=599):
+def get_player_records_url(playerid, searchtype, end_time=None, start_time=1262304000000, total=599):
     """
     获取玩家对局记录的URL
 
@@ -120,6 +120,8 @@ def get_player_records_url(playerid, searchtype, end_time, start_time=1262304000
     Returns:
 
     """
+    if end_time is None:
+        end_time = int(time.time() * 1000)
     if int(searchtype) == 4:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{end_time}/{start_time}?limit={total}&mode=8,9,11,12,15,16&descending=true"
     else:
@@ -194,7 +196,7 @@ class MajsoulQuery:
         self.template = _template
 
     @staticmethod
-    async def getplayerdetail(playername: str, selecttype: str, selectlevel: list = None,
+    async def getplayerdetail(playername: str, selecttype: str = None, selectlevel: list = None,
                               model='基本') -> MessageChain:
         """
         获取玩家详情
@@ -208,6 +210,10 @@ class MajsoulQuery:
         Returns:    包含结果的Mirai消息链
 
         """
+        if model is None:
+            model = '基本'
+        if selecttype is None:
+            selecttype = 4
         if model not in ['基本', '更多', '立直', '血统', 'all']:
             return await messagechain_builder(text="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'")
         if selectlevel not in _match_level_name:
@@ -282,28 +288,24 @@ class MajsoulQuery:
         Returns: 包含结果的Mirai消息链
 
         """
+        if counts is None:
+            counts = '5'
+        counts = int(counts)
+        if seatchtype is None:
+            seatchtype = '4'
         if counts < 0 or counts > 10:
             return await messagechain_builder(text="牌局数量有误，最多支持10场牌局")
-        if seatchtype not in ['3', '4']:
+        if seatchtype not in ['3', '4', 3, 4]:
             return await messagechain_builder(text="牌局参数有误，请输入 3 或 4")
         ptupdate = 0
         ERROR = False
-
-        async def asy_records_request(_playerid, _type, _counts) -> list:
-            async with aiohttp.ClientSession(
-                    connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
-                    headers={'User-Agent': random.choice(user_agent_list)}) as session:
-                async with session.get(get_paipuurl(_playerid, _type, _counts)) as response:
-                    text = await response.json()
-            return text
-
         playerid = get_playerid(playername)
         if not playerid:
             return await messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
         paipuInfo = f"最近{counts}场对局信息如下："
         _paipu_link = ''
         try:
-            content = await asy_records_request(playerid, seatchtype, counts)
+            content = await get_player_records_byid(playerid, seatchtype, counts)
             for item in content:
                 paipuuid = f'{item["uuid"]}'
                 startTime = time.strftime(
@@ -619,10 +621,6 @@ class MajsoulQuery:
 
         """
 
-        def getrank(playerinfo: dict):
-            """自定义sort方法"""
-            return playerinfo['score']
-
         ptchange = 0
         msg = ""
         getrecent = False
@@ -851,33 +849,30 @@ class MajsoulQuery:
         cursor.close()
         cx.close()
         """三麻"""
-        try:
-            if userinfo['muti3']:
-                if not _config.get('silence_CLI', False):
-                    print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
-                prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
+        if userinfo.get('muti3', None):
+            if not _config.get('silence_CLI', False):
+                print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+            prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
             user_p3_levelinfo: dict = userinfo.get('pl3')
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
             p3_score = int(user_p3_levelinfo.get("score")) + int(user_p3_levelinfo.get("delta"))
-            prtmsg += levelswitch(p3_level, p3_score, "三麻")
-
-        except AttributeError:
+            prtmsg += "\n" + levelswitch(p3_level, p3_score, "三麻")
+        else:
             if not _config.get('silence_CLI', False):
                 print("查询不到三麻段位")
             prtmsg += "\n未查询到三麻段位。"
         """四麻"""
-        try:
-            if userinfo['muti4']:
-                if not _config.get('silence_CLI', False):
-                    print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
-                prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
+        if userinfo.get('muti4', None):
+            if not _config.get('silence_CLI', False):
+                print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
+            prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
             user_p4_levelinfo = userinfo['pl4']
             user_p4_levelinfo = user_p4_levelinfo.get("level")
             p4_level = user_p4_levelinfo.get("id")
             p4_score = int(user_p4_levelinfo.get("score")) + int(user_p4_levelinfo.get("delta"))
-            prtmsg += levelswitch(p4_level, p4_score, "四麻")
-        except AttributeError:
+            prtmsg += "\n" + levelswitch(p4_level, p4_score, "四麻")
+        else:
             if not _config.get('silence_CLI', False):
                 print("查询不到四麻段位")
             prtmsg += "\n未查询到四麻段位。"
@@ -902,7 +897,7 @@ class MajsoulQuery:
         Returns:
 
         """
-        if not selectindex:
+        if selectindex is None:
             selectindex = 1
         selectindex = int(selectindex) - 1 if int(selectindex) > 0 else 0
         if selecttype == 3:
@@ -1174,14 +1169,18 @@ class MajsoulQuery:
         return await messagechain_builder(text="绑定成功")
 
     @staticmethod
-    async def bind_operation(qq: int, opertaion: str) -> MessageChain:
-        playerid = link_account(qq)
-        if playerid.get('bind'):
-            playerid = playerid.get('account')
-        else:
+    async def bind_operation(qq: int, opertaion: str, searchtype=4, month=None, other=None) -> MessageChain:
+        player_info = link_account(qq)
+        if not player_info.get('bind'):
             return await messagechain_builder(at=qq, text="未绑定账号,请先绑定账号")
         if opertaion == 'pt':
-            return await query_pt_byid(playerid)
+            return await query_pt_byid(player_info.get('account'))
+        elif opertaion == 'yb':
+            return await get_monthreport_byid(player_info, month=month, selecttype=searchtype, qq=qq)
+        elif opertaion == 'info':
+            return await get_playerinfo_byid(player_info, searchtype, model=other, qq=qq)
+        elif opertaion == 'paipu':
+            return await get_playerinfo_byid(player_info, searchtype, model=other, qq=qq)
         else:
             return await messagechain_builder(at=qq, text="无此方法")
 
@@ -1189,14 +1188,15 @@ class MajsoulQuery:
 def link_account(qq: int) -> dict:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
     cursor = cx.cursor()
-    result = dict(bind=False, account=None, msg='未绑定账号')
-    sql = f"select qhplayer.playerid from accountbind left join qhplayer on qhplayer.id = accountbind.player_fkid where qq = {qq}"
-    playerid = cursor.execute(sql).fetchall()
-    if len(playerid) > 0:
-        playerid = playerid[0][0]
-        if playerid != 0:
+    result = dict(bind=False, account=None, playername=None, msg='未绑定账号')
+    sql = f"select qhplayer.playerid,qhplayer.playername from accountbind left join qhplayer on qhplayer.id = accountbind.player_fkid where qq = {qq}"
+    player_info = cursor.execute(sql).fetchall()
+    if len(player_info) > 0:
+        player_info = player_info[0]
+        if player_info[0] != 0:
             result['bind'] = True
-            result['account'] = playerid
+            result['account'] = player_info[0]
+            result['playername'] = player_info[1]
     cursor.close()
     cx.close()
     return result
@@ -1301,7 +1301,7 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
             if len(pl3) > 1:
                 muti3 = True
             for _pl in pl3:
-                if _pl.get('level').get('id') > 20000:
+                if int(_pl.get('level', dict()).get('id', 20001)) > 20000:
                     pl3info = _pl
                     break
             # else:
@@ -1311,7 +1311,7 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
                 muti4 = True
             pl4info = None
             for _pl in pl4:
-                if _pl.get('level').get('id') < 20000:
+                if int(_pl.get('level', dict()).get('id', 0)) < 20000:
                     pl4info = _pl
                     break
             # else:
@@ -1550,6 +1550,18 @@ def mergeimg(imgurls: list) -> Image:
     return
 
 
+def getrank(playerinfo: dict):
+    """
+    自定义对局信息(牌谱)的sort方法
+    Args:
+        playerinfo: 牌谱中的玩家信息
+
+    Returns:
+
+    """
+    return playerinfo['score']
+
+
 def forwardmessage(msglist: list) -> list:
     """将结果封装为便于转发的消息链"""
     messageChainList = []
@@ -1569,6 +1581,30 @@ def forwardmessage(msglist: list) -> list:
     cursor.close()
     cx.close()
     return messageChainList
+
+
+async def get_player_records_byid(playerid, selecttype: int or str = '4', counts=5) -> list:
+    """
+    通过玩家id获取对局记录
+
+    Args:
+        playerid: 玩家id
+        selecttype: 查询类型
+        counts: 数量
+
+    Returns:
+
+    """
+    if counts is None:
+        counts = 5
+    if selecttype is None:
+        selecttype = 4
+    async with aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+            headers={'User-Agent': random.choice(user_agent_list)}) as session:
+        async with session.get(get_paipuurl(playerid, selecttype, counts)) as response:
+            text = await response.json()
+    return text
 
 
 '''
@@ -1700,6 +1736,248 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
     if qq:
         return await messagechain_builder(at=qq, text=msg)
     return await messagechain_builder(text=msg)
+
+
+async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 4, month: str = None,
+                               qq: int = None) -> MessageChain:
+    """
+    通过玩家id查询月报
+
+    Args:
+        player_info: 数据库查询到玩家信息
+        selecttype: 查询类型,仅接受int和str
+        month: 查询月份
+        qq: 请求指令的QQ号
+
+    Returns:
+
+    """
+    if selecttype is None:
+        selecttype = 4
+    playerid = player_info.get('account')
+    playername = player_info.get('playername')
+    if not month:
+        nextmontht = int(time.time() * 1000)
+        month = "当月"
+    else:
+        _y, _m = month.split('-')
+        if _m == "12":
+            month = f"{int(_y) + 1}-1"
+        else:
+            month = f"{_y}-{int(_m) + 1}"
+        nextmontht = int(time.mktime(time.strptime(month, '%Y-%m')) * 1000)
+    selectmontht = nextmontht - 2592000 * 1000
+    msg = ""
+    matchtype = f'{"三" if selecttype in [3, "3"] else "四"}麻'
+    rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
+    playerslist = []
+    async with aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+            headers={'User-Agent': random.choice(user_agent_list)}) as session:
+        url = get_player_records_url(playerid, selecttype, nextmontht, selectmontht)
+        async with session.get(url) as response:
+            if response.status == 503:
+                return await messagechain_builder(text='牌谱屋似乎离线了')
+            paipuresponse = await response.json()
+        url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
+        async with session.get(url) as response:
+            if response.status == 503:
+                return await messagechain_builder(text='牌谱屋似乎离线了')
+            inforesponse: dict = await response.json()
+        if inforesponse.get('error', None) == 'id_not_found':
+            return await messagechain_builder(at=qq, text=f'你{matchtype}似乎没有打过金之间呢')
+        if len(paipuresponse) == 0:
+            return await messagechain_builder(at=qq, text=f'你这个月似乎没有进行过{matchtype}的对局呢')
+    paipumsg = f"{playername} {matchtype} {month} 月报:\n"
+    paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
+    ptchange = 0
+    for players in paipuresponse:
+        temp = players['players']
+        temp.sort(key=getrank)
+        playerslist.append(temp)
+    for playerrank in playerslist:
+        if selecttype == "4":
+            rank = 4
+        else:
+            rank = 3
+        for player in playerrank:
+            if player['nickname'] == playername:
+                ptchange += player['gradingScore']
+                rankdict[f"{rank}"] += 1
+                if player['score'] < 0:
+                    rankdict['fly'] += 1
+                break
+            rank = rank - 1
+    averagerank = (rankdict['1'] + rankdict['2'] * 2 +
+                   rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
+    if rankdict['1'] + rankdict['2'] + rankdict['3'] + rankdict['4'] < len(paipuresponse):
+        paipumsg += f"玩家名绑定的玩家名似乎输入有误,请尝试用qhpt 3/4 绑定正确的玩家名\n"
+    else:
+        if selecttype == "4":
+            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
+        else:
+            paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位"
+        if rankdict['fly'] > 0:
+            paipumsg += f",被飞了{rankdict['fly']}次"
+        paipumsg += f",平均顺位:{averagerank:1.2f}\nPT总得失: {ptchange}\n\n"
+    msg += paipumsg
+    infomsg = f" 立直率: {inforesponse.get('立直率', None) * 100 if inforesponse.get('立直率', None) else 0:2.2f}%\t"
+    infomsg += f" 副露率: {inforesponse.get('副露率', None) * 100 if inforesponse.get('副露率', None) else 0:2.2f}%\t"
+    infomsg += f" 和牌率: {inforesponse.get('和牌率', None) * 100 if inforesponse.get('和牌率', None) else 0:2.2f}%\n"
+    infomsg += f" 放铳率: {inforesponse.get('放铳率', None) * 100 if inforesponse.get('放铳率', None) else 0:2.2f}% "
+    if inforesponse.get('默听率', None):
+        infomsg += f"\t 默听率: {inforesponse.get('默听率', 0) * 100 :2.2f}%\n"
+    else:
+        infomsg += '\t'
+    infomsg += f" 平均打点: {inforesponse.get('平均打点') if inforesponse.get('平均打点') else 0}\t 平均铳点 : {inforesponse.get('平均铳点') if inforesponse.get('平均铳点') else 0}"
+    msg += infomsg
+    return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+
+
+async def get_playerinfo_byid(player_info: dict, selecttype: Union[str, int] = 4, model=None,
+                              qq: int = None) -> MessageChain:
+    """
+    通过id查询玩家详情
+    Args:
+        player_info: 数据库查询到玩家信息
+        selecttype: 查询类型
+        model: 模式
+        qq:
+
+    Returns:
+
+    """
+    if model is None:
+        model = '基本'
+    if selecttype is None:
+        selecttype = 4
+    if model not in ['基本', '更多', '立直', '血统', 'all']:
+        return await messagechain_builder(text="参数输入有误哦，可用的参数为'基本'、'更多'、'立直'、'血统'、'all'")
+    playerid = player_info.get("account")
+    playername = player_info.get("playername")
+    rule = "三麻"
+    url = get_player_extended_stats_url(playerid, selecttype)
+    if selecttype == "4":
+        rule = "四麻"
+    try:
+        async with aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            async with session.get(url) as response:
+                if response.status == 503:
+                    if not _config.get('silence_CLI', False):
+                        print('牌谱屋似乎离线了')
+                    return await messagechain_builder(text="牌谱屋似乎离线了~")
+                content = await response.json()
+    except asyncio.exceptions.TimeoutError as e:
+        if not _config.get('silence_CLI', False):
+            print(f"查询超时:\t{e}\n")
+        return await messagechain_builder(text="查询超时,请稍后再试")
+    except aiohttp.client.ClientConnectorError as _e:
+        if not _config.get('silence_CLI', False):
+            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+        return await messagechain_builder(text="查询超时,请稍后再试")
+    if content.get('error', False):
+        return await messagechain_builder(text='未找到该玩家在这个场次的的对局')
+    msg = f" 以下是玩家 {playername} 的{rule}数据:\n"
+    for (k, v) in content.items():
+        if type(v) not in [list, dict]:
+            if str(k) in ["id", "count"]:
+                continue
+            if model in ['基本', '更多', '血统', '立直']:
+                if str(k) in infomodel.get(model):
+                    if type(v) == float:
+                        if str(k).endswith('率'):
+                            msg += f"{k:<12} : {v * 100:2.2f}%\n"
+                        else:
+                            msg += f"{k:<12} : {v:2.2f}\n"
+                    else:
+                        msg += f"{k:<12} : {v if v else 0}\n"
+            elif model == 'all':
+                if type(v) == float:
+                    if str(k).endswith('率'):
+                        msg += f"{k:<12} : {v * 100:2.2f}%\n"
+                    else:
+                        msg += f"{k:<12} : {v:2.2f}\n"
+                else:
+                    msg += f"{k:<12} : {v if v else 0}\n"
+    _broadcast_type = _config.get('broadcast', 'image').lower()
+    if _broadcast_type in ['txt', 'text', 'str']:
+        return await messagechain_builder(at=qq, text=msg)
+    else:
+        return await messagechain_builder(at=qq, imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+
+
+async def get_playerpaipu_byid(player_info: dict, selecttype: Union[str, int] = 4, counts=5,
+                               qq: int = None) -> MessageChain:
+    """
+    通过id查询玩家详情
+    Args:
+        player_info: 数据库查询到玩家信息
+        selecttype: 查询类型
+        counts: 模式
+        qq:
+
+    Returns:
+
+    """
+    playername = player_info.get("playername")
+    playerid = player_info.get("account")
+    if counts is None:
+        counts = '5'
+    counts = int(counts)
+    if selecttype is None:
+        selecttype = '4'
+    if counts < 0 or counts > 10:
+        return await messagechain_builder(text="牌局数量有误，最多支持10场牌局")
+    if selecttype not in ['3', '4', 3, 4]:
+        return await messagechain_builder(text="牌局参数有误，请输入 3 或 4")
+    ptupdate = 0
+    ERROR = False
+
+    paipuInfo = f"最近{counts}场对局信息如下："
+    _paipu_link = ''
+    try:
+        content = await get_player_records_byid(playerid, selecttype, counts)
+        for item in content:
+            paipuuid = f'{item["uuid"]}'
+            startTime = time.strftime(
+                '%Y-%m-%d %H:%M:%S', time.localtime(item["startTime"]))
+            endTime = time.strftime('%Y-%m-%d %H:%M:%S',
+                                    time.localtime(item["endTime"]))
+            players = item['players']
+            _broadcast_type = _config.get('broadcast', 'image').lower()
+            if _broadcast_type in ['txt', 'text', 'str']:
+                paipuInfo += f"\n牌谱连接: https://game.maj-soul.net/1/?paipu={paipuuid}\n"
+                _paipu_link += f"https://game.maj-soul.net/1/?paipu={paipuuid}\n"
+            else:
+                paipuInfo += f"\n牌谱UID: {paipuuid}\n"
+            paipuInfo += f"开始时间: {startTime}\n结束时间: {endTime}\n对局玩家:\n"
+            for player in players:
+                if player['nickname'].strip() == playername.strip():
+                    ptupdate += int(player['gradingScore'])
+                paipuInfo += f"{player['nickname']} : {player['score']} ({player['gradingScore']})\n"
+            paipuInfo += "\n"
+        paipuInfo += f"\n总PT变化 : {ptupdate}"
+    except asyncio.TimeoutError as e:
+        if not _config.get('silence_CLI', False):
+            print(e)
+        ERROR = True
+        paipuInfo = '牌谱查询超时,请稍后再试'
+    result = await messagechain_builder(text=paipuInfo)
+    if not ERROR:
+        _broadcast_type = _config.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
+            return await messagechain_builder(at=qq, text=paipuInfo)
+        elif _broadcast_type in ['mix', 'mixed']:
+            return await messagechain_builder(at=qq, text=_paipu_link,
+                imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+        else:
+            # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
+            return await messagechain_builder(at=qq,
+                imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+        # result['img64'] = text_to_image(fontsize=36, text=paipuInfo, needtobase64=True)
+    return result
 
 
 majsoul = MajsoulQuery()

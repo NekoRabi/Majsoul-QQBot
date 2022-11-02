@@ -24,11 +24,11 @@ from utils.get_groupmember_authority import is_having_admin_permission
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
            'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
-           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation']
-admin = config.get('admin', [])
-master = config.get('master', 1215791340)
+           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation', 'get_player_detail_website']
+_admin = config.get('admin', [])
+_master = config.get('master', 1215791340)
 
-qhsettings = read_file(r'./config/MajSoulInfo/config.yml')
+_qhsettings = read_file(r'./config/MajSoulInfo/config.yml')
 
 _qhcmd = read_file(r'./config/MajSoulInfo/command.yml')
 
@@ -38,36 +38,36 @@ _blacklist = config.get('blacklist', [])
 @bot.on(GroupMessage)
 async def disableqhplugin(event: GroupMessage):
     """禁用雀魂指令 """
-    if is_having_admin_permission(event) or event.sender.id in admin:
+    if is_having_admin_permission(event) or event.sender.id in _admin:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{_qhcmd['disable']}", msg.strip())
         if m:
             commandname = m.group(2)
             group = event.group.id
             if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
-                if group not in qhsettings['disptgroup']:
-                    qhsettings['disptgroup'].append(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group not in _qhsettings['disptgroup']:
+                    _qhsettings['disptgroup'].append(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'查分功能禁用成功')
             elif commandname in ['qhpaipu', '雀魂最近对局']:
-                if group not in qhsettings['dispaipugroup']:
-                    qhsettings['dispaipugroup'].append(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group not in _qhsettings['dispaipugroup']:
+                    _qhsettings['dispaipugroup'].append(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'牌谱查询功能禁用成功')
             elif commandname in ['qhinfo', '雀魂玩家详情']:
-                if group not in qhsettings['disinfogroup']:
-                    qhsettings['disinfogroup'].append(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group not in _qhsettings['disinfogroup']:
+                    _qhsettings['disinfogroup'].append(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'雀魂玩家详情功能禁用成功')
             elif commandname in ['qhsl', '雀魂十连']:
-                if group not in qhsettings['disslgroup']:
-                    qhsettings['disslgroup'].append(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group not in _qhsettings['disslgroup']:
+                    _qhsettings['disslgroup'].append(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'模拟十连功能禁用成功')
             elif commandname in ['qhyb', '雀魂月报']:
-                if group not in qhsettings['dispaipugroup']:
-                    qhsettings['dispaipugroup'].append(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group not in _qhsettings['dispaipugroup']:
+                    _qhsettings['dispaipugroup'].append(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'牌谱查询功能禁用成功')
             else:
                 return await messagechain_sender(event=event, msg='无此功能,请重新输入参数')
@@ -76,36 +76,36 @@ async def disableqhplugin(event: GroupMessage):
 @bot.on(GroupMessage)
 async def enableqhplugin(event: GroupMessage):
     """启用雀魂指令"""
-    if is_having_admin_permission(event) or event.sender.id in admin:
+    if is_having_admin_permission(event) or event.sender.id in _admin:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(fr"^{commandpre}{_qhcmd['enable']}", msg.strip())
         if m:
             commandname = m.group(2)
             group = event.group.id
             if commandname in ['qhpt', '雀魂分数', '雀魂pt']:
-                if group in qhsettings['disptgroup']:
-                    qhsettings['disptgroup'].remove(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group in _qhsettings['disptgroup']:
+                    _qhsettings['disptgroup'].remove(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'查分功能启用成功')
             elif commandname in ['qhpaipu', '雀魂最近对局']:
-                if group in qhsettings['dispaipugroup']:
-                    qhsettings['dispaipugroup'].remove(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group in _qhsettings['dispaipugroup']:
+                    _qhsettings['dispaipugroup'].remove(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'牌谱查询功能启用成功')
             elif commandname in ['qhinfo', '雀魂玩家详情']:
-                if group in qhsettings['disinfogroup']:
-                    qhsettings['disinfogroup'].remove(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group in _qhsettings['disinfogroup']:
+                    _qhsettings['disinfogroup'].remove(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'雀魂玩家详情功能启用成功')
             elif commandname in ['qhsl', '雀魂十连']:
-                if group in qhsettings['disslgroup']:
-                    qhsettings['disslgroup'].remove(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group in _qhsettings['disslgroup']:
+                    _qhsettings['disslgroup'].remove(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'模拟十连功能启用成功')
             elif commandname in ['qhyb', '雀魂月报']:
-                if group in qhsettings['dispaipugroup']:
-                    qhsettings['dispaipugroup'].remove(group)
-                    write_file(content=qhsettings, path=r'./config/MajSoulInfo/config.yml')
+                if group in _qhsettings['dispaipugroup']:
+                    _qhsettings['dispaipugroup'].remove(group)
+                    write_file(content=_qhsettings, path=r'./config/MajSoulInfo/config.yml')
                     return await messagechain_sender(event=event, msg=f'牌谱查询功能启用成功')
             else:
                 return await messagechain_sender(event=event, msg='无此功能,请重新输入参数')
@@ -119,7 +119,7 @@ async def qhpt(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['qhpt']}", msg.strip())
     if m:
-        if qhsettings['qhpt'] and event.group.id not in qhsettings['disptgroup']:
+        if _qhsettings['qhpt'] and event.group.id not in _qhsettings['disptgroup']:
 
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhpt')):
                 return messagechain_sender(event=event,
@@ -128,9 +128,6 @@ async def qhpt(event: GroupMessage):
             if m.group(3):
                 selecttype = int(m.group(3))
                 selectindex = m.group(4)
-                if not selectindex:
-                    selectindex = 0
-                selectindex = int(selectindex)
                 result = await majsoul.getcertaininfo(m.group(2), selecttype, selectindex)
             else:
                 result = await majsoul.query(m.group(2))
@@ -154,7 +151,7 @@ async def getrecentqhpaipu(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['qhpaipu']}", msg.strip())
     if m:
-        if qhsettings['qhpaipu'] and event.group.id not in qhsettings['dispaipugroup']:
+        if _qhsettings['qhpaipu'] and event.group.id not in _qhsettings['dispaipugroup']:
 
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhpaipu')):
                 return messagechain_sender(event=event,
@@ -162,13 +159,9 @@ async def getrecentqhpaipu(event: GroupMessage):
                                                                           at=event.sender.id))
             playername = m.group(2)
             searchtype = m.group(3)
-            searchnumber = 5
-            if searchtype:
-                if m.group(4):
-                    searchnumber = int(m.group(4))
-                result = await majsoul.getsomeqhpaipu(playername=playername, seatchtype=searchtype,
-                                                      counts=searchnumber)
-                await messagechain_sender(event=event, msg=result)
+            searchnumber = m.group(4)
+            result = await majsoul.getsomeqhpaipu(playername=playername, seatchtype=searchtype, counts=searchnumber)
+            await messagechain_sender(event=event, msg=result)
 
 
 @bot.on(GroupMessage)
@@ -179,7 +172,7 @@ async def getplayerdetails(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['qhinfo']}", msg.strip())
     if m:
-        if qhsettings['qhinfo'] and event.group.id not in qhsettings['disinfogroup']:
+        if _qhsettings['qhinfo'] and event.group.id not in _qhsettings['disinfogroup']:
 
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhinfo')):
                 return messagechain_sender(event=event,
@@ -193,8 +186,6 @@ async def getplayerdetails(event: GroupMessage):
                 pass
             else:
                 selectlevel = 'all'
-            if model is None:
-                model = '基本'
             detail = await majsoul.getplayerdetail(
                 playername=playername, selecttype=selecttype, model=model, selectlevel=selectlevel)
             await messagechain_sender(event=event, msg=detail)
@@ -216,7 +207,7 @@ async def getqhmonthreport(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['qhyb']}", msg.strip())
     if m:
-        if qhsettings['qhyb'] and event.group.id not in qhsettings['disybgroup']:
+        if _qhsettings['qhyb'] and event.group.id not in _qhsettings['disybgroup']:
             if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'qhyb')):
                 return messagechain_sender(event=event,
                                            msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
@@ -291,7 +282,7 @@ async def qhdrawcards(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['qhsl']}", msg.strip())
     if m:
-        if qhsettings['qhsl'] and event.group.id not in qhsettings['disslgroup']:
+        if _qhsettings['qhsl'] and event.group.id not in _qhsettings['disslgroup']:
             if event.sender.id in _blacklist:
                 return await messagechain_sender(event=event,
                                                  msg=await messagechain_builder(text='你已被列入黑名单', at=event.sender.id))
@@ -488,7 +479,7 @@ async def qhlisttag(event: GroupMessage):
 @bot.on(FriendMessage)
 async def freshqhpaipu(event: FriendMessage):
     """机器人主人手动刷新数据库"""
-    if event.sender.id == master:
+    if event.sender.id == _master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr"^{commandpre}{_qhcmd.get('dbupdate', 'qhfreshdb$')}", msg.strip())
@@ -502,7 +493,7 @@ async def freshqhpaipu(event: FriendMessage):
 @bot.on(FriendMessage)
 async def changenode(event: FriendMessage):
     """机器人主人手动刷新链路"""
-    if event.sender.id == master:
+    if event.sender.id == _master:
         msg = "".join(map(str, event.message_chain[Plain]))
         m = re.match(
             fr"^{commandpre}{_qhcmd.get('changlinke', 'qhfreshlink$')}", msg.strip())
@@ -529,13 +520,16 @@ async def qhbind(event: GroupMessage):
 async def qhbind_operation(event: GroupMessage):
     """绑定账号可用的操作"""
     msg = "".join(map(str, event.message_chain[Plain]))
-    defaultcmd = r'qhm(pt|yb|info|paipu)\s*(\S+)?\s*(\d{4}-\d{1:2})?$'
+    defaultcmd = r'qhm(pt|yb|info|paipu)\s*(\S+)?\s*(\S+)?\s*(\d{4}-\d{1,2})?$'
     m = re.match(fr"^{commandpre}{_qhcmd.get('qhm_operation', defaultcmd)}", msg.strip())
     if m:
         operation = m.group(1)
         search_type = m.group(2)
-        year_month = m.group(3)
-        await messagechain_sender(event=event, msg=await majsoul.bind_operation(qq=event.sender.id, opertaion=operation))
+        other = m.group(3)
+        year_month = m.group(4)
+        await messagechain_sender(event=event, msg=await majsoul.bind_operation(qq=event.sender.id, opertaion=operation,
+                                                                                searchtype=search_type,
+                                                                                month=year_month, other=other))
     return
 
 
@@ -552,19 +546,33 @@ async def game_guan_wang(event: GroupMessage):
     return
 
 
+@bot.on(GroupMessage)
+async def get_player_detail_website(event: GroupMessage):
+    """返回天凤 / 雀魂的游戏数据查询网站"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"(雀魂|天凤)(牌谱屋|水表网)", msg.strip())
+    if m:
+        if m.group(1) == '雀魂':
+            await messagechain_sender(event=event, msg="https://amae-koromo.sapk.ch/")
+        elif m.group(1) == '天凤':
+            await messagechain_sender(event=event, msg='https://nodocchi.moe/tenhoulog/')
+    return
+
+
 @bot.on(Startup)
 async def linksetting(_):
+    """机器人开机时自动选择结点"""
     await majsoul.set_link_node()
 
 
 async def asyqh_autopaipu():
     """结合scheduler自定定时刷新数据库"""
-    if not qhsettings.get('silence_CLI', False):
+    if not _qhsettings.get('silence_CLI', False):
         print("开始查询雀魂信息")
     result = await majsoul.asygetqhpaipu()
     if len(result) > 0:
         print(f'新的雀魂结算:{result}')
-        _broadcast_type = qhsettings.get('broadcast', 'image').lower()
+        _broadcast_type = _qhsettings.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
             for msgobj in result:
                 for group in msgobj['groups']:
@@ -581,21 +589,21 @@ async def asyqh_autopaipu():
                     b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
                     # await messagechain_sender_group_message(group, msgobj['msg'])
                     await messagechain_sender(grouptarget=group, msg=await messagechain_builder(imgbase64=b64))
-    if not qhsettings.get('silence_CLI', False):
+    if not _qhsettings.get('silence_CLI', False):
         print(
             f"雀魂自动查询结束,当前时间:{datetime.datetime.now().hour}:{datetime.datetime.now().minute}:{datetime.datetime.now().second}")
     return
 
 
-if qhsettings.get('autoquery', False):
-    _searchfrequency = int(qhsettings.get("searchfrequency", 6))
-    if int(_searchfrequency) < 1:
-        print('查询频率不能为0,将自动设置为6')
+if _qhsettings.get('autoquery', False):
+    _searchfrequency = int(_qhsettings.get("searchfrequency", 6))
+    if int(_searchfrequency) < 1 or int(_searchfrequency) > 29:
+        print('查询频率有误,将自动设置为6')
         _searchfrequency = 6
     scheduler.add_job(asyqh_autopaipu, 'cron', minute=f'0/{_searchfrequency}')
     print(f' |---已添加定时任务 "雀魂自动查询",查询周期{_searchfrequency}分钟')
-if qhsettings.get('link_update', True):
-    link_freshtime: str = qhsettings.get('link_freshtime', '2:33')
+if _qhsettings.get('link_update', True):
+    link_freshtime: str = _qhsettings.get('link_freshtime', '2:33')
     scheduler.add_job(majsoul.set_link_node, 'cron', hour=f'{link_freshtime.split(":")[0]}',
                       minute=f'{link_freshtime.split(":")[1]}')
     print(f' |---已添加定时任务 "定时刷新牌谱屋结点",将在每天{link_freshtime}执行')
