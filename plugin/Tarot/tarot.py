@@ -176,7 +176,7 @@ class TarotCards:
         result = self.dboperation(
             sql=f'''select count(cardname),cardname as drawcounts from drawtarots where userid = {userid} group by cardname''',
             col_sep='张')
-        if len(result) >0 :
+        if len(result) > 0:
             msg = f"你总共抽了{result}"
         else:
             msg = '你还没有抽过塔罗牌哦~'

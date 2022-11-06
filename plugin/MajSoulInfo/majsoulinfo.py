@@ -853,7 +853,8 @@ class MajsoulQuery:
             if not _config.get('silence_CLI', False):
                 print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
             prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p3_levelinfo: dict = userinfo.get('pl3')
+        user_p3_levelinfo: dict = userinfo.get('pl3', None)
+        if user_p3_levelinfo:
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
             p3_score = int(user_p3_levelinfo.get("score")) + int(user_p3_levelinfo.get("delta"))
@@ -867,7 +868,8 @@ class MajsoulQuery:
             if not _config.get('silence_CLI', False):
                 print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
             prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p4_levelinfo = userinfo['pl4']
+        user_p4_levelinfo = userinfo.get('pl4', None)
+        if user_p4_levelinfo:
             user_p4_levelinfo = user_p4_levelinfo.get("level")
             p4_level = user_p4_levelinfo.get("id")
             p4_score = int(user_p4_levelinfo.get("score")) + int(user_p4_levelinfo.get("delta"))
@@ -1726,11 +1728,11 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
                 now_level = nowlevel_info.get("id")
                 now_score = int(nowlevel_info.get("score")) + int(nowlevel_info.get("delta"))
                 if stype in ['3', 3, '三麻', '三']:
-                    msg += "\n最高" + levelswitch(max_level, max_score, '三麻')
-                    msg += "\n当前" + levelswitch(now_level, now_score, '三麻')
+                    msg += "\n三麻:\n最高" + levelswitch(max_level, max_score, '')
+                    msg += "\n当前" + levelswitch(now_level, now_score, '')
                 else:
-                    msg += "\n最高" + levelswitch(max_level, max_score, '四麻')
-                    msg += "\n当前" + levelswitch(now_level, now_score, '四麻')
+                    msg += "\n四麻:\n最高" + levelswitch(max_level, max_score, '')
+                    msg += "\n当前" + levelswitch(now_level, now_score, '')
                 msg += "\n"
         msg = playername + msg[:-1]
     if qq:
@@ -1971,11 +1973,11 @@ async def get_playerpaipu_byid(player_info: dict, selecttype: Union[str, int] = 
             return await messagechain_builder(at=qq, text=paipuInfo)
         elif _broadcast_type in ['mix', 'mixed']:
             return await messagechain_builder(at=qq, text=_paipu_link,
-                imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+                                              imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
         else:
             # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
             return await messagechain_builder(at=qq,
-                imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+                                              imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
         # result['img64'] = text_to_image(fontsize=36, text=paipuInfo, needtobase64=True)
     return result
 

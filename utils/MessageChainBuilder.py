@@ -7,6 +7,8 @@
 """
 
 import random
+from typing import Union
+
 from mirai import MessageChain, At, Plain, AtAll, Image
 from core import load_replydata
 
@@ -19,7 +21,8 @@ __all__ = ['messagechain_builder']
 
 
 async def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, rndimg=False,
-                         imgurl: str = None, imgbase64=None, at: int = None, atall=False) -> MessageChain:
+                               imgurl: str = None, imgbase64=None, at: Union[list[int], int] = None,
+                               atall=False) -> MessageChain:
     """
     通过给定参数来快速构造一个合法消息链
 
@@ -38,8 +41,13 @@ async def messagechain_builder(reply_choices: list = None, text: str = None, img
     """
     msgchain = []
     if at:
-        msgchain.append(At(at))
-        msgchain.append(Plain(" "))
+        if type(at) == int:
+            msgchain.append(At(at))
+            msgchain.append(Plain(" "))
+        else:
+            for _at in at:
+                msgchain.append(At(_at))
+                msgchain.append(Plain(" "))
     elif atall:
         msgchain.append(AtAll())
         msgchain.append(Plain(" "))
@@ -53,7 +61,8 @@ async def messagechain_builder(reply_choices: list = None, text: str = None, img
         if enable_countenance:
             msgchain.append(Plain("\n"))
             msgchain.append(
-                await Image.from_local(filename=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
+                await Image.from_local(
+                    filename=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
     if imgpath:
         if reply_choices or text:
             msgchain.append(Plain("\n"))
