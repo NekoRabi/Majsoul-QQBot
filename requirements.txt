@@ -5,8 +5,8 @@ moviepy~=1.0.3
 PyYAML~=6.0
 APScheduler~=3.9.1
 yiri-mirai == 0.2.6.2
-nest_asyncio
-uvicorn
-tencentcloud-sdk-python
+nest_asyncio==1.5.5
+uvicorn~=0.17.6
+tencentcloud-sdk-python==3.0.638
 pytz~=2022.1
 websockets~=10.3
