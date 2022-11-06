@@ -29,11 +29,11 @@ _blacklist_msg = {}
 @bot.on(FriendMessage)
 async def addadmin(event: FriendMessage):
     """添加管理员"""
-    if event.sender.id == master:
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr"^{commandpre}{commands_map['sys']['addadmin']}", msg.strip())
-        if m:
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^{commandpre}{commands_map['sys']['addadmin']}", msg.strip())
+    if m:
+        if event.sender.id == master:
             qqid = int(m.group(1))
             if qqid not in admin:
                 admin.append(qqid)
@@ -41,21 +41,19 @@ async def addadmin(event: FriendMessage):
                 await messagechain_sender(event=event, msg=f"已将 {m.group(1)} 添加为机器人管理员")
             else:
                 await messagechain_sender(event=event, msg=f"{m.group(1)} 已经是管理员了")
-
-    else:
-        await messagechain_sender(event=event, msg=await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
-
+        else:
+            await messagechain_sender(event=event, msg=await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
     return
 
 
 @bot.on(FriendMessage)
 async def deladmin(event: FriendMessage):
     """删除管理员"""
-    if event.sender.id == master:
-        msg = "".join(map(str, event.message_chain[Plain]))
-        m = re.match(
-            fr"^{commandpre}{commands_map['sys']['deladmin']}", msg.strip())
-        if m:
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^{commandpre}{commands_map['sys']['deladmin']}", msg.strip())
+    if m:
+        if event.sender.id == master:
             qqid = int(m.group(1))
             if qqid in admin:
                 admin.remove(qqid)
@@ -63,8 +61,8 @@ async def deladmin(event: FriendMessage):
                 return await messagechain_sender(event=event, msg=f"已将 {m.group(1)} 从机器人管理员中移出")
             else:
                 return await messagechain_sender(event=event, msg=f"{m.group(1)} 不是再管理员了")
-    else:
-        await bot.send(event, await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
+        else:
+            await bot.send(event, await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
     return
 
 
@@ -149,8 +147,8 @@ async def tell_to_master(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(
         fr"^{commandpre}{commands_map['sys']['tell_master']}", msg.strip())
-    qqid = event.sender.id
     if m:
+        qqid = event.sender.id
         if qqid in _black_list:
             return await bot.send(event, await messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
         if master != 0:

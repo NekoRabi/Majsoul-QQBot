@@ -21,6 +21,7 @@ for name in _plugins:
 
 print('\n所有插件加载完毕')
 logging.info('所有插件加载完毕')
+
 # 'Else'
 
 # from plugin.AlarmClock import *
@@ -28,10 +29,12 @@ logging.info('所有插件加载完毕')
 # from plugin.BilibiliPlugin import *
 # from plugin.draw_wife import *
 # from plugin.ImgGenerator import *
+# from plugin.LocalImageAutoSender import *
 # from plugin.MajSoulInfo import *
 # from plugin.paili_analysis import *
 # from plugin.Petpet import *
 # from plugin.Remake import *
+# from plugin.RichiMahjongMatchControl import *
 # from plugin.Setu import *
 # from plugin.Tarot import *
 # from plugin.TencentCloudAPI import *
