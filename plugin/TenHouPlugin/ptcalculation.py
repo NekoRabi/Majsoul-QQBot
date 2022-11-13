@@ -155,7 +155,7 @@ class playerscore:
             p4 += f' 历史最高:{levelmap[self.maxrk[4]]["name"]} [{self.maxsc[4]}/{levelmap[self.maxrk[4]]["maxscore"]}]'
             p4 += f'\n达成时间: {time.strftime("%Y-%m-%d %H:%M", time.localtime(self.maxsctime[4]))}'
 
-        return f'{playername}\n{p3}\n{p4}\n{self.recentXposition(returnErr=False)}'
+        return f'{playername}\n{p3}\n{p4}\n{self.recentXposition(num=10, returnErr=False)}'
 
     def recentXposition(self, num=5, returnErr=True):
         """
@@ -164,19 +164,21 @@ class playerscore:
         success = 0
         msg = f'{self.playername} 最近 {num} 局顺位如下:\n'
         if self.rank[3] > 0:
-            msg += '三麻顺位: '
+            msg += '三麻顺位: ['
             if num > len(self.poslist.get(3)):
-                msg += f'{self.poslist.get(3)}'[1:-1]
+                msg += ''.join(map(str, self.poslist.get(3)))
             else:
-                msg += f'{self.poslist.get(3)[-num:]}'[1:-1] + '\n'
+                msg += ''.join(map(str, self.poslist.get(3)[-num:]))
+            msg += ']\n'
         else:
             success += 1
         if self.rank[4] > 0:
-            msg += '四麻顺位: '
+            msg += '四麻顺位: ['
             if num > len(self.poslist.get(4)):
-                msg += f'{self.poslist.get(4)}'[1:-1]
+                msg += ''.join(map(str, self.poslist.get(4)))
             else:
-                msg += f'{self.poslist.get(4)[-num:]}'[1:-1]
+                msg += ''.join(map(str, self.poslist.get(4)[-num:]))
+            msg += ']'
         else:
             success += 1
         if success == 2:

@@ -141,6 +141,7 @@ async def asyautoget_th_match() -> list:
                             '%player%', p)
                     for item in players:
                         msg += f"{item}\n"
+                    msg = msg[:-1]
                     if len(players) == 3:
                         cursor.execute(
                             f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
@@ -432,7 +433,7 @@ def matching2string(eligiblematch: dict) -> str:
     for player in players:
         # print(player["playerrank"], type(player["playerrank"]))
         msg += f'{levelmap.get(int(player["playerlevel"])).get("name")}R{player["playerrank"]} {player["playername"]}\n'
-    return msg
+    return msg[:-1]
 
 
 def get_gaming_thplayers() -> list:
