@@ -11,6 +11,7 @@ import datetime
 import os
 import random
 import sqlite3
+from decimal import Decimal
 
 import aiohttp
 import pytz
@@ -70,6 +71,15 @@ def un_gz(file_name):
     # 关闭gzip对象
 
 
+# 精算点还原点数
+def format_players(players):
+    offset = [-10000, 20000, 40000, 50000] if len(players) == 4 else [5000, 40000, 60000]
+    for order, player in enumerate(players):
+        raw_point = int(Decimal(re.match(r'.+?\(([+\-]?\d+?\.\d+?)\)$', player).group(1)) * 1000) + offset[order]
+        players[order] = re.sub(r"(.+?)(\([+\-]?\d+?\.\d+?\))$", f"\\1 {raw_point}\\2", player)
+    return players
+
+
 # 自动抓取天风结算 - 异步爬虫
 async def asyautoget_th_match() -> list:
     jptz = pytz.timezone('Asia/Tokyo')
@@ -114,9 +124,9 @@ async def asyautoget_th_match() -> list:
             duration = datas[1].strip()
             model = datas[2].replace('－', '').strip()
             players = datas[3].strip()
-            plname = re.sub(r"[(\d+.\-)]", "", players)
+            plname = re.sub(r"\([+\-]?\d+?\.\d+?\)", "", players)
             plname = plname.split(' ')
-            players = players.split(' ')
+            players = format_players(players.split(' '))
             for p in playername:
                 if p in plname:
                     print(f"{datas}\n")
@@ -132,7 +142,7 @@ async def asyautoget_th_match() -> list:
                     msg += f"{model}\n"
                     msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
                     order = get_matchorder(
-                        playerlist=players, playername=p)
+                        playerlist=plname, playername=p)
                     if len(players) == 4:
                         msg += f"{bordercast_temple[4][order]}\n".replace(
                             '%player%', p)
@@ -141,6 +151,7 @@ async def asyautoget_th_match() -> list:
                             '%player%', p)
                     for item in players:
                         msg += f"{item}\n"
+                    msg = msg[:-1]
                     if len(players) == 3:
                         cursor.execute(
                             f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
@@ -382,7 +393,7 @@ def get_matchorder(playerlist: list, playername: str) -> int:
 
     for i in range(4):
         # if playername == playerwithscore[i]['playername']:
-        if playername == playerlist[i].split('(')[0]:
+        if playername == playerlist[i]:
             return i + 1
 
     return 0
@@ -432,7 +443,7 @@ def matching2string(eligiblematch: dict) -> str:
     for player in players:
         # print(player["playerrank"], type(player["playerrank"]))
         msg += f'{levelmap.get(int(player["playerlevel"])).get("name")}R{player["playerrank"]} {player["playername"]}\n'
-    return msg
+    return msg[:-1]
 
 
 def get_gaming_thplayers() -> list:

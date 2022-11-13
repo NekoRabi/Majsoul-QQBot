@@ -9,13 +9,13 @@ import aiohttp
 __all__ = ['ptcalculation', 'levelmap']
 
 levelmap = {
-    0: {'name': '新人', 'maxscore': 20, 'haslower': False, 'losescore': 0},
-    1: {'name': '9级', 'maxscore': 20, 'haslower': False, 'losescore': 0},
-    2: {'name': '8级', 'maxscore': 20, 'haslower': False, 'losescore': 0},
-    3: {'name': '7级', 'maxscore': 20, 'haslower': False, 'losescore': 0},
-    4: {'name': '6级', 'maxscore': 40, 'haslower': False, 'losescore': 0},
-    5: {'name': '5级', 'maxscore': 60, 'haslower': False, 'losescore': 0},
-    6: {'name': '4级', 'maxscore': 80, 'haslower': False, 'losescore': 0},
+    0: {'name': '新人', 'maxscore': 20, 'maxscore_old': 30, 'haslower': False, 'losescore': 0},
+    1: {'name': '9级', 'maxscore': 20, 'maxscore_old': 30, 'haslower': False, 'losescore': 0},
+    2: {'name': '8级', 'maxscore': 20, 'maxscore_old': 30, 'haslower': False, 'losescore': 0},
+    3: {'name': '7级', 'maxscore': 20, 'maxscore_old': 60, 'haslower': False, 'losescore': 0},
+    4: {'name': '6级', 'maxscore': 40, 'maxscore_old': 60, 'haslower': False, 'losescore': 0},
+    5: {'name': '5级', 'maxscore': 60, 'maxscore_old': 60, 'haslower': False, 'losescore': 0},
+    6: {'name': '4级', 'maxscore': 80, 'maxscore_old': 90, 'haslower': False, 'losescore': 0},
     7: {'name': '3级', 'maxscore': 100, 'haslower': False, 'losescore': 0},
     8: {'name': '2级', 'maxscore': 100, 'haslower': False, 'losescore': 10},
     9: {'name': '1级', 'maxscore': 100, 'haslower': False, 'losescore': 20},
@@ -87,9 +87,11 @@ class playerscore:
 
         return
 
-    def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=0):
+    def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=0, is_old=False):
         rk = self.rank[playernum]
         mxsc = levelmap[rk]['maxscore']
+        if is_old and rk <= 6:
+            mxsc = levelmap[rk]['maxscore_old']
         self.lastplaytime = matchtime
         self.score[playernum] = self.score[playernum] + int(score * magnification)
         if self.score[playernum] >= mxsc:
@@ -153,7 +155,7 @@ class playerscore:
             p4 += f' 历史最高:{levelmap[self.maxrk[4]]["name"]} [{self.maxsc[4]}/{levelmap[self.maxrk[4]]["maxscore"]}]'
             p4 += f'\n达成时间: {time.strftime("%Y-%m-%d %H:%M", time.localtime(self.maxsctime[4]))}'
 
-        return f'{playername}\n{p3}\n{p4}\n{self.recentXposition(returnErr=False)}'
+        return f'{playername}\n{p3}\n{p4}\n{self.recentXposition(num=10, returnErr=False)}'
 
     def recentXposition(self, num=5, returnErr=True):
         """
@@ -162,19 +164,21 @@ class playerscore:
         success = 0
         msg = f'{self.playername} 最近 {num} 局顺位如下:\n'
         if self.rank[3] > 0:
-            msg += '三麻顺位: '
+            msg += '三麻顺位: ['
             if num > len(self.poslist.get(3)):
-                msg += f'{self.poslist.get(3)}'[1:-1]
+                msg += ''.join(map(str, self.poslist.get(3)))
             else:
-                msg += f'{self.poslist.get(3)[-num:]}'[1:-1] + '\n'
+                msg += ''.join(map(str, self.poslist.get(3)[-num:]))
+            msg += ']\n'
         else:
             success += 1
         if self.rank[4] > 0:
-            msg += '四麻顺位: '
+            msg += '四麻顺位: ['
             if num > len(self.poslist.get(4)):
-                msg += f'{self.poslist.get(4)}'[1:-1]
+                msg += ''.join(map(str, self.poslist.get(4)))
             else:
-                msg += f'{self.poslist.get(4)[-num:]}'[1:-1]
+                msg += ''.join(map(str, self.poslist.get(4)[-num:]))
+            msg += ']'
         else:
             success += 1
         if success == 2:
@@ -198,7 +202,7 @@ async def getthpt(playername: str):
 
 
 def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
-    dt = int(time.mktime(time.strptime('2017-10-24', '%Y-%m-%d')))
+    dt = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
     deadtime = 86400 * 180
     ps = playerscore(playername)
     matches = listenerjson.get('list')
@@ -222,6 +226,12 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
         #     continue
         magnification = 1  # 倍率,南风场的倍率乘1.5
         oldP = False
+        if starttime >= dt:
+            # print('new 牌谱')
+            pass
+        else:
+            # print('old 牌谱')
+            oldP = True
         position = 1
         # print(time.strftime('%Y:%m:%d %H:%M', time.localtime(starttime)), end='\t')
         if item['playlength'] == '2':
@@ -234,12 +244,6 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
                     position = i
             ps.poslist.get(4).append(position)
             # print(f'posi_{position}', end='\t')
-            if starttime >= dt:
-                # print('new 牌谱')
-                pass
-            else:
-                # print('old 牌谱')
-                oldP = True
             if oldP:
                 useptrule = ptchange['old4']
             else:
@@ -248,7 +252,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
                 ps.reducescore(4, magnification=magnification, matchtime=starttime)
             else:
                 ps.addscore(4, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
-                            matchtime=starttime)
+                            matchtime=starttime, is_old=oldP)
         else:
             # print('3麻', end='\t')
             useptrule = ptchange['3']
@@ -260,7 +264,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
                 ps.reducescore(3, magnification=magnification, matchtime=starttime)
             else:
                 ps.addscore(3, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
-                            matchtime=starttime)
+                            matchtime=starttime, is_old=oldP)
         matchcount += 1
     # print(matchcount)
 
