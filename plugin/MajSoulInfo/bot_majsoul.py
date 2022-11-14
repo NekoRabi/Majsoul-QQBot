@@ -520,16 +520,15 @@ async def qhbind(event: GroupMessage):
 async def qhbind_operation(event: GroupMessage):
     """绑定账号可用的操作"""
     msg = "".join(map(str, event.message_chain[Plain]))
-    defaultcmd = r'qhm(pt|yb|info|paipu)\s*(\S+)?\s*(\S+)?\s*(\d{4}-\d{1,2})?$'
-    m = re.match(fr"^{commandpre}{_qhcmd.get('qhm_operation', defaultcmd)}", msg.strip())
+    defaultcmd = r'qhm(pt|yb|info|paipu)\s*([34])?\s*(\S+|\d{4}-\d{1,2})?$'
+    m = re.match(
+        fr"^{commandpre}{_qhcmd.get('qhm_operation', defaultcmd)}", msg.strip())
     if m:
         operation = m.group(1)
         search_type = m.group(2)
         other = m.group(3)
-        year_month = m.group(4)
         await messagechain_sender(event=event, msg=await majsoul.bind_operation(qq=event.sender.id, opertaion=operation,
-                                                                                searchtype=search_type,
-                                                                                month=year_month, other=other))
+                                                                                searchtype=search_type, other=other))
     return
 
 

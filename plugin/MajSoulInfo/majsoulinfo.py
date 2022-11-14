@@ -11,6 +11,7 @@ import logging
 import math
 import os.path
 import random
+import re
 import time
 from typing import Union
 
@@ -853,7 +854,8 @@ class MajsoulQuery:
             if not _config.get('silence_CLI', False):
                 print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
             prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p3_levelinfo: dict = userinfo.get('pl3')
+        user_p3_levelinfo: dict = userinfo.get('pl3', None)
+        if user_p3_levelinfo:
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
             p3_score = int(user_p3_levelinfo.get("score")) + int(user_p3_levelinfo.get("delta"))
@@ -867,7 +869,8 @@ class MajsoulQuery:
             if not _config.get('silence_CLI', False):
                 print("查到多位同名玩家，将输出第一个，请确认是否是匹配的用户,精确匹配请增加参数")
             prtmsg += f"\n\n查到多位同名玩家，将输出第一个\n请确认是否是匹配的用户,精确匹配请增加参数\n"
-            user_p4_levelinfo = userinfo['pl4']
+        user_p4_levelinfo = userinfo.get('pl4', None)
+        if user_p4_levelinfo:
             user_p4_levelinfo = user_p4_levelinfo.get("level")
             p4_level = user_p4_levelinfo.get("id")
             p4_score = int(user_p4_levelinfo.get("score")) + int(user_p4_levelinfo.get("delta"))
@@ -994,7 +997,8 @@ class MajsoulQuery:
                 # cursor.execute(f"update tagnames set tagname = '{tagname}' and userid = {userid} where gpid = {gpid} ")
                 pass
             else:
-                cursor.execute(f"insert into tagnames(tagname,userid,gpid) values('{tagname}',{userid},{gpid})")
+                cursor.execute(
+                    f"insert into tagnames(tagname,userid,gpid) values('{tagname}',{userid},{gpid})")
                 cx.commit()
                 opertaionMsg = f"操作成功,{userid} 已为玩家 {playername} 添加tag: {tagname}"
         else:
@@ -1028,7 +1032,8 @@ class MajsoulQuery:
                 gpid = gpid[0][0]
                 if tagname:
                     deletemsg = f"操作成功,已成功删除玩家 {playername} 的tag: {tagname}"
-                    cursor.execute(f"delete from tagnames where tagname = '{tagname}' and gpid = {gpid} ")
+                    cursor.execute(
+                        f"delete from tagnames where tagname = '{tagname}' and gpid = {gpid} ")
                 else:
                     cursor.execute(
                         f"delete from tagnames where gpid = {gpid} ")
@@ -1087,7 +1092,8 @@ class MajsoulQuery:
             return config_link
         link_time = {1: 30, 2: 30, 3: 30, 4: 30, 5: 30}
         async with aiohttp.ClientSession(
-                connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)),
+                connector=aiohttp.TCPConnector(
+                    ssl=False, limit=_config.get('query_limit', 10)),
                 timeout=aiohttp.ClientTimeout(total=30),
                 headers={'User-Agent': random.choice(user_agent_list)}) as session:
             for i in range(1, 6):
@@ -1107,7 +1113,8 @@ class MajsoulQuery:
                     print(f'错误为: {e}')
         recommend_link_index = 1
         for i in range(1, 6):
-            print(f'链路{i}时延:{link_time[i]:>2.2f}{" (30为超时或失败)" if link_time[i] >= 30 else ""}')
+            print(
+                f'链路{i}时延:{link_time[i]:>2.2f}{" (30为超时或失败)" if link_time[i] >= 30 else ""}')
             if link_time[i] < link_time[recommend_link_index]:
                 recommend_link_index = i
         _link_index = recommend_link_index
@@ -1169,18 +1176,18 @@ class MajsoulQuery:
         return await messagechain_builder(text="绑定成功")
 
     @staticmethod
-    async def bind_operation(qq: int, opertaion: str, searchtype=4, month=None, other=None) -> MessageChain:
+    async def bind_operation(qq: int, opertaion: str, searchtype=4, other=None) -> MessageChain:
         player_info = link_account(qq)
         if not player_info.get('bind'):
             return await messagechain_builder(at=qq, text="未绑定账号,请先绑定账号")
         if opertaion == 'pt':
             return await query_pt_byid(player_info.get('account'))
         elif opertaion == 'yb':
-            return await get_monthreport_byid(player_info, month=month, selecttype=searchtype, qq=qq)
+            return await get_monthreport_byid(player_info, month=other, selecttype=searchtype, qq=qq)
         elif opertaion == 'info':
             return await get_playerinfo_byid(player_info, searchtype, model=other, qq=qq)
-        elif opertaion == 'paipu':
-            return await get_playerinfo_byid(player_info, searchtype, model=other, qq=qq)
+        # elif opertaion == 'paipu':
+        #     return await get_playerinfo_byid(player_info, searchtype, model=other, qq=qq)
         else:
             return await messagechain_builder(at=qq, text="无此方法")
 
@@ -1726,11 +1733,11 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
                 now_level = nowlevel_info.get("id")
                 now_score = int(nowlevel_info.get("score")) + int(nowlevel_info.get("delta"))
                 if stype in ['3', 3, '三麻', '三']:
-                    msg += "\n最高" + levelswitch(max_level, max_score, '三麻')
-                    msg += "\n当前" + levelswitch(now_level, now_score, '三麻')
+                    msg += "\n三麻:\n最高" + levelswitch(max_level, max_score, '')
+                    msg += "\n当前" + levelswitch(now_level, now_score, '')
                 else:
-                    msg += "\n最高" + levelswitch(max_level, max_score, '四麻')
-                    msg += "\n当前" + levelswitch(now_level, now_score, '四麻')
+                    msg += "\n四麻:\n最高" + levelswitch(max_level, max_score, '')
+                    msg += "\n当前" + levelswitch(now_level, now_score, '')
                 msg += "\n"
         msg = playername + msg[:-1]
     if qq:
@@ -1760,12 +1767,15 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
         nextmontht = int(time.time() * 1000)
         month = "当月"
     else:
-        _y, _m = month.split('-')
-        if _m == "12":
-            month = f"{int(_y) + 1}-1"
+        if re.match(r"\d{2,4}-\d{1,2}", month):
+            _y, _m = month.split('-')
+            if _m == "12":
+                month = f"{int(_y) + 1}-1"
+            else:
+                month = f"{_y}-{int(_m) + 1}"
+            nextmontht = int(time.mktime(time.strptime(month, '%Y-%m')) * 1000)
         else:
-            month = f"{_y}-{int(_m) + 1}"
-        nextmontht = int(time.mktime(time.strptime(month, '%Y-%m')) * 1000)
+            return await messagechain_builder(text="请输入正确的时间")
     selectmontht = nextmontht - 2592000 * 1000
     msg = ""
     matchtype = f'{"三" if selecttype in [3, "3"] else "四"}麻'
@@ -1796,10 +1806,7 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
         temp.sort(key=getrank)
         playerslist.append(temp)
     for playerrank in playerslist:
-        if selecttype == "4":
-            rank = 4
-        else:
-            rank = 3
+        rank = len(playerrank)
         for player in playerrank:
             if player['nickname'] == playername:
                 ptchange += player['gradingScore']
