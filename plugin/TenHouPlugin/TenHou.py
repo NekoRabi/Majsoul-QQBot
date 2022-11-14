@@ -43,16 +43,15 @@ bordercast_temple = {
         3: " %player% 忍痛吃三，太苦了"
     }
 }
-# 四麻特上是 1313和1314,但无法区分东风还是南方
-# 四凤是1616
-# 三特是也是1314
-# _matchtype = {
-#     "1314": "四特南喰赤",
-#     "1313": "四特東喰赤速",
-#     "1616": "四鳳南喰赤",
-#     # "1616": "四鳳東喰赤速",
-#     "1414": "三特南喰赤",
-# }
+# 修正了牌桌类型的获取，但不常见的牌桌类型（右四）对应数字依然未知
+_matchtype = {
+    "41": "四特南喰赤",
+    "97": "四特東喰赤速",
+    "169": "四鳳南喰赤",
+    "225": "四鳳東喰赤速",
+    "57": "三特南喰赤",
+    "185": "三鳳南喰赤",
+}
 timeout = aiohttp.ClientTimeout(total=30)
 
 _cfg = read_file(r'./config/TenHouPlugin/config.yml')
@@ -185,15 +184,15 @@ async def asyautoget_th_matching() -> list:
             text = await response.text()
 
     text = text[6:-4]
-    text = text.replace('\r\n', '').replace(
+    text = text.replace('\r', '').replace('\n', '').replace(
         '",', '";').replace('"', '').split(';')
     nowmatches = []
     for infos in text:
         info = infos.split(',')
         _duijuurl = info[0]
-        _type = info[1]
+        _type = info[3]
         _time = info[2]
-        _numberX = info[3]
+        _numberX = info[1]
         players = []
         for i in range(4, len(info), 3):
             dstr = base64.b64decode(info[i]).decode('utf-8')
@@ -434,8 +433,8 @@ def matching2string(eligiblematch: dict) -> str:
 
     playername = eligiblematch['playername']
     match = eligiblematch['match']
-    # msg = f"{playername}正在{match['type']}乱杀，快来围观:\n"
-    msg = f"{playername}正在天凤对局，快来围观:\n"
+    # msg = f"{playername}正在{_matchtype[match['type']]}乱杀，快来围观:\n"
+    msg = f"{playername}正在{_matchtype[match['type']] if match['type'] in _matchtype else match['type']}乱杀，快来围观:\n"
     # print(f'eligiblematch:{eligiblematch}')
     msg += f"https://tenhou.net/3/?wg={match['url']}\n"
     # msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
