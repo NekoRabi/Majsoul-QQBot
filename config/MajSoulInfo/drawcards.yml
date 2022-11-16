@@ -256,17 +256,7 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-虚无传送门.jpg
-    - index: 51
-      name: 牌背-冰晶
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/牌背-冰晶.jpg
-    - index: 52
-      name: 桌布-堆雪人
-      rare: 3
-      type: decoration
-      url: ./Images/decoration/桌布-堆雪人.jpg
-    length: 53
+    length: 51
   gift:
     item:
     - index: 0
@@ -525,8 +515,22 @@ lottery:
     length: 26
 up:
   decoration:
-  - 牌背-冰晶
-  - 桌布-堆雪人
+  - 牌背-艾托企鹅
+  - 立直棒-墨西哥卷饼
+  - 和牌-雷霆龙卷
+  - 立直-花天月底
+  - 立直-未来视
+  - 和牌-高岭之花
+  - 桌布-赛间小憩
+  - 桌布-清凉假日
+  - 牌背-摇曳彩球
+  - 立直棒-爱心便当
   person:
-  - 藤田加奈
-  - 相原舞
+  - 原村和
+  - 天江衣
+  - 宫永照
+  - 宫永咲
+  - 园城寺怜
+  - 福路美惠子
+  - 竹井久
+  - 新子憧

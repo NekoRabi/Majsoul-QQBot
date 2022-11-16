@@ -79,8 +79,8 @@ def format_players(players):
     return players
 
 
-# 自动抓取天风结算 - 异步爬虫
 async def asyautoget_th_match() -> list:
+    """使用aiohttp编写的自动抓取天风结算 - 异步爬虫"""
     jptz = pytz.timezone('Asia/Tokyo')
     zhtz = pytz.timezone('Asia/Shanghai')
     minute = datetime.datetime.now(tz=zhtz).strftime("%M")
@@ -167,8 +167,8 @@ async def asyautoget_th_match() -> list:
     return forwardmessage(msglist)
 
 
-# 自动抓取天风对局 - 异步爬虫
 async def asyautoget_th_matching() -> list:
+    """自动抓取天风对局 - 异步爬虫"""
     gamingplayer = get_gaming_thplayers()
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
@@ -189,12 +189,12 @@ async def asyautoget_th_matching() -> list:
     nowmatches = []
     for infos in text:
         info = infos.split(',')
-        _duijuurl = info[0]
-        _type = info[3]
-        _time = info[2]
+        _duijuurl = info[0]  # 对局链接
+        _type = info[3]  # 对局类型
+        _time = info[2]  # 对局时间
         _numberX = info[1]
         players = []
-        for i in range(4, len(info), 3):
+        for i in range(4, len(info), 3):  # 将玩家名用base64进行解码
             dstr = base64.b64decode(info[i]).decode('utf-8')
             info[i] = dstr
             player = dict(
@@ -203,7 +203,7 @@ async def asyautoget_th_matching() -> list:
         _duiju = dict(url=_duijuurl, type=_type, time=_time, numberX=_numberX, players=players)
         nowmatches.append(_duiju)
 
-    eligible_Matches = []
+    eligible_Matches = []  # 合法比赛list
     for match in nowmatches:
         matchplayer = get_thmatch_player(match)
         _target_player = ishaving_player_in_list(
@@ -256,6 +256,16 @@ class TenHou:
     # 添加关注
     @staticmethod
     def addthwatch(playername: str, groupid: int):
+        """
+        通过玩家id查询月报
+
+        Args:
+            playername: 玩家名
+            groupid: 添加关注的群组id
+
+        Returns:
+
+        """
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(f'select * from QQgroup where groupid = {groupid}')
@@ -321,6 +331,15 @@ class TenHou:
 
     @staticmethod
     def removethwatch(playername: str, groupid: int):
+        """
+        移除关注
+        Args:
+            playername: 玩家名
+            groupid:群id
+
+        Returns:
+
+        """
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -347,6 +366,7 @@ class TenHou:
 
     @staticmethod
     def clearthwatch(groupid: int):
+        """清除群组关注"""
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         print(f'开始执行清除群聊{groupid}的天凤关注')
@@ -360,6 +380,7 @@ class TenHou:
 
     @staticmethod
     def getthwatch(groupid: int) -> str:
+        """获取某个群全部关注"""
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
 
@@ -374,24 +395,33 @@ class TenHou:
         return msg
 
     @staticmethod
-    async def getthpt(playername: str, reset) -> dict:
+    async def getthpt(playername: str, reset=True) -> dict:
+        """
+        thpt 相关功能
+
+        Args:
+            playername: 天凤玩家名
+            reset: 是否自动重置(即180天不打)
+
+        Returns:
+
+        """
         result = await ptcalculation(playername, reset)
         return dict(msg=result, img64=text_to_image(text=result, needtobase64=True))
 
 
 def get_matchorder(playerlist: list, playername: str) -> int:
-    # def get_score(e):
-    #     return e['score']
-    #
-    # playerwithscore = []
-    # for p in playerlist:
-    #     player, score = p.replace(')', '').split('(')
-    #     playerwithscore.append(dict(playername=playername, score=int(score)))
-    #
-    # playerwithscore.sort(key=get_score, reverse=True)
+    """
+    从玩家list中获取指定玩家的顺位
 
+    Args:
+        playerlist: 玩家list
+        playername: 目标玩家名
+
+    Returns:
+
+    """
     for i in range(4):
-        # if playername == playerwithscore[i]['playername']:
         if playername == playerlist[i]:
             return i + 1
 
@@ -406,16 +436,27 @@ def get_thmatch_player(match: dict) -> list:
 
 
 def ishaving_player_in_list(player_list: list, target_list: set):
+    """
+    是否有玩家在目标集合中
+
+    Args:
+        player_list: 可能有目标玩家的list
+        target_list: 目标集合
+
+    Returns:
+
+    """
     for player in player_list:
-        for target in target_list:
-            if player == target:
-                return player
+        if player in target_list:
+            return player
     return None
 
 
 def matching2string(eligiblematch: dict) -> str:
     """
     将比赛信息转换为合法输出
+
+    计划以后支持自定义模板
 
     Args:
 
@@ -434,7 +475,7 @@ def matching2string(eligiblematch: dict) -> str:
     playername = eligiblematch['playername']
     match = eligiblematch['match']
     # msg = f"{playername}正在{_matchtype[match['type']]}乱杀，快来围观:\n"
-    msg = f"{playername}正在{_matchtype[match['type']] if match['type'] in _matchtype else match['type']}乱杀，快来围观:\n"
+    msg = f"{playername}正在{_matchtype.get(match['type'], '天凤')}{random.choice(['乱杀', '对局'])} 快来围观:\n"
     # print(f'eligiblematch:{eligiblematch}')
     msg += f"https://tenhou.net/3/?wg={match['url']}\n"
     # msg += f"https://tenhou.net/3/?wg={match['url']} , 开始时间: {match['time']}\n"
@@ -446,6 +487,7 @@ def matching2string(eligiblematch: dict) -> str:
 
 
 def get_gaming_thplayers() -> list:
+    """获取数据库中记录的正在对局的天凤玩家"""
     gamingplayer = []
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
 
@@ -458,9 +500,18 @@ def get_gaming_thplayers() -> list:
     return gamingplayer
 
 
-# 转发消息，封装为 向 groupid 群聊 发送 msg 的格式
+#
 #  {playername,msg} -> {groupids,msg,playername}
 def forwardmessage(msglist: list) -> list:
+    """
+    转发消息，封装为 向 groupid 群聊 发送 msg 的格式
+
+    Args:
+        msglist: list[ {playername:xxx, msg:aaa} ]
+
+    Returns: list[ {playername:xxx, msg:aaa, groups:iii} ]
+
+    """
     messageChainList = []
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()

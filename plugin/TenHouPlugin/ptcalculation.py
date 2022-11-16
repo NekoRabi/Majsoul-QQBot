@@ -71,6 +71,12 @@ user_agent_list = [
 
 class playerscore:
     def __init__(self, playername: str):
+        """
+        初始化一个玩家
+
+        Args:
+            playername: 玩家名
+        """
         self.rank = {3: 0, 4: 0}
         self.score = {3: 0, 4: 0}
         self.playername = playername
@@ -88,6 +94,19 @@ class playerscore:
         return
 
     def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=0, is_old=False):
+        """
+        增加分数
+
+        Args:
+            playernum: 玩家数量 (3, 4)
+            score: 当前分数
+            magnification:倍率
+            matchtime:对局时间
+            is_old: 是否是旧玩家/对局
+
+        Returns:
+
+        """
         rk = self.rank[playernum]
         mxsc = levelmap[rk]['maxscore']
         if is_old and rk <= 6:
@@ -104,7 +123,16 @@ class playerscore:
         self.updatehistory(playernum, matchtime)
 
     def updatehistory(self, playernum=3, matchtime=None):
-        # if playernum == 3:
+        """
+        更新历史
+
+        Args:
+            playernum: 玩家数量
+            matchtime: 对局时间
+
+        Returns:
+
+        """
         if self.rank[playernum] > self.maxrk[playernum]:
             self.maxrk[playernum] = self.rank[playernum]
             self.maxsc[playernum] = self.score[playernum]
@@ -115,6 +143,17 @@ class playerscore:
                 self.maxsctime[playernum] = matchtime
 
     def reducescore(self, playernum: int, magnification: int = 1, matchtime=0):
+        """
+        扣分
+
+        Args:
+            playernum: 玩家数量
+            magnification: 倍率
+            matchtime: 对局时间
+
+        Returns:
+
+        """
         rk = self.rank[playernum]
         self.lastplaytime = matchtime
         reducescore = int(levelmap[rk]['losescore'] * magnification)
@@ -128,6 +167,7 @@ class playerscore:
                 self.score[playernum] = 0
 
     def reset(self):
+        """超时重置"""
         self.rank = {3: 0, 4: 0}
         self.score = {3: 0, 4: 0}
         self.maxrk = {3: 0, 4: 0}
@@ -138,6 +178,7 @@ class playerscore:
         self.poslist = {3: [], 4: []}
 
     def showrank(self):
+        """展示段位"""
         playername = self.playername
         if self.rank[3] == 20:
             p3 = f'三麻段位:{levelmap[self.rank[3]]["name"]}'
@@ -160,6 +201,13 @@ class playerscore:
     def recentXposition(self, num=5, returnErr=True):
         """
         返回一个玩家最近 num 场对局的顺位
+
+        Args:
+            num: 对局数量
+            returnErr: 是否要返回错误信息
+
+        Returns:
+
         """
         success = 0
         msg = f'{self.playername} 最近 {num} 局顺位如下:\n'
@@ -190,6 +238,15 @@ class playerscore:
 
 
 async def getthpt(playername: str):
+    """
+    查天凤分数
+
+    Args:
+        playername:  玩家名
+
+    Returns:
+
+    """
     url = f'https://nodocchi.moe/api/listuser.php?name={playername}'
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -202,10 +259,21 @@ async def getthpt(playername: str):
 
 
 def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
+    """
+    获取对局信息
+
+    Args:
+        listenerjson: 从天凤水表网得到的json
+        playername: 玩家们
+        reset: 是否重置
+
+    Returns: 输出段位字符串
+
+    """
     dt = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
     deadtime = 86400 * 180
     ps = playerscore(playername)
-    matches = listenerjson.get('list')
+    matches = listenerjson.get('list')  # 所有对局的list
     matchcount = 0
     if len(matches) == 0:
         return "未查询到该玩家"
