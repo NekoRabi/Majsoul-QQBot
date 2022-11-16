@@ -10,6 +10,8 @@ def file_init():
 
     if not os.path.exists("./config/TenHouPlugin"):
         os.mkdir("./config/TenHouPlugin")
+    if not os.path.exists("./data/TenHouPlugin"):
+        os.mkdir("./data/TenHouPlugin")
 
     if not os.path.exists(r'./config/TenHouPlugin/config.yml'):
         _cfg = dict(thpt=True, searchfrequency=6, autoquery=True, broadcast='image', silence_CLI=False)

@@ -1,6 +1,8 @@
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等
 
+建议通过下载release或者群文件中的压缩包进行部署，通过git clone的可能会有意料之外的问题 ~~( 比如我忘记初始化文件夹 )~~
+
  [指令帮助](./docs/command_help.md)
 
 # 效果展示
@@ -34,9 +36,9 @@
 
 雀魂数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
 
-以后可能会改成从雀魂直接获取数据 ( 等我会使用 websocket )
+*以后可能会改成从雀魂直接获取数据 ( 等我会使用 websocket )*
 
-天凤数据来自角田提供的数据接口，自行存储数据
+天凤播报来自角田提供的数据接口，自行存储数据，段位查询来自[天凤水表网](https://nodocchi.moe/tenhoulog/)
 
 
 # 常见错误
@@ -44,6 +46,15 @@
 [查看帮助](./docs/faq.md)
 
 # 如何使用
+
+---
+
+<p style="font-size:20px;color:red;font-weight:bold">Yiri-Mirai 已处于半停机状态，不支持最新的Mirai-Api-Http！！！<br/>
+为减少使用中的问题，请将mah的版本固定在2.4-2.5，yirimirai版本固定在0.2.6.2</p>
+
+以后可能会换成NoneBot重新开发
+
+---
 
 需要先安装 mirai 和 mirai-api-http，在mirai-api-http的配置文件中修改adapter和adapterSettings，再下载本程序，在config.yml中配置好相关参数后就可以直接使用命令行启动。
 
@@ -121,10 +132,6 @@ nudgeconfig:
   supersendnudgechance: 0.2 # 还击的"戳一戳"中，触发超级还击的概率
   supernudgequantity: 10 # 单次超级还击的发送 "戳一戳" 的次数
 
-# 在某群关闭自动回复
-norepeatgroup:
-  - 0
-
 silencegroup:
   - 0     # 设置单群沉默
 
@@ -133,10 +140,6 @@ welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名�
 
 whitelist:
   - 0   # 白名单
-
-# 色图群聊
-setugroups:
-  - 0
 
 settings: # 功能开关
   autogetpaipu: true  # 自动获取雀魂牌谱
@@ -149,45 +152,7 @@ settings: # 功能开关
   help: true          # 是否显示帮助
   voice: false        # 语音功能
 
-repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
-  repeatQ: 20         # 复读问号 的概率
-  repeatmsg: 1        # 复读的概率
-  interruptQ: 0.5     # 用 ? 打断发言的概率
-  interruptQQ: 0.1    # 用 ? 或多个??打断发言的概率
-
-# 雀魂指令控制
-qhsettings: # 是否启用
-  qhpt: true
-  qhinfo: true
-  qhsl: true
-  qhyb: true
-  qhpaipu: true
-  disptgroup: # 在某群禁用 qhpt
-    - 0
-  disinfogroup:
-    - 0
-  disslgroup:
-    - 0
-  disybgroup:
-    - 0
-  disautoquerygroup:
-    - 0
-  dispaipugroup:
-    - 0
-
-
-#语音设置
-voicesetting:
-  # 腾讯云文本转语音系统，请在使用前仔细看使用手册
-  # https://cloud.tencent.com/document/product/1073/37995
-  # 密钥可前往https://console.cloud.tencent.com/cam/capi网站进行获取
-  volume: 1       # 音量或是音高
-  speed: 0.9      # 语速
-  voicetype: 1002 # 音色或是音质
-  private: true   # 因为该功能可能需要机器人主人承担一定的费用，因此你可以设置该功能是否为私人使用
-                  # 即 设置private 为 true，则只有你可以让机器人说话
-  secretId: ''
-  secretKey: ''
+# 雀魂指令控制 请移步plugin/MajSoulInfo/doc.md
 
 
 
@@ -279,21 +244,23 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  - 以后会有更多……
 
  # 存在的问题
- 1. config.yml编辑后乱码。 ~~（基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
- 解决办法: 将config.yml重新编码 ( 现已全部都使用 utf-8 编码 ) 
+ 1. ~~config.yml编辑后乱码。 （基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
+ ~~解决办法: 将config.yml重新编码 ( 现已全部都使用 utf-8 编码 )~~
  2. ~~网络请求超时(网络不好)~~
 
  # 开发计划
 
-  [ ] 数据库重新设计 (进行中)
+  [√] 数据库重新设计 
 
-  [ ] 增加何切支持
+  [ ] 修复牌理Bug
 
-  [?] 将所有功能都写进配置文件，提供高度自定义
+  [√] 模块化开发，提供高度自定义
 
-  [ ] 打包成exe,或者一键启动与更新
+  [√] 打包成exe,或者一键启动与更新
 
-  [ ] 做一份完整的说明书
+  [√] 做一份完整的说明书
+
+  [ ] 将每个模块都补充完整的注释和文档
 
 # 其他
 语音模块是使用的腾讯云的api，是收费的，默认关闭，有想法可以打开玩玩，一天约 0.02 或 0.03 元   [地址](https://cloud.tencent.com/document/product/1073/37995)
@@ -303,7 +270,9 @@ QQ:1215791340 验证消息： 可爱的拉克丝
 
 群聊: 586468489
 
-欢迎提交 需求、BUG、问题，也可以找我询问项目相关的问题
+欢迎提交 需求、BUG、问题，也可以找我询问项目相关的问题。我很乐意有人来和我一起维护这个项目 
+
+*考研考公求职中，暂缓项目开发*
 
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。

@@ -1,9 +1,9 @@
 """
 :Author:  NekoRabi
 :Create:  2022/9/23 13:34
-:Update: /
+:Update: 2022/11/16 20:10
 :Describe: "帮助"生成功能
-:Version: 0.0.1
+:Version: 0.0.2
 """
 from typing import Union
 
@@ -58,10 +58,13 @@ def add_help(event_type: str, data: Union[set, list, str, tuple, dict]):
 
 
 def get_help_list():
+    """返回所有添加的help信息"""
     return all_help
 
 
 def create_helpimg():
     """生成帮助"""
+    add_help('group', 'https://github.com/NekoRabi/Majsoul-QQBot')
+    add_help('friend', 'https://github.com/NekoRabi/Majsoul-QQBot')
     text_to_image(text=all_help['grouphelp'], path='grouphelp.png')
     text_to_image(text=all_help['friendhelp'], path='friendhelp.png')

@@ -64,12 +64,3 @@ settings: # 功能开关
   norepeat: false     # 全局自动回复
   help: true          # 是否显示帮助
   saveflashimg: false # 保存闪照
-
-repeatconfig:         # 回复、打断相关，要求值从上到下排序为从大到小，值为 百分数
-  repeatQ: 20         # 复读问号 的概率
-  repeatmsg: 1        # 复读的概率
-  interruptQ: 0.5     # 用 ? 打断发言的概率
-  interruptQQ: 0.1    # 用 ? 或多个??打断发言的概率
-
-  autoreply: true     # 是否开启机器人互动
-  kwreply: true       # 是否开启关键词回复
