@@ -34,7 +34,7 @@
 
 # 如何实现
 
-雀魂数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/)，通过定时爬取来获取牌谱。
+雀魂数据来自[雀魂牌谱屋](https://amae-koromo.sapk.ch/) , 通过定时爬取来获取牌谱。
 
 *以后可能会改成从雀魂直接获取数据 ( 等我会使用 websocket )*
 
