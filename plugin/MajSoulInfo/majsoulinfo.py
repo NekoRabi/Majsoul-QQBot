@@ -226,7 +226,7 @@ class MajsoulQuery:
 
         try:
             url = get_player_extended_stats_url(playerid, selecttype, mode=selectlevel)
-            if selecttype == "4":
+            if f'{selecttype}' == "4":
                 rule = "四麻"
             async with aiohttp.ClientSession(
                     connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,

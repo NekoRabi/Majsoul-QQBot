@@ -1,0 +1,2 @@
+command: (重开|remake)\s*(\d+)?\s*(\w+)?\s*$
+remake_perday: 1

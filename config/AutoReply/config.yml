@@ -1,0 +1,11 @@
+norepeat: false
+norepeatgroup:
+- 0
+repeatconfig:
+  autoreply: true
+  interruptQ: 0.5
+  interruptQQ: 0.1
+  kwreply: true
+  repeatQ: 20
+  repeatmsg: 1
+useAt: false

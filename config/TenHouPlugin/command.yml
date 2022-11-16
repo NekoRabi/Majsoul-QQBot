@@ -1,0 +1,8 @@
+addwatch: (thadd|天凤添加关注)\s*(\S+)\s*$
+clearwatch: (thclearwatch|天凤清除本群关注)\s*$
+delwatch: (thdel|天凤删除关注)\s*(\S+)\s*$
+getwatch: (thgetwatch|天凤获取本群关注)\s*$
+taglist: (qhtaglist)\s*(\S+)?\s*$
+tagoff: (thtagoff|天凤删除标记)\s*(\S+)\s*(\S+)?\s*$
+tagon: (thtagon|天凤添加标记)\s*(\S+)\s*(\S+)\s*$
+thpt: (thpt|天凤pt|天凤分数)\s*(\S+)\s*(\S+)?\s*$
