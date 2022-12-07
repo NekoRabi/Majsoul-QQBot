@@ -5,6 +5,7 @@
 :Describe: 负责雀魂功能与机器人的交互
 :Version: 0.6.1
 """
+import asyncio
 import datetime
 import re
 
@@ -571,20 +572,36 @@ async def asyqh_autopaipu():
     result = await majsoul.asygetqhpaipu()
     if len(result) > 0:
         print(f'新的雀魂结算:{result}')
+        index = 0
         _broadcast_type = _qhsettings.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
             for msgobj in result:
                 for group in msgobj['groups']:
+                    index += 1
+                    if index % 10 == 0:
+                        await asyncio.sleep(1)
+                    else:
+                        await asyncio.sleep(0.005)
                     await messagechain_sender(grouptarget=group, msg=await messagechain_builder(text=msgobj['msg']))
         elif _broadcast_type in ['mix', 'mixed']:
             for msgobj in result:
                 for group in msgobj['groups']:
+                    index += 1
+                    if index % 10 == 0:
+                        await asyncio.sleep(1)
+                    else:
+                        await asyncio.sleep(0.005)
                     b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
                     await messagechain_sender(grouptarget=group,
                                               msg=await messagechain_builder(text=msgobj['link'], imgbase64=b64))
         else:
             for msgobj in result:
                 for group in msgobj['groups']:
+                    index += 1
+                    if index % 10 == 0:
+                        await asyncio.sleep(1)
+                    else:
+                        await asyncio.sleep(0.005)
                     b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
                     # await messagechain_sender_group_message(group, msgobj['msg'])
                     await messagechain_sender(grouptarget=group, msg=await messagechain_builder(imgbase64=b64))

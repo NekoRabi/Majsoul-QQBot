@@ -5,6 +5,7 @@
 :Describe: 天凤与机器人交互组件
 :Version: 0.0.3
 """
+import asyncio
 import datetime
 import re
 
@@ -186,10 +187,16 @@ async def asyth_all():
         print("开始查询天凤信息")
     result = await tenhou.asythquery()
     # print(result)
+    index = 0
     broadcast_type = _cfg.get('broadcast', 'img').lower()
     if broadcast_type in ['mix', 'mixed']:
         for msgobj in result:
             for group in msgobj['groups']:
+                index += 1
+                if index % 10 == 0:
+                    await asyncio.sleep(1)
+                else:
+                    await asyncio.sleep(0.005)
                 b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
                 # await bot.send_group_message(group, msgobj['msg'])
                 if msgobj.get('url', None):
@@ -201,10 +208,20 @@ async def asyth_all():
     elif broadcast_type in ['str', 'txt', 'text']:
         for msgobj in result:
             for group in msgobj['groups']:
+                index += 1
+                if index % 10 == 0:
+                    await asyncio.sleep(1)
+                else:
+                    await asyncio.sleep(0.005)
                 await messagechain_sender(grouptarget=group, msg=await messagechain_builder(text=msgobj['msg']))
     else:
         for msgobj in result:
             for group in msgobj['groups']:
+                index += 1
+                if index % 10 == 0:
+                    await asyncio.sleep(1)
+                else:
+                    await asyncio.sleep(0.005)
                 b64 = text_to_image(text=msgobj['msg'], needtobase64=True)
                 # await bot.send_group_message(group, msgobj['msg'])
                 await messagechain_sender(grouptarget=group, msg=await messagechain_builder(imgbase64=b64))

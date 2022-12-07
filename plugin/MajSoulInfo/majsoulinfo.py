@@ -100,7 +100,7 @@ if type(_query_limit) != int:
 
 def get_qhpturl(playername, searchtype=3):
     """查询玩家的URL"""
-    if int(searchtype) == 3:
+    if searchtype in [3, '3']:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl3/search_player/{playername}?limit=20&tag=all"
     else:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/search_player/{playername}?limit=20&tag=all"
@@ -123,7 +123,7 @@ def get_player_records_url(playerid, searchtype, end_time=None, start_time=12623
     """
     if end_time is None:
         end_time = int(time.time() * 1000)
-    if int(searchtype) == 4:
+    if searchtype in [4, '4']:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl4/player_records/{playerid}/{end_time}/{start_time}?limit={total}&mode=8,9,11,12,15,16&descending=true"
     else:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl3/player_records/{playerid}/{end_time}/{start_time}?limit={total}&mode=21,22,23,24,25,26&descending=true"
@@ -632,6 +632,8 @@ class MajsoulQuery:
             paipumsg = f"{playername} 最近一个月 的对局报告\n"
             getrecent = True
         else:
+            if 1 > int(month) or int(month) > 12:
+                return await messagechain_builder(text="请输入正确的时间")
             paipumsg = f"{playername} {year}-{month} 的对局报告\n"
         selectmonth = f"{year}-{month}"
         rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
@@ -1103,9 +1105,14 @@ class MajsoulQuery:
                     async with session.get(url) as response:
                         if response.status == 503:
                             pass  # 先不做异常处理
+                            link_time[i] = 30
                             print(f'牌谱屋似乎离线了,测试默认节点{i}失败')
-                    end_time = time.time()
-                    link_time[i] = end_time - start_time
+                        elif response.status != 200:
+                            print(f'节点{i}链接失败')
+                            link_time[i] = 30
+                        else:
+                            end_time = time.time()
+                            link_time[i] = end_time - start_time
                 except asyncio.TimeoutError:
                     print(f'测试节点{i}超时')
                 except Exception as e:
@@ -1761,14 +1768,19 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
     """
     if selecttype is None:
         selecttype = 4
+    matchtype = f'{"三" if selecttype in [3, "3"] else "四"}麻'
     playerid = player_info.get('account')
     playername = player_info.get('playername')
     if not month:
         nextmontht = int(time.time() * 1000)
-        month = "当月"
+        month = "最近一个月"
+        paipumsg = f"{playername} {matchtype} {month} 月报:\n"
     else:
         if re.match(r"\d{2,4}-\d{1,2}", month):
             _y, _m = month.split('-')
+            if 1 > int(_m) or int(_m) > 12:
+                return await messagechain_builder(text="请输入正确的时间")
+            paipumsg = f"{playername} {matchtype} {month} 月报:\n"
             if _m == "12":
                 month = f"{int(_y) + 1}-1"
             else:
@@ -1778,27 +1790,28 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
             return await messagechain_builder(text="请输入正确的时间")
     selectmontht = nextmontht - 2592000 * 1000
     msg = ""
-    matchtype = f'{"三" if selecttype in [3, "3"] else "四"}麻'
     rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
     playerslist = []
-    async with aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
-            headers={'User-Agent': random.choice(user_agent_list)}) as session:
-        url = get_player_records_url(playerid, selecttype, nextmontht, selectmontht)
-        async with session.get(url) as response:
-            if response.status == 503:
-                return await messagechain_builder(text='牌谱屋似乎离线了')
-            paipuresponse = await response.json()
-        url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
-        async with session.get(url) as response:
-            if response.status == 503:
-                return await messagechain_builder(text='牌谱屋似乎离线了')
-            inforesponse: dict = await response.json()
-        if inforesponse.get('error', None) == 'id_not_found':
-            return await messagechain_builder(at=qq, text=f'你{matchtype}似乎没有打过金之间呢')
-        if len(paipuresponse) == 0:
-            return await messagechain_builder(at=qq, text=f'你这个月似乎没有进行过{matchtype}的对局呢')
-    paipumsg = f"{playername} {matchtype} {month} 月报:\n"
+    try:
+        async with aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
+                headers={'User-Agent': random.choice(user_agent_list)}) as session:
+            url = get_player_records_url(playerid, selecttype, nextmontht, selectmontht)
+            async with session.get(url) as response:
+                if response.status == 503:
+                    return await messagechain_builder(text='牌谱屋似乎离线了')
+                paipuresponse = await response.json()
+            url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
+            async with session.get(url) as response:
+                if response.status == 503:
+                    return await messagechain_builder(text='牌谱屋似乎离线了')
+                inforesponse: dict = await response.json()
+            if inforesponse.get('error', None) == 'id_not_found':
+                return await messagechain_builder(at=qq, text=f'你{matchtype}似乎没有打过金之间呢')
+            if len(paipuresponse) == 0:
+                return await messagechain_builder(at=qq, text=f'你这个月似乎没有进行过{matchtype}的对局呢')
+    except asyncio.exceptions.TimeoutError:
+        return await messagechain_builder(at=qq, text="查询超时, 请稍后再试")
     paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
     ptchange = 0
     for players in paipuresponse:
@@ -1978,11 +1991,11 @@ async def get_playerpaipu_byid(player_info: dict, selecttype: Union[str, int] = 
             return await messagechain_builder(at=qq, text=paipuInfo)
         elif _broadcast_type in ['mix', 'mixed']:
             return await messagechain_builder(at=qq, text=_paipu_link,
-                imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+                                              imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
         else:
             # text_to_image(fontsize=36, path=f"MajsoulInfo/qhpt{username}.png", text=prtmsg)
             return await messagechain_builder(at=qq,
-                imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
+                                              imgbase64=text_to_image(fontsize=36, text=paipuInfo, needtobase64=True))
         # result['img64'] = text_to_image(fontsize=36, text=paipuInfo, needtobase64=True)
     return result
 
