@@ -1127,6 +1127,7 @@ class MajsoulQuery:
         _link_index = recommend_link_index
         if link_time[_link_index] >= 30:
             print(f'所有链路延时均超过30s')
+            # write_file()
         print(f'已将默认链路设置为 link{_link_index}')
         return recommend_link_index
 
@@ -1767,7 +1768,7 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
 
     """
     if selecttype is None:
-        selecttype = 4
+        selecttype = "4"
     matchtype = f'{"三" if selecttype in [3, "3"] else "四"}麻'
     playerid = player_info.get('account')
     playername = player_info.get('playername')

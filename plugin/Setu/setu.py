@@ -194,6 +194,17 @@ async def disablesetu(event: GroupMessage):
 
 
 @bot.on(GroupMessage)
+async def randomsetu(event: GroupMessage):
+    """发一个随机涩图网站"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^随机[涩色]图(网[址站]?)?", msg.strip())
+    if m:
+        await bot.send(event, await messagechain_builder(text='https://iw233.cn/API/Random.php'))
+    return
+
+
+@bot.on(GroupMessage)
 async def getsomesetu(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
 
@@ -230,7 +241,8 @@ async def getsomesetu(event: GroupMessage):
                         await bot.recall(res)
                 except Exception as e:
                     print(f"色图请求失败:{e}")
-                    await bot.send(event, await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
+                    await bot.send(event,
+                                   await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
     elif m2:
         if random.random() * 100 < 0:
             # print(f"发出对{senderid}的少冲提醒")
@@ -259,5 +271,6 @@ async def getsomesetu(event: GroupMessage):
                         await bot.recall(res)
                 except Exception as e:
                     print(f"色图请求失败:{e}")
-                    await bot.send(event, await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
+                    await bot.send(event,
+                                   await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
     return
