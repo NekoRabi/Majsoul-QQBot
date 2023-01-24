@@ -237,9 +237,9 @@ class playerscore:
         return msg
 
 
-async def getthpt(playername: str):
+async def get_tenhou_rank_records(playername: str):
     """
-    查天凤分数
+    获取一名玩家的天凤对局记录
 
     Args:
         playername:  玩家名
@@ -339,9 +339,56 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
     return ps.showrank()
 
 
+async def get_tenhou_month_report(playername: str, selecttype=None, year=None, month=None):
+    msg = f"{playername} 最近一个月 的天凤对局报告\n"
+    dt = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
+    rank_positon_dict: dict = {1: 0, 2: 0, 3: 0}
+    if selecttype not in [4, '4']:
+        selecttype = '3'
+    else:
+        selecttype = '4'
+        rank_positon_dict[4] = 0
+    try:
+        records = await get_tenhou_rank_records(playername)
+    except asyncio.exceptions.TimeoutError as e:
+        print(f'天凤PT查询超时{e}')
+        return '查询超时,请再试一次'
+
+    if not year or not month:
+        target_endtime = int(time.time())
+        target_starttime = target_endtime - 86400 * 30
+        year, month = time.strftime("%Y-%m", time.localtime()).split('-')
+    else:
+        msg = f"{playername} {year}-{month} 的月度天凤对局报告\n"
+        target_starttime = int(time.mktime(time.strptime(f'{year}-{month}', '%Y-%m')))
+        target_endtime = target_starttime + 86400 * 30
+
+    for item in records.get('list'):
+        magnification = 1
+        starttime = int(item['starttime'])
+        if starttime < target_starttime:
+            continue
+        elif starttime > target_endtime:
+            break
+        if item['playernum'] != selecttype:
+            continue
+        if item['playlength'] == '2':
+            magnification = 1.5
+        # print(magnification, end='\t')
+        for i in range(1, 5):
+            if item[f'player{i}'] == playername:
+                position = i
+                rank_positon_dict[position] += 1
+                break
+    msg +=  f"{rank_positon_dict[1]}次①,{rank_positon_dict[2]}次②,{rank_positon_dict[3]}次③"
+    if rank_positon_dict.get(4,0) != 0:
+        msg += f",{rank_positon_dict[4]}次④"
+    return msg
+
+
 async def ptcalculation(playername, reset) -> str:
     try:
-        results = await getthpt(playername)
+        results = await get_tenhou_rank_records(playername)
         content = readlevel(results, playername, reset=reset)
         return content
     except asyncio.exceptions.TimeoutError as e:

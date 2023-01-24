@@ -1184,8 +1184,10 @@ class MajsoulQuery:
         return await messagechain_builder(text="绑定成功")
 
     @staticmethod
-    async def bind_operation(qq: int, opertaion: str, searchtype=4, other=None) -> MessageChain:
+    async def bind_operation(qq: int, opertaion: str, searchtype=3, other=None) -> MessageChain:
         player_info = link_account(qq)
+        if searchtype is None:
+            searchtype = 3
         if not player_info.get('bind'):
             return await messagechain_builder(at=qq, text="未绑定账号,请先绑定账号")
         if opertaion == 'pt':
@@ -1750,8 +1752,9 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
         msg = playername + msg[:-1]
     if qq:
         return await messagechain_builder(at=qq, text=msg)
-    return await messagechain_builder(text=msg)
-
+    if _config.get('broadcast', 'image').lower() in ['text', 'txt', 'str']:
+        return await messagechain_builder(text=msg)
+    return await messagechain_builder(imgbase64=text_to_image(text=msg))
 
 async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 4, month: str = None,
                                qq: int = None) -> MessageChain:
@@ -1768,7 +1771,7 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
 
     """
     if selecttype is None:
-        selecttype = "4"
+        selecttype = "3"
     matchtype = f'{"三" if selecttype in [3, "3"] else "四"}麻'
     playerid = player_info.get('account')
     playername = player_info.get('playername')

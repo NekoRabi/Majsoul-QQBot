@@ -87,6 +87,7 @@ def file_init():
     cx.close()
     thcmds = {
         "thpt": r"(thpt|天凤pt|天凤分数)\s*(\S+)\s*(\S+)?\s*$",
+        "thyb": r"(thyb|天凤月报)\s*(\S+)\s*(\d)?\s*((\d{4})-(\d{1,2}))?\s*$",
         "addwatch": r"(thadd|天凤添加关注)\s*(\S+)\s*$",
         "delwatch": r"(thdel|天凤删除关注)\s*(\S+)\s*$",
         "getwatch": r"(thgetwatch|天凤获取本群关注)\s*$",

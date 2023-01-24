@@ -16,7 +16,7 @@ from decimal import Decimal
 import aiohttp
 import pytz
 import re
-from plugin.TenHouPlugin.ptcalculation import ptcalculation, levelmap
+from plugin.TenHouPlugin.ptcalculation import ptcalculation, levelmap, get_tenhou_month_report
 from utils import text_to_image, read_file
 
 user_agent_list = [
@@ -407,6 +407,20 @@ class TenHou:
 
         """
         result = await ptcalculation(playername, reset)
+        return dict(msg=result, img64=text_to_image(text=result, needtobase64=True))
+
+    @staticmethod
+    async def getthyb(playername: str, searchtype=3, year=None, month=None) -> dict:
+        """
+        thyb 相关功能
+
+        Args:
+            playername: 天凤玩家名
+
+        Returns:
+
+        """
+        result = await get_tenhou_month_report(playername, searchtype, year, month)
         return dict(msg=result, img64=text_to_image(text=result, needtobase64=True))
 
 

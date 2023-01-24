@@ -22,13 +22,14 @@ from utils.get_groupmember_authority import is_having_admin_permission
 
 add_help('group', [
     "thpt / 天凤pt / 天凤分数 [玩家名] : 查询玩家的天凤pt \n",
+    "thyb / 天凤月报 [玩家名] [3/4] [yyyy-mm] : 查询天凤月报\n",
     "thadd / 天凤添加关注 [玩家名] :将一个玩家添加指天凤的自动查询，有新对局会广播\n",
     "thdel / 天凤删除关注 [玩家名] :将一个玩家从天凤自动查询中移除，不再自动广播对局记录\n",
     "thgetwatch / 天凤获取本群关注 :获取本群所有的天凤关注的玩家\n",
     "牌理[114514p1919m810s4z] : 天凤一般型牌理分析\n"
 ])
 __all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
-           'gettenhouwatcher']
+           'gettenhouwatcher', 'thmonthreport']
 
 _cfg = read_file(r'./config/TenHouPlugin/config.yml')
 
@@ -55,7 +56,7 @@ async def ranktenhouplayer(event: GroupMessage):
                     reset = False
             else:
                 reset = False
-        result = await tenhou.getthpt(m.group(2), reset)
+        result = await tenhou.get_tenhou_rank_records(m.group(2), reset)
         await messagechain_sender(await messagechain_builder(imgbase64=result['img64']), event=event,
                                   errortext=result['msg'])
         # await bot.send(event, tenhou.getthpt(m.group(2), reset))
@@ -105,6 +106,25 @@ async def gettenhouwatcher(event: GroupMessage):
     m = re.match(fr"^{commandpre}{_cmd.get('getwatch')}", msg.strip())
     if m:
         await bot.send(event, tenhou.getthwatch(event.group.id))
+
+
+@bot.on(GroupMessage)
+async def thmonthreport(event: GroupMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{_cmd.get('thyb')}", msg.strip())
+    if m:
+        if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
+            return messagechain_sender(event=event,
+                                       msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                      at=event.sender.id))
+        searchtype = m.group(3)
+        year = m.group(5)
+        month = m.group(6)
+        if searchtype:
+            searchtype = int(searchtype)
+        result = await tenhou.getthyb(m.group(2), searchtype, year, month)
+        await messagechain_sender(await messagechain_builder(imgbase64=result['img64']), event=event,
+                                  errortext=result['msg'])
 
 
 # 添加昵称
