@@ -15,7 +15,8 @@ if not os.path.exists(r"./config/MajSoulInfo/config.yml"):
     print('未检测到雀魂配置文件,生成初始文件中...')
     cfg = dict(qhpt=True, qhinfo=True, qhsl=True, qhyb=True, qhpaipu=True, broadcast='image', query_limit=10, linknum=1,
                link_update=True, link_freshtime='2:33', autoquery=True, dailydrawcount=3, disptgroup=[0],
-               disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0], dispaipugroup=[0])
+               authenticationgroup=[0], disinfogroup=[0], disslgroup=[0], disybgroup=[0], disautoquerygroup=[0],
+               dispaipugroup=[0])
     write_file(content=cfg, path=r"./config/MajSoulInfo/config.yml")
     print('雀魂配置文件生成完毕')
 
@@ -34,7 +35,8 @@ if not os.path.exists(r"./config/MajSoulInfo/command.yml"):
         'addwatch': r'(qhadd|雀魂添加关注)\s*(\S+)\s*$',
         'delwatch': r'(qhdel|雀魂删除关注)\s*(\S+)\s*$',
         'qhbind': r'(qhbind|雀魂绑定)\s*(\S+)$',
-        'qhm_operation':  r'qhm(pt|yb|info|paipu|help)\s*([34])?\s*(\S+)?\s*(\d{4}[-]\d{1,2})?$',
+        'qhm_operation': r'qhm(pt|yb|info|paipu|help)\s*([34])?\s*(\S+)?\s*(\d{4}[-]\d{1,2})?$',
+        'qhauthority': r'qhauthority\s*(\w+)\s*$',
         'dbupdate': r'qhfreshdb\s*$',
         'changlink': r'qhfreshlink\s*$',
         'clearwatch': r'(qhclearwatch|雀魂清除本群关注)\s*$',
@@ -168,6 +170,7 @@ _qhhelp = [
     "qhinfo / 雀魂玩家详情 [玩家名] (3/4) ({基本/立直/血统/all}):查询一个玩家的详细数据\n",
     "qhyb / 雀魂月报 [玩家名] (3/4) [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报\n",
     "qhbind / 雀魂绑定 [玩家名] : 绑定雀魂账号\n",
+    "qhauthority enable/disable : 开启群权限控制"
     "qhmXX : 绑定后可用类似的操作快速查询自己\n"
 ]
 

@@ -25,7 +25,7 @@ from utils.get_groupmember_authority import is_having_admin_permission
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
            'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
-           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation', 'get_player_detail_website']
+           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation', 'get_player_detail_website', 'qhgroupauthentication']
 _admin = config.get('admin', [])
 _master = config.get('master', 1215791340)
 
@@ -256,7 +256,8 @@ async def addmajsoulwatch(event: GroupMessage):
             #     await messagechain_sender(event=event, addwatch(m.group(2), event.group.id))
             # else:
             #     await messagechain_sender(event=event, await messagechain_builder(at=event.sender.id), text=" 抱歉，只有管理员才能这么做哦")]))
-            await messagechain_sender(event=event, msg=majsoul.addwatch(m.group(2), event.group.id))
+            await messagechain_sender(event=event, msg=majsoul.addwatch(m.group(2), event.group.id,
+                                                                        is_having_admin_permission(event)))
 
 
 @bot.on(GroupMessage)
@@ -273,7 +274,8 @@ async def delmajsoulwatch(event: GroupMessage):
             #                    removewatch(playername=m.group(2), groupid=event.group.id))
             # else:
             #     await messagechain_sender(event=event, await messagechain_builder(at=event.sender.id), text=" 抱歉，只有管理员才能这么做哦")]))
-            await messagechain_sender(event=event, msg=majsoul.removewatch(m.group(2), event.group.id))
+            await messagechain_sender(event=event, msg=majsoul.removewatch(m.group(2), event.group.id,
+                                                                           is_having_admin_permission(event)))
     return
 
 
@@ -530,6 +532,29 @@ async def qhbind_operation(event: GroupMessage):
         other = m.group(3)
         await messagechain_sender(event=event, msg=await majsoul.bind_operation(qq=event.sender.id, opertaion=operation,
                                                                                 searchtype=search_type, other=other))
+    return
+
+
+@bot.on(GroupMessage)
+async def qhgroupauthentication(event: GroupMessage):
+    """绑定账号可用的操作"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    defaultcmd = r'qhauthority\s*(\w+)\s*$'
+    m = re.match(
+        fr"^{commandpre}{_qhcmd.get('qhauthority', defaultcmd)}", msg.strip())
+    if m:
+        if not is_having_admin_permission(event=event):
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text='抱歉, 只有管理员有权限这么做'))
+        enable = m.group(1).lower()
+
+        if enable in ['enable', 'true', 'open']:
+            enable = True
+        elif enable in ['disable', 'false', 'cross', 'close']:
+            enable = False
+        else:
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text='指令有误'))
+
+        await messagechain_sender(event=event, msg=await majsoul.authentication_controller(event.group.id, enable))
     return
 
 

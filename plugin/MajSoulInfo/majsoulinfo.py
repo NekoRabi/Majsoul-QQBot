@@ -527,18 +527,21 @@ class MajsoulQuery:
         return msg
 
     @staticmethod
-    def addwatch(playername: str, groupid: int):
+    def addwatch(playername: str, groupid: int, isadmin=True):
         """
         添加雀魂关注
 
         Args:
             playername: 玩家名
             groupid: 群组号
+            isadmin: 是否是管理
 
         Returns: 添加是否成功
 
         """
-
+        auth_groups = _config.get("authenticationgroup", [])
+        if groupid in auth_groups and isadmin is False:
+            return "添加失败,本群该功能需要管理员"
         if not _config.get('silence_CLI', False):
             print(f'groupid= {groupid},playername= {playername}')
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
@@ -721,8 +724,21 @@ class MajsoulQuery:
         return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
 
     @staticmethod
-    def removewatch(playername: str, groupid: int) -> str:
-        """雀魂取消关注"""
+    def removewatch(playername: str, groupid: int, isadmin=True) -> str:
+        """
+        雀魂取消关注
+
+        Args:
+            playername: 玩家名
+            groupid: 群号
+            isadmin: 是否是管理
+
+        Returns:
+
+        """
+        auth_groups = _config.get("authenticationgroup", [])
+        if groupid in auth_groups and isadmin is False:
+            return "删除失败,本群该功能需要管理员"
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -1201,6 +1217,24 @@ class MajsoulQuery:
         else:
             return await messagechain_builder(at=qq, text="无此方法")
 
+    @staticmethod
+    async def authentication_controller(groupid: int, enable: bool) -> MessageChain:
+        groups: list = _config.get("authenticationgroup", [])
+        msgchain = await messagechain_builder(text="操作成功")
+        if enable:
+            if groupid not in groups:
+                groups.append(groupid)
+                _config['authenticationgroup'] = groups
+                write_file(_config, r"./config/MajSoulInfo/config.yml")
+            else:
+                msgchain = await messagechain_builder(text="操作失败,已设置权限")
+        else:
+            if groupid in groups:
+                groups.remove(groupid)
+                _config['authenticationgroup'] = groups
+                write_file(_config, r"./config/MajSoulInfo/config.yml")
+        return msgchain
+
 
 def link_account(qq: int) -> dict:
     cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
@@ -1462,14 +1496,14 @@ def jiexi(paipu: dict, playerid: int) -> list:
     return allpaipuinfo
 
 
-def levelswitch(level, score, type='三麻', separator=':', space_length=4) -> str:
+def levelswitch(level, score, select_type='三麻', separator=':', space_length=4) -> str:
     """
     玩家段位解析
 
     Args:
         level: 段位
         score: 分数
-        type: 三麻或者四麻
+        select_type: 三麻或者四麻
         separator: 分隔符
         space_length: 间距长度
 
@@ -1520,16 +1554,16 @@ def levelswitch(level, score, type='三麻', separator=':', space_length=4) -> s
 
     if stage_level < 0:
         # msg += type + "段位:  雀士"
-        msg += type + separator + "  雀士"
+        msg += select_type + separator + "  雀士"
     elif stage_level < 4:
         # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
         #     score) + "/" + str(maxscore)
-        msg += type + separator + prtlevelmsg(stage_level, score_level) + space + "[" + str(
+        msg += select_type + separator + prtlevelmsg(stage_level, score_level) + space + "[" + str(
             score) + "/" + str(maxscore) + "]"
     else:
         # msg += type + "段位: " + prtlevelmsg(stage_level, score_level) + " \t" + type + "分数: " + str(
         #     score / 100) + "/" + str(maxscore / 100)
-        msg += type + separator + prtlevelmsg(stage_level, score_level) + space + "[" + str(
+        msg += select_type + separator + prtlevelmsg(stage_level, score_level) + space + "[" + str(
             score / 100) + "/" + str(maxscore / 100) + "]"
     return msg
 
@@ -1755,6 +1789,7 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
     if _config.get('broadcast', 'image').lower() in ['text', 'txt', 'str']:
         return await messagechain_builder(text=msg)
     return await messagechain_builder(imgbase64=text_to_image(text=msg))
+
 
 async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 4, month: str = None,
                                qq: int = None) -> MessageChain:
