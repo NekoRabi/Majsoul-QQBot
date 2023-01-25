@@ -93,7 +93,7 @@ class playerscore:
 
         return
 
-    def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=0, is_old=False):
+    def addscore(self, playernum: int, score: int, magnification: int = 1, matchtime=0, is_old=False) -> int:
         """
         增加分数
 
@@ -112,7 +112,8 @@ class playerscore:
         if is_old and rk <= 6:
             mxsc = levelmap[rk]['maxscore_old']
         self.lastplaytime = matchtime
-        self.score[playernum] = self.score[playernum] + int(score * magnification)
+        sc = int(score * magnification)
+        self.score[playernum] = self.score[playernum] + sc
         if self.score[playernum] >= mxsc:
             self.rank[playernum] += 1
             # print(f'{playernum}人麻将 在{time.strftime("%Y-%m-%d %H:%M ",time.localtime(matchtime))}升段到了{levelmap.get(self.rank[playernum]).get("name")},此前分数{self.score[playernum]}')
@@ -121,6 +122,7 @@ class playerscore:
             else:
                 self.score[playernum] = 0
         self.updatehistory(playernum, matchtime)
+        return sc
 
     def updatehistory(self, playernum=3, matchtime=None):
         """
@@ -142,7 +144,7 @@ class playerscore:
                 self.maxsc[playernum] = self.score[playernum]
                 self.maxsctime[playernum] = matchtime
 
-    def reducescore(self, playernum: int, magnification: int = 1, matchtime=0):
+    def reducescore(self, playernum: int, magnification: int = 1, matchtime=0) -> int:
         """
         扣分
 
@@ -165,6 +167,7 @@ class playerscore:
                 self.score[playernum] = levelmap[self.rank[playernum]]['maxscore'] // 2
             else:
                 self.score[playernum] = 0
+        return reducescore
 
     def reset(self):
         """超时重置"""
@@ -270,7 +273,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
     Returns: 输出段位字符串
 
     """
-    dt = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
+    py_change_time = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
     deadtime = 86400 * 180
     ps = playerscore(playername)
     matches = listenerjson.get('list')  # 所有对局的list
@@ -294,7 +297,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
         #     continue
         magnification = 1  # 倍率,南风场的倍率乘1.5
         oldP = False
-        if starttime >= dt:
+        if starttime >= py_change_time:
             # print('new 牌谱')
             pass
         else:
@@ -342,12 +345,11 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
 async def get_tenhou_month_report(playername: str, selecttype=None, year=None, month=None):
     msg = f"{playername} 最近一个月 的天凤对局报告\n"
     dt = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
-    rank_positon_dict: dict = {1: 0, 2: 0, 3: 0}
+    rank_positon_dict: dict = {1: 0, 2: 0, 3: 0, 4: 0}
     if selecttype not in [4, '4']:
         selecttype = '3'
     else:
         selecttype = '4'
-        rank_positon_dict[4] = 0
     try:
         records = await get_tenhou_rank_records(playername)
     except asyncio.exceptions.TimeoutError as e:
@@ -357,32 +359,90 @@ async def get_tenhou_month_report(playername: str, selecttype=None, year=None, m
     if not year or not month:
         target_endtime = int(time.time())
         target_starttime = target_endtime - 86400 * 30
-        year, month = time.strftime("%Y-%m", time.localtime()).split('-')
     else:
         msg = f"{playername} {year}-{month} 的月度天凤对局报告\n"
         target_starttime = int(time.mktime(time.strptime(f'{year}-{month}', '%Y-%m')))
         target_endtime = target_starttime + 86400 * 30
 
+    # for item in records.get('list'):
+    #     magnification = 1
+    #     starttime = int(item['starttime'])
+    #     if starttime < target_starttime:
+    #         continue
+    #     elif starttime > target_endtime:
+    #         break
+    #     if item['playernum'] != selecttype:
+    #         continue
+    #     if item['playlength'] == '2':
+    #         magnification = 1.5
+    #     # print(magnification, end='\t')
+    #     for i in range(1, 5):
+    #         if item[f'player{i}'] == playername:
+    #             position = i
+    #             rank_positon_dict[position] += 1
+    #             break
+
+    ps = playerscore(playername)
+    deadtime = 86400 * 180
+    matchcount = 0
+    score_change_sum = 0
     for item in records.get('list'):
-        magnification = 1
         starttime = int(item['starttime'])
-        if starttime < target_starttime:
+        if starttime - ps.lastplaytime > deadtime:  # 超过180天未打则重置
+            ps.reset()
+            matchcount = 0
+
+        if item.get('lobby', None):
             continue
-        elif starttime > target_endtime:
-            break
-        if item['playernum'] != selecttype:
-            continue
+        magnification = 1  # 倍率,南风场的倍率乘1.5
+        oldP = False
+        if starttime < dt:
+            oldP = True
+        position = 1
         if item['playlength'] == '2':
             magnification = 1.5
-        # print(magnification, end='\t')
-        for i in range(1, 5):
-            if item[f'player{i}'] == playername:
-                position = i
-                rank_positon_dict[position] += 1
+        if item['playernum'] == '4':
+            for i in range(1, 5):
+                if item[f'player{i}'] == ps.playername:
+                    position = i
+            ps.poslist.get(4).append(position)
+            if oldP:
+                useptrule = ptchange['old4']
+            else:
+                useptrule = ptchange['new4']
+            if position == 4:
+                d_score = ps.reducescore(4, magnification=magnification, matchtime=starttime)
+            else:
+                d_score = ps.addscore(4, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
+                                      matchtime=starttime, is_old=oldP)
+            if starttime < target_starttime:
+                continue
+            elif starttime > target_endtime:
                 break
-    msg +=  f"{rank_positon_dict[1]}次①,{rank_positon_dict[2]}次②,{rank_positon_dict[3]}次③"
-    if rank_positon_dict.get(4,0) != 0:
+            score_change_sum += d_score
+            rank_positon_dict[position] += 1
+        else:
+            useptrule = ptchange['3']
+            for i in range(1, 4):
+                if item[f'player{i}'] == ps.playername:
+                    position = i
+            ps.poslist.get(3).append(position)
+            if position == 3:
+                d_score = ps.reducescore(3, magnification=magnification, matchtime=starttime)
+            else:
+                d_score = ps.addscore(3, useptrule[f"{item['playerlevel']}"][position - 1], magnification=magnification,
+                                      matchtime=starttime, is_old=oldP)
+            if starttime < target_starttime:
+                continue
+            elif starttime > target_endtime:
+                break
+            score_change_sum += d_score
+            rank_positon_dict[position] += 1
+        matchcount += 1
+    msg += f"{rank_positon_dict[1]}次①,{rank_positon_dict[2]}次②,{rank_positon_dict[3]}次③"
+    if rank_positon_dict.get(4, 0) != 0:
         msg += f",{rank_positon_dict[4]}次④"
+    msg += f"\n累计PT得失:{'+' if score_change_sum > 0 else ''}{score_change_sum}"
     return msg
 
 
