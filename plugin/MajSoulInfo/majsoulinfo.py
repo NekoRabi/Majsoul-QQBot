@@ -25,8 +25,7 @@ from utils.MessageChainBuilder import messagechain_builder
 from utils.cfg_loader import read_file
 from utils.text_to_img import text_to_image
 
-fontsize = 36,
-asytimeout = aiohttp.ClientTimeout(total=60)
+fontsize = 36
 
 levellist = [[1200, 1400, 2000], [2800, 3200, 3600], [4000, 6000, 9000]]
 
@@ -1391,7 +1390,7 @@ async def getmatchresult(playeridlist, nowtime) -> list:
     if len(playeridlist) >= 25:
         timeout = aiohttp.ClientTimeout(total=15)
     else:
-        timeout = asytimeout
+        timeout = aiohttp.ClientTimeout(total=60)
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)),
                                      timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -1788,7 +1787,7 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
         return await messagechain_builder(at=qq, text=msg)
     if _config.get('broadcast', 'image').lower() in ['text', 'txt', 'str']:
         return await messagechain_builder(text=msg)
-    return await messagechain_builder(imgbase64=text_to_image(text=msg))
+    return await messagechain_builder(imgbase64=text_to_image(text=msg,needtobase64=True))
 
 
 async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 4, month: str = None,

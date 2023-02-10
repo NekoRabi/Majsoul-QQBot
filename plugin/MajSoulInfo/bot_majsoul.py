@@ -537,7 +537,7 @@ async def qhbind_operation(event: GroupMessage):
 
 @bot.on(GroupMessage)
 async def qhgroupauthentication(event: GroupMessage):
-    """绑定账号可用的操作"""
+    """雀魂群组权限控制"""
     msg = "".join(map(str, event.message_chain[Plain]))
     defaultcmd = r'qhauthority\s*(\w+)\s*$'
     m = re.match(
@@ -581,6 +581,8 @@ async def get_player_detail_website(event: GroupMessage):
             await messagechain_sender(event=event, msg="https://amae-koromo.sapk.ch/")
         elif m.group(1) == '天凤':
             await messagechain_sender(event=event, msg='https://nodocchi.moe/tenhoulog/')
+    if msg.strip().lower() == "mortal":
+        await messagechain_sender(event=event,msg='https://mjai.ekyu.moe')
     return
 
 

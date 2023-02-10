@@ -36,7 +36,7 @@ def get_random_color(alpha=False):
 
 def text_to_image(text: Union[str, dict, set, list, tuple], path: str = None, fontsize: int = 30, bold: bool = False,
                   fontcolor: tuple = (0, 0, 0), bgkcolor=(255, 255, 255), backimgpath: str = None, imgbytes=None,
-                  needtobase64=False):
+                  needtobase64=True):
     """
     将文本转换为图片
 

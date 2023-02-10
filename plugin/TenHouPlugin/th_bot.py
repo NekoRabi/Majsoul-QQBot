@@ -29,7 +29,7 @@ add_help('group', [
     "牌理[114514p1919m810s4z] : 天凤一般型牌理分析\n"
 ])
 __all__ = ['ranktenhouplayer', 'asyth_all', 'addtenhouwatch', 'deltenhouwatcher', 'cleartenhouwatcher',
-           'gettenhouwatcher', 'thmonthreport']
+           'gettenhouwatcher', 'thmonthreport','thgroupauthentication']
 
 _cfg = read_file(r'./config/TenHouPlugin/config.yml')
 
@@ -56,7 +56,7 @@ async def ranktenhouplayer(event: GroupMessage):
                     reset = False
             else:
                 reset = False
-        result = await tenhou.get_tenhou_rank_records(m.group(2), reset)
+        result = await tenhou.getthpt(m.group(2), reset)
         await messagechain_sender(await messagechain_builder(imgbase64=result['img64']), event=event,
                                   errortext=result['msg'])
         # await bot.send(event, tenhou.getthpt(m.group(2), reset))
@@ -70,7 +70,7 @@ async def addtenhouwatch(event: GroupMessage):
         if is_having_admin_permission(event):
             await messagechain_sender(event=event,
                                       msg=await messagechain_builder(
-                                          text=tenhou.addthwatch(m.group(2), event.group.id)))
+                                          text=tenhou.addthwatch(m.group(2), event.group.id,isadmin=is_having_admin_permission(event))))
         else:
             await messagechain_sender(event=event,
                                       msg=await messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
@@ -83,7 +83,7 @@ async def deltenhouwatcher(event: GroupMessage):
     if m:
         if is_having_admin_permission(event):
             await bot.send(event,
-                           tenhou.removethwatch(playername=m.group(2), groupid=event.group.id))
+                           tenhou.removethwatch(playername=m.group(2), groupid=event.group.id,isadmin=is_having_admin_permission(event)))
         else:
             await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
 
@@ -126,6 +126,27 @@ async def thmonthreport(event: GroupMessage):
         await messagechain_sender(await messagechain_builder(imgbase64=result['img64']), event=event,
                                   errortext=result['msg'])
 
+@bot.on(GroupMessage)
+async def thgroupauthentication(event: GroupMessage):
+    """天凤群组权限控制"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    defaultcmd = r'thauthority\s*(\w+)\s*$'
+    m = re.match(
+        fr"^{commandpre}{_cmd.get('thauthority', defaultcmd)}", msg.strip())
+    if m:
+        if not is_having_admin_permission(event=event):
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text='抱歉, 只有管理员有权限这么做'))
+        enable = m.group(1).lower()
+
+        if enable in ['enable', 'true', 'open']:
+            enable = True
+        elif enable in ['disable', 'false', 'cross', 'close']:
+            enable = False
+        else:
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text='指令有误'))
+
+        await messagechain_sender(event=event, msg=await tenhou.authentication_controller(event.group.id, enable))
+    return
 
 # 添加昵称
 # @bot.on(GroupMessage)

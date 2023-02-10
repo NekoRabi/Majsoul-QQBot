@@ -17,7 +17,7 @@ import aiohttp
 import pytz
 import re
 from plugin.TenHouPlugin.ptcalculation import ptcalculation, levelmap, get_tenhou_month_report
-from utils import text_to_image, read_file
+from utils import text_to_image, read_file, write_file
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -255,17 +255,22 @@ class TenHou:
 
     # 添加关注
     @staticmethod
-    def addthwatch(playername: str, groupid: int):
+    def addthwatch(playername: str, groupid: int, isadmin=False):
         """
         通过玩家id查询月报
 
         Args:
             playername: 玩家名
             groupid: 添加关注的群组id
+            isadmin: 是否为管理员
 
         Returns:
 
         """
+        auth_groups = _cfg.get("authenticationgroup", [])
+        if _cfg.get("admincontrol", True) or groupid in auth_groups:
+            if isadmin is False:
+                return "添加失败,本群该功能需要管理员"
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(f'select * from QQgroup where groupid = {groupid}')
@@ -330,16 +335,22 @@ class TenHou:
         return "添加成功"
 
     @staticmethod
-    def removethwatch(playername: str, groupid: int):
+    def removethwatch(playername: str, groupid: int, isadmin=False):
         """
         移除关注
         Args:
             playername: 玩家名
             groupid:群id
+            isadmin: 是否为管理员
 
         Returns:
 
         """
+
+        auth_groups = _cfg.get("authenticationgroup", [])
+        if _cfg.get("admincontrol", True) or groupid in auth_groups:
+            if isadmin is False:
+                return "删除失败,本群该功能需要管理员"
         cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
         cursor = cx.cursor()
         cursor.execute(
@@ -422,6 +433,45 @@ class TenHou:
         """
         result = await get_tenhou_month_report(playername, searchtype, year, month)
         return dict(msg=result, img64=text_to_image(text=result, needtobase64=True))
+
+    @staticmethod
+    def authentication_controller(groupid: int, enable: bool):
+        groups: list = _cfg.get("authenticationgroup", [])
+        msgchain ="操作成功"
+        if enable:
+            if groupid not in groups:
+                groups.append(groupid)
+                _cfg['authenticationgroup'] = groups
+                write_file(_cfg, r"./config/MajSoulInfo/config.yml")
+            else:
+                msgchain = "操作失败,已设置权限"
+        else:
+            if groupid in groups:
+                groups.remove(groupid)
+                _cfg['authenticationgroup'] = groups
+                write_file(_cfg, r"./config/MajSoulInfo/config.yml")
+        return msgchain
+
+    @staticmethod
+    def power_control_switch(enable:bool, isadmin = False):
+        """
+        天凤群聊权限模式切换
+        Args:
+            enable: 目标模式
+            isadmin: 用户权限
+
+        Returns:
+
+        """
+        powercontrol = _cfg.get("powercontrol",True)
+        if isadmin:
+            if enable != powercontrol:
+                _cfg['powercontrol'] = enable
+                write_file(_cfg, r"./config/MajSoulInfo/config.yml")
+                return "操作成功"
+        else:
+            return "操作失败, 该功能仅机器人管理员可用"
+
 
 
 def get_matchorder(playerlist: list, playername: str) -> int:

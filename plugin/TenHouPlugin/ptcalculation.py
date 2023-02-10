@@ -6,7 +6,7 @@ import time
 
 import aiohttp
 
-__all__ = ['ptcalculation', 'levelmap']
+__all__ = ['ptcalculation', 'levelmap', 'get_tenhou_month_report']
 
 levelmap = {
     0: {'name': '新人', 'maxscore': 20, 'maxscore_old': 30, 'haslower': False, 'losescore': 0},
@@ -69,7 +69,7 @@ user_agent_list = [
 ]
 
 
-class playerscore:
+class PlayerScore:
     def __init__(self, playername: str):
         """
         初始化一个玩家
@@ -275,7 +275,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
     """
     py_change_time = 1508792400  # 天凤pt改版时间点，与天凤水表网一致，2017-10-24 05:00（北京时间凌晨）
     deadtime = 86400 * 180
-    ps = playerscore(playername)
+    ps = PlayerScore(playername)
     matches = listenerjson.get('list')  # 所有对局的list
     matchcount = 0
     if len(matches) == 0:
@@ -382,7 +382,7 @@ async def get_tenhou_month_report(playername: str, selecttype=None, year=None, m
     #             rank_positon_dict[position] += 1
     #             break
 
-    ps = playerscore(playername)
+    ps = PlayerScore(playername)
     deadtime = 86400 * 180
     matchcount = 0
     score_change_sum = 0
@@ -399,6 +399,9 @@ async def get_tenhou_month_report(playername: str, selecttype=None, year=None, m
         if starttime < dt:
             oldP = True
         position = 1
+
+        if item['playernum'] != selecttype:
+            continue
         if item['playlength'] == '2':
             magnification = 1.5
         if item['playernum'] == '4':

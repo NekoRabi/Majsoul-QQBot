@@ -170,7 +170,7 @@ _qhhelp = [
     "qhinfo / 雀魂玩家详情 [玩家名] (3/4) ({基本/立直/血统/all}):查询一个玩家的详细数据\n",
     "qhyb / 雀魂月报 [玩家名] (3/4) [yyyy-mm] :查询一个玩家yy年mm月的3/4麻对局月报\n",
     "qhbind / 雀魂绑定 [玩家名] : 绑定雀魂账号\n",
-    "qhauthority enable/disable : 开启群权限控制"
+    "qhauthority enable/disable : 开启群权限控制\n",
     "qhmXX : 绑定后可用类似的操作快速查询自己\n"
 ]
 

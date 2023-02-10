@@ -22,7 +22,7 @@ admin = config['admin']
 black_list = dict(user=config['blacklist'], group=config['mutegrouplist'])
 
 __all__ = ['duideduide', 'randominterrupt', 'diyreply', 'config_group_repeat', 'sendgroupat', 'sendmsgtogroup',
-           'fabing', 'crazy_thursday']
+           'fabing']
 _arcfg = read_file(r'./config/AutoReply/config.yml')
 
 repeatconfig = _arcfg['repeatconfig']
