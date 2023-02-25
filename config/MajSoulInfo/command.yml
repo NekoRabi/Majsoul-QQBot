@@ -1,6 +1,7 @@
 addwatch: (qhadd|雀魂添加关注)\s*(\S+)\s*$
 changlink: qhfreshlink\s*$
 clearwatch: (qhclearwatch|雀魂清除本群关注)\s*$
+cleargroupwatch: qhcleargroupwatch\s*(\d+)$
 dbupdate: qhfreshdb\s*$
 delwatch: (qhdel|雀魂删除关注)\s*(\S+)\s*$
 disable: (qhdisable)\s*(\w+)\s*$

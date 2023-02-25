@@ -24,7 +24,7 @@ from utils.get_groupmember_authority import is_having_admin_permission
 
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
-           'clearmajsoulwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
+           'clearmajsoulwatcher', 'clearmajsoulgroupwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
            'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation', 'get_player_detail_website', 'qhgroupauthentication']
 _admin = config.get('admin', [])
 _master = config.get('master', 1215791340)
@@ -394,10 +394,23 @@ async def clearmajsoulwatcher(event: GroupMessage):
                                       msg=await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
 
 
-@bot.on(GroupMessage)
-async def qhaddtag(event: GroupMessage):
+@bot.on(FriendMessage)
+async def clearmajsoulgroupwatcher(event: FriendMessage):
+    """清空x群的雀魂订阅"""
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(fr"^{commandpre}{_qhcmd.get('cleargroupwatch')}", msg.strip())
+    if m:
+        if is_having_admin_permission(event):
+            await messagechain_sender(event=event, msg=majsoul.clearallwatch(groupid=int(m.group(1))))
+        else:
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+
+
+@bot.on(FriendMessage)
+async def qhaddtag(event: FriendMessage):
     """为x群的雀魂玩家添加昵称或者是Tag"""
-    if event.sender.id in _blacklist:
+    if event.sender.id not in _admin:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_qhcmd['tagon']}", msg.strip())

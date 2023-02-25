@@ -5,7 +5,7 @@
 :Describe: BiliBili相关
 :Version: 0.0.1
 """
-
+import os
 import re
 
 import aiohttp
@@ -13,6 +13,7 @@ import mirai.exceptions
 from mirai import GroupMessage
 
 from core import bot, config
+from utils import write_file, read_file
 from utils.MessageChainBuilder import messagechain_builder
 
 last_bvid = {}
@@ -22,10 +23,20 @@ silencegroup = config['silencegroup']
 _blacklist = config.get('blacklist', [])
 __all__ = ['bili_resolve']
 
+if not os.path.exists(r"./config/BilibiliPlugin/config.yml"):
+    print('未检测到雀魂配置文件,生成初始文件中...')
+    cfg = dict(videolink_resolve=True)
+    write_file(content=cfg, path=r"./config/BilibiliPlugin/config.yml")
+    print('雀魂配置文件生成完毕')
+
+_cfg = read_file(r"./config/BilibiliPlugin/config.yml")
+
 
 @bot.on(GroupMessage)
 async def bili_resolve(event: GroupMessage):
     """bilibili链接解析"""
+    if not _cfg.get("videolink_resolve", True):
+        return
     if not settings['silence']:
         if event.group.id not in silencegroup:
             if event.sender.id in _blacklist:
@@ -63,7 +74,7 @@ async def bili_resolve(event: GroupMessage):
                 app = event.message_chain[1].as_json()
                 url = app['meta']['detail_1']['preview']
                 img_url = f'http://{url}'''
-            message_chain = await messagechain_builder(imgurl=img_url,text=msg)
+            message_chain = await messagechain_builder(imgurl=img_url, text=msg)
             try:
                 await bot.send(event, message_chain)
             except mirai.exceptions.ApiError as _e:
