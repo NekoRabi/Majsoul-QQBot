@@ -1515,8 +1515,8 @@ def levelswitch(level, score, select_type='三麻', separator=':', space_length=
     else:
         for i in range(space_length):
             space += " "
-    stage_level = int(str(level)[2]) - 3
-    score_level = int(str(level)[4]) - 1
+    stage_level = int(str(level)[3:4]) - 3
+    score_level = int(str(level)[3:4]) - 1
     maxscore = 2000
     msg = ""
     if stage_level < 3:
@@ -1538,7 +1538,7 @@ def levelswitch(level, score, select_type='三麻', separator=':', space_length=
         score = maxscore // 2
 
     # 掉段
-    if score <= 0:
+    if score < 0:
         score_level -= 1
         if score_level < 0:
             score_level = 2
