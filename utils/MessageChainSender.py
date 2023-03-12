@@ -77,11 +77,11 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
             # errtext += f'消息类型:FriendMessageEvent,消息目标:{friendtarget}'
         if res == -1 and onlyImg:
             if grouptarget:
-                await bot.send_group_message(grouptarget, messagechain_builder(text=imgSendErrText, rndimg=True))
+                await bot.send_group_message(grouptarget, await messagechain_builder(text=imgSendErrText, rndimg=True))
             elif event:
-                await bot.send(event, messagechain_builder(text=imgSendErrText, rndimg=True))
+                await bot.send(event, await messagechain_builder(text=imgSendErrText, rndimg=True))
             elif friendtarget:
-                await bot.send_friend_message(friendtarget, messagechain_builder(text=imgSendErrText, rndimg=True))
+                await bot.send_friend_message(friendtarget, await messagechain_builder(text=imgSendErrText, rndimg=True))
     except mirai.exceptions.ApiError as _e:
         # 消息发送失败时，进行日志记录，并尝试告诉机器人主人，每次发送CD 3600 s
         nowtime = int(time.time())
