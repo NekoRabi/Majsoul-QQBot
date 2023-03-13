@@ -45,7 +45,7 @@ if not os.path.exists("./config/Setu"):
     os.mkdir("./config/Setu")
 if not os.path.exists(r'./config/Setu/config.yml'):
     cfg = dict(r18enable=False, enable=False, allowsearchself=False, setugroups=[586468489], r18groups=[586468489],
-               recalltime=50)
+               recalltime=50, err_opt=True)
     write_file(content=cfg, path=r'./config/Setu/config.yml')
 
 
@@ -121,6 +121,7 @@ class SetuFinder:
         self.allowsearchself = _config['allowsearchself']
         self.recalltime = _config['recalltime']
         self.botname = botname
+        self.err_opt = _config['err_opt']
 
     async def getsetu(self, description, groupid, num=1) -> dict:
         if not num:
@@ -241,8 +242,9 @@ async def getsomesetu(event: GroupMessage):
                         await bot.recall(res)
                 except Exception as e:
                     print(f"色图请求失败:{e}")
-                    await bot.send(event,
-                                   await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
+                    if setu_config.get('err_opt',True):
+                        await bot.send(event,
+                                       await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
     elif m2:
         if random.random() * 100 < 0:
             # print(f"发出对{senderid}的少冲提醒")
@@ -271,6 +273,7 @@ async def getsomesetu(event: GroupMessage):
                         await bot.recall(res)
                 except Exception as e:
                     print(f"色图请求失败:{e}")
-                    await bot.send(event,
-                                   await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
+                    if setu_config.get('err_opt',True):
+                        await bot.send(event,
+                                       await messagechain_builder(text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
     return

@@ -34,6 +34,9 @@ def read_file(path: str, filetype: str = None, encoding='utf-8'):
                 cfg = json.load(filecfg)
             else:
                 raise Exception("不支持的文件类型! 目前仅支持JSON、 YML")
+        if cfg is None:
+            print(f'{path}不存在或为空!')
+            return {}
     except Exception as e:
         print(e)
     return cfg
@@ -54,6 +57,8 @@ def write_file(content, path: str, filetype: str = None, encoding='utf-8', allow
     """
     if filetype is None:
         filetype = os.path.splitext(path)[-1][1:]
+    if content is None:
+        content = {}
     try:
         with open(path, 'w', encoding=encoding) as filecfg:
             if filetype in ['yml', 'yaml']:

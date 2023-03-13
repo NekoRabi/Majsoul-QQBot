@@ -22,15 +22,17 @@ settings = config['settings']
 silencegroup = config['silencegroup']
 _blacklist = config.get('blacklist', [])
 __all__ = ['bili_resolve']
-
+if not os.path.exists(r"./config/BilibiliPlugin"):
+    os.mkdir(r"./config/BilibiliPlugin")
 if not os.path.exists(r"./config/BilibiliPlugin/config.yml"):
-    print('未检测到雀魂配置文件,生成初始文件中...')
+    print('未检测到B站解析配置文件,生成初始文件中...')
     cfg = dict(videolink_resolve=True)
     write_file(content=cfg, path=r"./config/BilibiliPlugin/config.yml")
-    print('雀魂配置文件生成完毕')
+    print('B站解析配置文件生成完毕')
 
 _cfg = read_file(r"./config/BilibiliPlugin/config.yml")
-
+if _cfg is None:
+    _cfg = {}
 
 @bot.on(GroupMessage)
 async def bili_resolve(event: GroupMessage):

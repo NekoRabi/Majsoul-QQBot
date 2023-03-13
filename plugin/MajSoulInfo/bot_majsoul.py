@@ -470,7 +470,7 @@ async def qhtagoperate(event: GroupMessage):
                 p2 = m.group(4)
             # result = majsoul.tagonplayer(playername=p1, tagname=p2, userid=event.sender.id,
             #                     groupid=event.group.id)
-            result = majsoul.tag_C_operation(event.group.id, p1, p2, ope_type)
+            result = majsoul.tag_batch_operation(event.group.id, p1, p2, ope_type)
             await messagechain_sender(await messagechain_builder(text=result), event)
 
 
@@ -598,13 +598,6 @@ async def get_player_detail_website(event: GroupMessage):
         await messagechain_sender(event=event,msg='https://mjai.ekyu.moe')
     return
 
-
-@bot.on(Startup)
-async def linksetting(_):
-    """机器人开机时自动选择结点"""
-    await majsoul.set_link_node()
-
-
 async def asyqh_autopaipu():
     """结合scheduler自定定时刷新数据库"""
     if not _qhsettings.get('silence_CLI', False):
@@ -651,13 +644,25 @@ async def asyqh_autopaipu():
     return
 
 
-if _qhsettings.get('autoquery', False):
-    _searchfrequency = int(_qhsettings.get("searchfrequency", 6))
-    if int(_searchfrequency) < 1 or int(_searchfrequency) > 29:
-        print('查询频率有误,将自动设置为6')
-        _searchfrequency = 6
-    scheduler.add_job(asyqh_autopaipu, 'cron', minute=f'0/{_searchfrequency}')
-    print(f' |---已添加定时任务 "雀魂自动查询",查询周期{_searchfrequency}分钟')
+@bot.on(Startup)
+async def initialization(_):
+    """机器人开机时自动初始化"""
+    await majsoul.set_link_node()
+    if _qhsettings.get('ignore_history', True):
+        # 如果设置ignore_history，机器人启动时将不再的关注用户进行上一局的对局播报
+        await majsoul.freshdb_when_start()
+        await asyncio.sleep(240)
+
+
+    if _qhsettings.get('autoquery', False):
+        _searchfrequency = int(_qhsettings.get("searchfrequency", 6))
+        if int(_searchfrequency) < 1 or int(_searchfrequency) > 29:
+            print('查询频率有误,将自动设置为6')
+            _searchfrequency = 6
+        print(f' |---已添加定时任务 "雀魂自动查询",查询周期{_searchfrequency}分钟')
+        scheduler.add_job(asyqh_autopaipu, 'cron', minute=f'0/{_searchfrequency}')
+
+
 if _qhsettings.get('link_update', True):
     link_freshtime: str = _qhsettings.get('link_freshtime', '2:33')
     scheduler.add_job(majsoul.set_link_node, 'cron', hour=f'{link_freshtime.split(":")[0]}',

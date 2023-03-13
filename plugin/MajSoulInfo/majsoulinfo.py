@@ -1066,7 +1066,7 @@ class MajsoulQuery:
         return deletemsg
 
     @staticmethod
-    def tag_C_operation(groupid, source_playername, target_playername, operation_type: str = 'COPY'):
+    def tag_batch_operation(groupid, source_playername, target_playername, operation_type: str = 'COPY'):
         """tag批量操作"""
         opertaionMsg = '操作成功!'
         operation_type = operation_type.lower()
@@ -1233,6 +1233,9 @@ class MajsoulQuery:
                 _config['authenticationgroup'] = groups
                 write_file(_config, r"./config/MajSoulInfo/config.yml")
         return msgchain
+
+    async def freshdb_when_start(self):
+        await self.asygetqhpaipu()
 
 
 def link_account(qq: int) -> dict:
@@ -1515,8 +1518,8 @@ def levelswitch(level, score, select_type='三麻', separator=':', space_length=
     else:
         for i in range(space_length):
             space += " "
-    stage_level = int(str(level)[3:4]) - 3
-    score_level = int(str(level)[3:4]) - 1
+    stage_level = int(str(level)[2]) - 3    # 大段：士、杰、豪、圣、魂
+    score_level = int(str(level)[3:]) - 1   #当前小段:一二三 (魂天1-20)
     maxscore = 2000
     msg = ""
     if stage_level < 3:
