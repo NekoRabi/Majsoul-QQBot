@@ -8,8 +8,7 @@
 
 import re
 
-from mirai import GroupMessage, Plain, FriendMessage
-from mirai.bot import Startup
+from mirai import GroupMessage, Plain
 
 from core import bot, commandpre, scheduler
 from plugin.RichiMahjongMatchControl.match_core import MatchOperator

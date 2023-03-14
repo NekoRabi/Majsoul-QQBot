@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from utils.cfg_loader import write_file, read_file
+from utils.cfg_loader import write_file
 
 
 def file_init():

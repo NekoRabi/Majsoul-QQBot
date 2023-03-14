@@ -7,7 +7,7 @@
 import random
 import re
 from mirai import GroupMessage, Plain, FriendMessage, At
-from mirai.models import GroupEvent, MemberHonorChangeEvent
+# from mirai.models import GroupEvent, MemberHonorChangeEvent
 from core import bot, bot_cfg, config, commandpre, commands_map, replydata
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender

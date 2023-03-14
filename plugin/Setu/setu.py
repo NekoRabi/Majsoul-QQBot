@@ -7,9 +7,9 @@ import yaml
 import aiohttp
 import json
 
-from io import BytesIO
+# from io import BytesIO
 
-from PIL.Image import Image
+# from PIL.Image import Image
 from mirai import GroupMessage, Plain
 from core import bot, commandpre, commands_map, config
 from utils.MessageChainBuilder import messagechain_builder
