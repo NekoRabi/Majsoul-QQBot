@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from mirai import GroupMessage, Plain, At, Startup
+from mirai import GroupMessage, Plain, At #, Startup
 
 from core import bot, scheduler, config, bot_cfg, commandpre
 from plugin.AlarmClock.file_init import *
