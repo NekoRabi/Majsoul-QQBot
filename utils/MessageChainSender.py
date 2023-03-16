@@ -11,10 +11,11 @@ import traceback
 from typing import Union
 
 import mirai.exceptions
-from mirai import MessageChain, MessageEvent
+from mirai import MessageChain, MessageEvent, GroupMessage, FriendMessage
 from mirai.models import MessageComponent
 
 from core import bot, bot_cfg, master
+from utils import root_logger
 from utils.MessageChainBuilder import messagechain_builder
 
 __all__ = ['messagechain_sender']
@@ -57,24 +58,35 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
         onlyImg = True
     try:
         if event:
-            res = await bot.send(event, msg)
-            target = event
-            if res == -1 and not onlyImg:
-                # if Image in msg and not onlyImg :
-                #     msg[Image] = None
-                await bot.send(event, errtext)
-        elif grouptarget:
+            if isinstance(event,GroupMessage):
+                grouptarget = event.group.id
+            elif isinstance(event,FriendMessage):
+                friendtarget = event.sender.id
+            # res = await bot.send(event, msg)
+            # target = event
+            # if res == -1 and not onlyImg:
+            #     # if Image in msg and not onlyImg :
+            #     #     msg[Image] = None
+            #     await bot.send(event, errtext)
+        if grouptarget:
             target = grouptarget
             res = await bot.send_group_message(grouptarget, msg)
             if res == -1 and not onlyImg:
                 await bot.send_group_message(grouptarget, errtext)
             # errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
+            else:
+                print(f"尝试向群聊{target}发送消息失败, bot不在群聊 {target} 中")
+                root_logger.error(f"尝试向群聊{target}发送消息失败, bot不在群聊 {target} 中")
         elif friendtarget:
             target = friendtarget
-            res = await bot.send_friend_message(friendtarget, msg)
-            if res == -1 and not onlyImg:
-                await bot.send_group_message(friendtarget, errtext)
-            # errtext += f'消息类型:FriendMessageEvent,消息目标:{friendtarget}'
+            if bot.get_friend(target):
+                res = await bot.send_friend_message(friendtarget, msg)
+                if res == -1 and not onlyImg:
+                    await bot.send_group_message(friendtarget, errtext)
+                # errtext += f'消息类型:FriendMessageEvent,消息目标:{friendtarget}'
+            else:
+                print(f"尝试向好友{target}发送消息失败, {target} 不是bot的好友")
+                root_logger.error(f"尝试向好友{target}发送消息失败, {target} 不是bot的好友")
         if res == -1 and onlyImg:
             if grouptarget:
                 await bot.send_group_message(grouptarget, await messagechain_builder(text=imgSendErrText, rndimg=True))
@@ -92,13 +104,13 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
                                                            error='Bot被禁言')
                 await bot.send_friend_message(master, f"在{target.group.id}群消息发送失败,疑似被禁言")
             print('Bot被禁言')
-            logging.warning('Bot发送消息失败,Bot被禁言')
+            root_logger.error('Bot发送消息失败,Bot被禁言')
         else:
             if nowtime - last_time > 3600:
                 _last_error_message['groupmessage'] = dict(time=nowtime, target=target, message=msg, error=_e)
-                await bot.send_friend_message(master, f"群消息发送失败,可能被群消息风控")
+                await bot.send_friend_message(master, f"群消息发送失败,可能被群消息风\n{_e}控")
             print(f'Bot发送消息失败,MiraI错误码{_e}')
-            logging.error(f'Bot发送消息失败,Mirai错误码{_e}')
+            root_logger.error(f'Bot发送消息失败,Mirai错误码{_e}')
         res = -1
     except Exception as _e:
         traceback.print_exc()
