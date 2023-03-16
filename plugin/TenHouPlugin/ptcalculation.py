@@ -5,6 +5,7 @@ import random
 import time
 
 import aiohttp
+from urllib.parse import quote_plus
 
 __all__ = ['ptcalculation', 'levelmap', 'get_tenhou_month_report']
 
@@ -250,7 +251,7 @@ async def get_tenhou_rank_records(playername: str):
     Returns:
 
     """
-    url = f'https://nodocchi.moe/api/listuser.php?name={playername}'
+    url = f'https://nodocchi.moe/api/listuser.php?name={quote_plus(playername)}'
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=timeout,
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         async with session.get(url=url, allow_redirects=True) as response:
@@ -285,7 +286,7 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
         starttime = int(item['starttime'])
         if starttime - ps.lastplaytime > deadtime:  # 超过180天未打则重置
             # if ps.maxrk[3] > 16 or ps.maxrk[4] > 16:  # 判断不了这个账号是否收费，因此我把7段以下的召唤会进行重置
-            if reset:  # 还是手动决定是否重置
+            if reset and int(item['playerlevel']) <= 1:  # 还是手动决定是否重置（添加一种自动处理：如果第一把打的就不是般/上，则必然是找回账号回坑）
                 ps.reset()
                 matchcount = 0
 

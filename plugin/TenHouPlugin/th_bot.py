@@ -1,7 +1,7 @@
 """
-:Author:  NekoRabi
+:Author:  NekoRabi, Sunshine40
 :Create:  2022/9/5 16:45
-:Update: /
+:Update:  2023/3/16 19:27
 :Describe: 天凤与机器人交互组件
 :Version: 0.0.3
 """
@@ -38,6 +38,8 @@ _cmd = read_file(r'./config/TenHouPlugin/command.yml')
 
 @bot.on(GroupMessage)
 async def ranktenhouplayer(event: GroupMessage):
+    if not _cfg.get('thpt', True):
+        return
     msg = "".join(map(str, event.message_chain[Plain]))
     m = re.match(fr"^{commandpre}{_cmd.get('thpt')}", msg.strip())
     if m:
