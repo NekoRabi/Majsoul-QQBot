@@ -78,6 +78,7 @@ database/
 other/
 .idea/
 temp/
+main/
 *.ico
 *.yml
 *.sqlite

@@ -18,7 +18,6 @@ if __name__ == '__main__':
 
     config = load_config()
     create_helpimg()
-    rootLogger = root_logger
     settings = config['settings']
     botname = config['botconfig']['botname']
 
@@ -49,15 +48,15 @@ if __name__ == '__main__':
             root_logger.info(_info)
 
 
-    @bot.on(MessageEvent)
-    async def save_flashimage(event: MessageEvent):
-        if type(event) in [GroupMessage, FriendMessage]:
-            if FlashImage in event.message_chain and settings['saveflashimg']:
-                flashimg = event.message_chain.get_first(FlashImage)
-                try:
-                    await flashimg.download(directory='./data/flashimages')
-                except Exception as _e:
-                    print(f'闪照保存发生错误: {_e}')
+    # @bot.on(MessageEvent)
+    # async def save_flashimage(event: MessageEvent):
+    #     if type(event) in [GroupMessage, FriendMessage]:
+    #         if FlashImage in event.message_chain and settings['saveflashimg']:
+    #             flashimg = event.message_chain.get_first(FlashImage)
+    #             try:
+    #                 await flashimg.download(directory='./data/flashimages')
+    #             except Exception as _e:
+    #                 print(f'闪照保存发生错误: {_e}')
 
 
     scheduler.add_job(cmdbuffer.clearcache, 'cron', hour='0')

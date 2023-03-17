@@ -70,10 +70,11 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
             #     await bot.send(event, errtext)
         if grouptarget:
             target = grouptarget
-            res = await bot.send_group_message(grouptarget, msg)
-            if res == -1 and not onlyImg:
-                await bot.send_group_message(grouptarget, errtext)
-            # errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
+            if bot.get_group(target):
+                res = await bot.send_group_message(grouptarget, msg)
+                if res == -1 and not onlyImg:
+                    await bot.send_group_message(grouptarget, errtext)
+                # errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
             else:
                 print(f"尝试向群聊{target}发送消息失败, bot不在群聊 {target} 中")
                 root_logger.error(f"尝试向群聊{target}发送消息失败, bot不在群聊 {target} 中")
