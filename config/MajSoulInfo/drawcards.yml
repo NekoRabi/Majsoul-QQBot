@@ -512,25 +512,37 @@ lottery:
       rare: 4
       type: person
       url: ./Images/person/柚.png
-    length: 26
+    - index: 26
+      name: 四宫冬实
+      rare: 4
+      type: person
+      url: ./Images/person/四宫冬实.png
+
+    - index: 27
+      name: 青鸾
+      rare: 4
+      type: person
+      url: ./Images/person/青鸾.png
+    - index: 28
+      name: 如月彩音
+      rare: 4
+      type: person
+      url: ./Images/person/如月彩音.png
+    - index: 29
+      name: 未来
+      rare: 4
+      type: person
+      url: ./Images/person/未来.png
+    length: 30
 up:
   decoration:
-  - 牌背-艾托企鹅
-  - 立直棒-墨西哥卷饼
-  - 和牌-龙卷雷霆
-  - 立直-花天月底
-  - 立直-未来视
-  - 和牌-高岭之花
-  - 桌布-赛间小憩
-  - 桌布-清凉假日
-  - 牌背-摇曳彩球
-  - 立直棒-爱心便当
+  - 和牌-绝对的命令
+  - 立直棒-骑士的钥匙
+  - 立直-王者的决意
+  - 牌背-假面的裁决
+  - 桌布-魔女的契约
   person:
-  - 原村和
-  - 天江衣
-  - 宫永照
-  - 宫永咲
-  - 园城寺怜
-  - 福路美惠子
-  - 竹井久
-  - 新子憧
+  - 鲁鲁修-兰佩罗基
+  - 天红月卡莲
+  - 枢木朱雀
+  - CC
