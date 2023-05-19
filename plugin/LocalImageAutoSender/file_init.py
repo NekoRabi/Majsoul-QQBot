@@ -8,11 +8,11 @@ if not os.path.exists("./config/LocalImageAutoSender"):
 
 
 def _build_config():
-    cfg = dict(dragonimg=True)
+    cfg = dict(dragonimg=True, cheshireimg=True)
     write_file(content=cfg, path="./config/LocalImageAutoSender/config.yml")
 
 
-_fun_key = ['dragonimg']
+_fun_key = ['dragonimg', 'cheshireimg']
 
 
 def _file_verification():
@@ -28,4 +28,4 @@ def _file_verification():
 
 _file_verification()
 
-add_help('group', ["龙图: 发龙图\n"])
+add_help('group', ["龙图: 发龙图\n", "柴郡: 来张柴郡\n"])
