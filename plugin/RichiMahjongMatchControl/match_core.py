@@ -144,7 +144,7 @@ class MatchOperator:
         return "加入成功"
 
     @staticmethod
-    def get_teammembers(matchname, teamname=None) -> list[tuple]:
+    def get_teammembers(matchname, teamname=None) -> list:
         """
         获取队伍成员
 
@@ -152,7 +152,7 @@ class MatchOperator:
             matchname: 比赛名
             teamname: 队伍名
 
-        Returns:
+        Returns:[(),()]
 
         """
         if not teamname:

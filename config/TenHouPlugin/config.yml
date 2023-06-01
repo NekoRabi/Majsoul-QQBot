@@ -3,3 +3,8 @@ broadcast: "image"  # 广播类型
 searchfrequency: 6  # 自动查询频率
 thpt: true          # 是否开启天凤查分
 silence_CLI: false  # 减少控制台的信息输出
+admincontrol: false # 是否需要管理员权限才能添加和移除关注(全局)
+
+# 开启特定群组的管理员权限需求
+authenticationgroup:
+  - 0

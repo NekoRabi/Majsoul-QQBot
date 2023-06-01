@@ -571,9 +571,9 @@ def forwardmessage(msglist: list) -> list:
     转发消息，封装为 向 groupid 群聊 发送 msg 的格式
 
     Args:
-        msglist: list[ {playername:xxx, msg:aaa} ]
+        msglist: [ {playername:xxx, msg:aaa} ]
 
-    Returns: list[ {playername:xxx, msg:aaa, groups:iii} ]
+    Returns: [ {playername:xxx, msg:aaa, groups:iii} ]
 
     """
     messageChainList = []

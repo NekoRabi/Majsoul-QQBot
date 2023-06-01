@@ -32,11 +32,14 @@ if not os.path.exists(r"./config/BilibiliPlugin/config.yml"):
 
 _cfg = read_file(r"./config/BilibiliPlugin/config.yml")
 if _cfg is None:
-    _cfg = {}
+    _cfg = {'videolink_resolve': True}
+
 
 @bot.on(GroupMessage)
 async def bili_resolve(event: GroupMessage):
     """bilibili链接解析"""
+    if not _cfg:
+        return
     if not _cfg.get("videolink_resolve", True):
         return
     if not settings['silence']:

@@ -36,6 +36,5 @@ logging.info('所有插件加载完毕')
 # from plugin.Remake import *
 # from plugin.RichiMahjongMatchControl import *
 # from plugin.Setu import *
-# from plugin.Tarot import *
 # from plugin.TencentCloudAPI import *
 # from plugin.TenHouPlugin import *

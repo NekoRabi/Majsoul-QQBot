@@ -14,7 +14,8 @@ def file_init():
         os.mkdir("./data/TenHouPlugin")
 
     if not os.path.exists(r'./config/TenHouPlugin/config.yml'):
-        _cfg = dict(thpt=True, searchfrequency=6, autoquery=True, broadcast='image', silence_CLI=False)
+        _cfg = dict(thpt=True, searchfrequency=6, autoquery=True, broadcast='image', silence_CLI=False, admincontrol=False,
+                    authenticationgroup=[0])
         write_file(content=_cfg, path=r'./config/TenHouPlugin/config.yml')
 
     if not os.path.exists(r'./config/TenHouPlugin/template.yml'):

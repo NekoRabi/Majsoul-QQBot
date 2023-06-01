@@ -16,7 +16,7 @@ from utils.MessageChainSender import messagechain_sender
 class Clock:
 
     @staticmethod
-    def add_group_clock(scheduledtime: str, group: int, creator: int, at: list[str], description: str):
+    def add_group_clock(scheduledtime: str, group: int, creator: int, at: list, description: str):
         """
         添加闹钟
 
@@ -80,11 +80,12 @@ class Clock:
         print("已自动设置所有闹钟")
 
 
-def get_all_active_clock() -> list[tuple[int, str, str, str]]:
+def get_all_active_clock() -> list:
     """
     返回所有有效闹钟
 
     Returns:
+        list[tuple(int, str, str, str)]
         [(groupid, scheduledtime, description, at) , ......]
 
     """

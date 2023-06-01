@@ -13,16 +13,13 @@ import time
 
 from mirai import GroupMessage, Plain
 from core import bot, commandpre, commands_map, blacklist
+from core.fun.tarot import tarotcards
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 
 if not os.path.exists("./database/sys"):
     os.mkdir("./database/sys")
 
-usetarot = False
-
-if os.path.exists(r'./plugin/Tarot/tarot.py'):
-    usetarot = True
 
 
 def db_init():
@@ -101,13 +98,11 @@ async def sign_in(event: GroupMessage):
     if m:
         success, signmsg = signin(event.sender.id)
         if success:
-            if usetarot:
-                from plugin.Tarot.tarot import tarotcards
-                card = tarotcards.drawcards(userid=event.sender.id)[0]
-                return await bot.send(event,
-                                      await messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
-            else:
-                return await messagechain_sender(await messagechain_builder(at=event.sender.id, text=signmsg))
+            card = tarotcards.drawcards(userid=event.sender.id)[0]
+            return await bot.send(event,
+                                  await messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
+            # else:
+            #     return await messagechain_sender(await messagechain_builder(at=event.sender.id, text=signmsg))
         else:
             return await bot.send(event, await messagechain_builder(at=event.sender.id, text=signmsg, rndimg=True))
 

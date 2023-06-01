@@ -17,3 +17,6 @@ r18groups:
 
 # 撤回时间,-1为不撤回,单位为 秒
 recalltime: 50
+
+# 色图发送错误时会报错
+err_opt: True

@@ -21,7 +21,7 @@ __all__ = ['messagechain_builder']
 
 
 async def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: str = None, rndimg=False,
-                               imgurl: str = None, imgbase64=None, at: Union[list[int], int] = None,
+                               imgurl: str = None, imgbase64=None, at: Union[list, int] = None,
                                atall=False) -> MessageChain:
     """
     通过给定参数来快速构造一个合法消息链
@@ -33,7 +33,7 @@ async def messagechain_builder(reply_choices: list = None, text: str = None, img
         rndimg: 随机发送一张表情包 ( 如果config中给了表情包路径才有用 )
         imgurl: 从网络url获取一张图片并发送,有可能超时或者tx不让发
         imgbase64: 将图片进行base64化的后的值
-        at: At对象的QQ号
+        at: At对象的QQ号或QQ号列表
         atall: 是否At全体成员 . 请注意，每个账号的At全体成员的次数每天是有限的，并且是所有群共享的次数
 
     Returns:一个合法消息链

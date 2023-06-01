@@ -5,3 +5,4 @@ from core.fun.ping import *
 from core.fun.gethelp import *
 from core.fun.signin import *
 from core.fun.roll import *
+from core.fun.tarot import *
