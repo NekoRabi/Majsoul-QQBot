@@ -1,3 +1,7 @@
+[comment]: <> (<strong>本项目已停止更新，不再支持Yiri-Mirai与Mirai，现新版使用NB2和gocq搭建，具体请点击前往 [新版本]&#40;&#41; 查看</strong>)
+
+# 由于Mirai的严重风控，目前转为使用 NoneBot2 和 gocq 进行开发，敬请期待新版本
+
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等
 
