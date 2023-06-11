@@ -51,12 +51,16 @@
 
 # 如何使用
 
+## [我是教程, 点我点我](./docs/HowToUse.md)
+
+## [B站教程视频](https://www.bilibili.com/video/BV1nW4y19728)
+
 ---
 
 <p style="font-size:20px;color:red;font-weight:bold">Yiri-Mirai 已处于半停机状态，不支持最新的Mirai-Api-Http！！！<br/>
 为减少使用中的问题，请将mah的版本固定在2.4-2.5，yirimirai版本固定在0.2.6</p>
 
-以后会换成NoneBot重新开发
+正在换成NoneBot重新开发
 
 ---
 
