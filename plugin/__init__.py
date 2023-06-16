@@ -27,7 +27,6 @@ import os
 from plugin.AlarmClock import *
 from plugin.AutoReply import *
 from plugin.BilibiliPlugin import *
-from plugin.draw_wife import *
 from plugin.ImgGenerator import *
 from plugin.LocalImageAutoSender import *
 from plugin.MajSoulInfo import *

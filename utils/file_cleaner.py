@@ -65,6 +65,6 @@ def list_allfile(path, all_files=None):
 
 
 # _folders = read_file(r'./config/config.yml').get('trash_folders', [])
-_folders = read_file(r'./images')
+_folders = read_file(r'./config/config.yml').get('trash_folders', [])
 
 cleaner = FileCleaner(_folders)
