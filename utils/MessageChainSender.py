@@ -3,9 +3,8 @@
 :Create:  2022/8/16 16:15
 :Update: /
 :Describe: 消息链发送工具
-:Version: 0.0.1
+:Version: 0.0.2
 """
-import logging
 import time
 import traceback
 from typing import Union
@@ -27,7 +26,7 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
                               grouptarget: int = None, friendtarget: int = None, errortext: str = None) -> int:
     """
     消息链发送工具\n
-    event,grouptarget,friendtarget三者有一个就行
+    event,grouptarget,friendtarget三者有一个就行\n
 
     Args:
         msg: 消息,可以是字符串、消息组件、消息链
@@ -58,9 +57,9 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
         onlyImg = True
     try:
         if event:
-            if isinstance(event,GroupMessage):
+            if isinstance(event, GroupMessage):
                 grouptarget = event.group.id
-            elif isinstance(event,FriendMessage):
+            elif isinstance(event, FriendMessage):
                 friendtarget = event.sender.id
             # res = await bot.send(event, msg)
             # target = event
@@ -94,7 +93,8 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
             elif event:
                 await bot.send(event, await messagechain_builder(text=imgSendErrText, rndimg=True))
             elif friendtarget:
-                await bot.send_friend_message(friendtarget, await messagechain_builder(text=imgSendErrText, rndimg=True))
+                await bot.send_friend_message(friendtarget,
+                                              await messagechain_builder(text=imgSendErrText, rndimg=True))
     except mirai.exceptions.ApiError as _e:
         # 消息发送失败时，进行日志记录，并尝试告诉机器人主人，每次发送CD 3600 s
         nowtime = int(time.time())
@@ -103,19 +103,19 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
             if nowtime - last_time > 3600:
                 _last_error_message['groupmessage'] = dict(time=nowtime, target=target, message=msg,
                                                            error='Bot被禁言')
-                await bot.send_friend_message(master, f"在{target.group.id}群消息发送失败,疑似被禁言")
-            print('Bot被禁言')
-            root_logger.error('Bot发送消息失败,Bot被禁言')
+                await bot.send_friend_message(master, f"向 {target} 发送消息失败,可能被禁言")
+            print(f"向 {target} 发送消息失败,可能被禁言")
+            root_logger.error(f"向 {target} 发送消息失败,可能被禁言")
         else:
             if nowtime - last_time > 3600:
                 _last_error_message['groupmessage'] = dict(time=nowtime, target=target, message=msg, error=_e)
-                await bot.send_friend_message(master, f"群消息发送失败,可能被群消息风\n{_e}控")
+                await bot.send_friend_message(master, f"群消息发送失败,可能被群消息风控\n{_e}")
             print(f'Bot发送消息失败,MiraI错误码{_e}')
             root_logger.error(f'Bot发送消息失败,Mirai错误码{_e}')
         res = -1
     except Exception as _e:
         traceback.print_exc()
-        logging.error(f'出现未知错误:{_e}')
+        root_logger.error(f'出现未知错误:{_e}')
         nowtime = int(time.time())
         last_time = _last_error_message.get('groupmessage').get('time', 0)
         if nowtime - last_time > 3600:

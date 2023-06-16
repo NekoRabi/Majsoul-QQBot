@@ -10,3 +10,5 @@ uvicorn~=0.17.6
 tencentcloud-sdk-python==3.0.638
 pytz~=2022.1
 websockets~=10.3
+pyecharts~=2.0.3
+snapshot-selenium~=0.0.2

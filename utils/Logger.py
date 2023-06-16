@@ -51,13 +51,6 @@ def create_logger(log_level: str = 'INFO', logger_name: str = None, log_file_fol
     """
     if timer_config is None:
         timer_config = dict(when="D", interval=1, backupCount=0)
-    project_name = "log"
-    folder_format = time.strftime('%Y-%m', time.localtime(time.time()))
-    log_file_name = time.strftime('%Y-%m-%d', time.localtime(time.time())) + '.log'
-    # log_file_folder = os.path.abspath(
-    #     os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)) + os.sep + project_name + os.sep + folder_format
-    make_dir(log_file_folder)
-    log_file_str = log_file_folder + os.sep + log_file_name
     if logger_name:
         logger = logging.getLogger(logger_name)
     else:
@@ -81,7 +74,8 @@ def create_logger(log_level: str = 'INFO', logger_name: str = None, log_file_fol
         fmt=fmt,
         datefmt=date_fmt)
 
-    timerhandler = TimedRotatingFileHandler(filename=log_file_str, when=timer_config.get('when', 'D'),
+    timerhandler = TimedRotatingFileHandler(filename=_get_rootlog_filename(log_file_folder),
+                                            when=timer_config.get('when', 'D'),
                                             interval=timer_config.get('interval', 1),
                                             backupCount=timer_config.get('backupCount', 0),
                                             encoding='utf-8')
@@ -92,29 +86,43 @@ def create_logger(log_level: str = 'INFO', logger_name: str = None, log_file_fol
     return logger
 
 
-def getQQlogger():
-    project_name = "qq-log"
+def _get_rootlog_filename(log_file_folder):
+    """自动生成日志文件名"""
+    #     project_name = "log"
     folder_format = time.strftime('%Y-%m', time.localtime(time.time()))
     log_file_name = time.strftime('%Y-%m-%d', time.localtime(time.time())) + '.log'
     # log_file_folder = os.path.abspath(
     #     os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)) + os.sep + project_name + os.sep + folder_format
-    log_file_folder = r'./qq-log'
     make_dir(log_file_folder)
     log_file_str = log_file_folder + os.sep + log_file_name
+    return log_file_str
 
-    logger = logging.getLogger("qqlogger")
-    logger.setLevel(20)
-    logger_format = logging.Formatter(fmt='time="%(asctime)s" - level=%(levelname)s - %(message)s',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
 
-    timerhandler = TimedRotatingFileHandler(filename=log_file_str, when="D", interval=1, backupCount=0,
-                                            encoding='utf-8')
-    timerhandler.setFormatter(logger_format)
-
-    logger.addHandler(timerhandler)
-
-    return logger
+# def getQQlogger():
+#     """已弃用的聊天记录日志记录器"""
+#     project_name = "qq-log"
+#     # log_file_folder = os.path.abspath(
+#     #     os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)) + os.sep + project_name + os.sep + folder_format
+#
+#     log_file_folder = r'./qq-log'
+#     make_dir(log_file_folder)
+#     folder_format = time.strftime('%Y-%m', time.localtime(time.time()))
+#     log_file_name = time.strftime('%Y-%m-%d', time.localtime(time.time())) + '.log'
+#     log_file_str = log_file_folder + os.sep + log_file_name
+#     logger = logging.getLogger("qqlogger")
+#     logger.setLevel(20)
+#     logger_format = logging.Formatter(fmt='time="%(asctime)s" - level=%(levelname)s - %(message)s',
+#                                       datefmt='%Y-%m-%d %H:%M:%S')
+#
+#     timerhandler = TimedRotatingFileHandler(filename=log_file_str, when="D", interval=1, backupCount=1,
+#                                             encoding='utf-8')
+#     timerhandler.setFormatter(logger_format)
+#
+#     logger.addHandler(timerhandler)
+#
+#     return logger
 
 
 root_logger = create_logger(_cfg.get('loglevel', 'INFO'))
 # QQ_logger = getQQlogger()
+# 每隔 1000 Byte 划分一个日志文件，备份文件为 3 个
