@@ -24,6 +24,7 @@ from plugin.MajSoulInfo.file_init import *
 from utils.MessageChainBuilder import messagechain_builder
 from utils.cfg_loader import read_file
 from utils.text_to_img import text_to_image
+from utils.echarts import *
 
 fontsize = 36
 
@@ -88,7 +89,7 @@ serverErrorCode = 503  # 牌谱屋炸了
 _template = read_file(r"./config/MajSoulInfo/template.yml")
 _config = read_file(r"./config/MajSoulInfo/config.yml")
 _query_limit = _config.get('query_limit', 10)
-
+_echarts_enable = _config.get('echarts', True)
 if _query_limit < 1:
     print('同时最大请求数量已自动调整为10')
     _query_limit = 10
@@ -623,7 +624,7 @@ class MajsoulQuery:
         Returns: 包含结果的Mirai消息链
 
         """
-
+        stop_general_echarts = False
         ptchange = 0
         msg = ""
         getrecent = False
@@ -632,11 +633,15 @@ class MajsoulQuery:
         if not year or not month:
             year, month = time.strftime("%Y-%m", time.localtime()).split('-')
             paipumsg = f"{playername} 最近一个月 的对局报告\n"
+            chart_title = f"{playername} 最近一个月 的 "
+            timecross = "最近一个月"
             getrecent = True
         else:
             if 1 > int(month) or int(month) > 12:
                 return await messagechain_builder(text="请输入正确的时间")
             paipumsg = f"{playername} {year}-{month} 的对局报告\n"
+            timecross = f"{year}-{month}"
+            chart_title = f"{playername} {year}-{month} 的 "
         selectmonth = f"{year}-{month}"
         rankdict = {"1": 0, "2": 0, "3": 0, "4": 0, "fly": 0}
         playerslist = []
@@ -671,10 +676,13 @@ class MajsoulQuery:
                 if len(paipuresponse) == 0:
                     return await messagechain_builder(text='该玩家这个月似乎没有进行过该类型的对局呢')
                 paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
+                if len(paipuresponse) < 10:
+                    stop_general_echarts = True
                 for players in paipuresponse:
                     temp = players['players']
                     temp.sort(key=getrank)
                     playerslist.append(temp)
+                y_data = []
                 for playerrank in playerslist:
                     if selecttype == "4":
                         rank = 4
@@ -683,6 +691,7 @@ class MajsoulQuery:
                     for player in playerrank:
                         if player['nickname'] == playername:
                             ptchange += player['gradingScore']
+                            y_data.append(player['gradingScore'])
                             rankdict[f"{rank}"] += 1
                             if player['score'] < 0:
                                 rankdict['fly'] += 1
@@ -692,6 +701,7 @@ class MajsoulQuery:
                                rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
                 if rankdict['1'] + rankdict['2'] + rankdict['3'] + rankdict['4'] < len(paipuresponse):
                     paipumsg += f"玩家名疑似输入有误,分析顺位失败,请检查大小写\n"
+                    stop_general_echarts = True
                 else:
                     if selecttype == "4":
                         paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
@@ -718,9 +728,21 @@ class MajsoulQuery:
             print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
         _broadcast_type = _config.get('broadcast', 'image').lower()
-        if _broadcast_type in ['txt', 'text', 'str']:
-            return await messagechain_builder(text=msg)
-        return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+        if stop_general_echarts or not _echarts_enable:
+            if _broadcast_type in ['txt', 'text', 'str']:
+                return await messagechain_builder(text=msg)
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+        else:
+            majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                        y1_data=y_data, timecross=timecross)
+            majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                         y1_data=y_data, timecross=timecross)
+            if _broadcast_type in ['txt', 'text', 'str']:
+                return await messagechain_builder(text=msg, imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+                                                                     f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
+                                              imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+                                                       f"images/MajSoulInfo/{chart_title}PT变化图.png"])
 
     @staticmethod
     def removewatch(playername: str, groupid: int, isadmin=True) -> str:
@@ -1815,6 +1837,8 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
     if not month:
         nextmontht = int(time.time() * 1000)
         month = "最近一个月"
+        chart_title = f"{playername} 最近一个月 的 "
+        timecross = "最近一个月"
         paipumsg = f"{playername} {matchtype} {month} 月报:\n"
     else:
         if re.match(r"\d{2,4}-\d{1,2}", month):
@@ -1822,6 +1846,8 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
             if 1 > int(_m) or int(_m) > 12:
                 return await messagechain_builder(text="请输入正确的时间")
             paipumsg = f"{playername} {matchtype} {month} 月报:\n"
+            timecross = f"{month} {matchtype}"
+            chart_title = f"{playername} {month} {matchtype} 的 "
             if _m == "12":
                 month = f"{int(_y) + 1}-1"
             else:
@@ -1854,7 +1880,9 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
     except asyncio.exceptions.TimeoutError:
         return await messagechain_builder(at=qq, text="查询超时, 请稍后再试")
     paipumsg += f"总对局数: {len(paipuresponse)}\n其中"
+    stop_general_echarts = True if len(paipuresponse) < 10 else False
     ptchange = 0
+    y_data = []
     for players in paipuresponse:
         temp = players['players']
         temp.sort(key=getrank)
@@ -1864,6 +1892,7 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
         for player in playerrank:
             if player['nickname'] == playername:
                 ptchange += player['gradingScore']
+                y_data.append(player['gradingScore'])
                 rankdict[f"{rank}"] += 1
                 if player['score'] < 0:
                     rankdict['fly'] += 1
@@ -1873,6 +1902,7 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
                    rankdict['3'] * 3 + rankdict['4'] * 4) / len(paipuresponse)
     if rankdict['1'] + rankdict['2'] + rankdict['3'] + rankdict['4'] < len(paipuresponse):
         paipumsg += f"玩家名绑定的玩家名似乎输入有误,请尝试用qhpt 3/4 绑定正确的玩家名\n"
+        stop_general_echarts = True
     else:
         if selecttype == "4":
             paipumsg += f"{rankdict['1']}次①位,{rankdict['2']}次②位,{rankdict['3']}次③位,{rankdict['4']}次④位"
@@ -1892,7 +1922,25 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
         infomsg += '\t'
     infomsg += f" 平均打点: {inforesponse.get('平均打点') if inforesponse.get('平均打点') else 0}\t 平均铳点 : {inforesponse.get('平均铳点') if inforesponse.get('平均铳点') else 0}"
     msg += infomsg
-    return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+
+    if stop_general_echarts or not _echarts_enable:
+        _broadcast_type = _config.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
+            return await messagechain_builder(text=msg)
+        return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+    else:
+        majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                    y1_data=y_data, timecross=timecross)
+        majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                     y1_data=y_data, timecross=timecross)
+
+        _broadcast_type = _config.get('broadcast', 'image').lower()
+        if _broadcast_type in ['txt', 'text', 'str']:
+            return await messagechain_builder(text=msg, imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+                                                                 f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+        return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
+                                          imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+                                                   f"images/MajSoulInfo/{chart_title}PT变化图.png"])
 
 
 async def get_playerinfo_byid(player_info: dict, selecttype: Union[str, int] = 4, model=None,

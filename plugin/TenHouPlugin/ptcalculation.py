@@ -387,6 +387,7 @@ async def get_tenhou_month_report(playername: str, selecttype=None, year=None, m
     deadtime = 86400 * 180
     matchcount = 0
     score_change_sum = 0
+    y_data = []
     for item in records.get('list'):
         starttime = int(item['starttime'])
         if starttime - ps.lastplaytime > deadtime:  # 超过180天未打则重置

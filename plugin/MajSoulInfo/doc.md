@@ -18,6 +18,8 @@ link_updatetime: "2:33" # 节点更新时间，采用的是根据 “:" 进行�
 silence_CLI: false  # 启用时减少控制台的信息输出
 broadcast: "image"  # 广播类型,发送图片还是文本,或者是混合
                     #可选参数 'image','img','str','txt','text','mix','mixed'
+echarts: true      # qhyb的同时是否输出额外信息(影响性能
+ignore_history: true # 启动时机器人时不会自动播报以前的对局(忽略已经发送的对局)
  # 分别在在某群禁用 相关功能
 disptgroup:
   - 0
@@ -196,6 +198,29 @@ qhyb / 雀魂月报 [玩家名] ({3/4}) ([YYYY-m])
 
 当只有玩家名作为参数时，可以不需要空格，如 `qhybxyshu`
 
+---
+***2023.6.16更新***
+
+现在还会输出玩家月间PT变化图，该功能会阻塞进程，对性能有需要可以通过设置config `echarts=false` 来关闭该功能
+
+此外，为减少不必要的性能压力，对战时小于10同样不会生成该图
+
+美观起见，对战数大于40时会隐藏数值，仅显示最值
+
+未知原因，每次查询都会在控制台发送 'Devtools xxxx' 的消息，不清楚如何关闭
+
+---
+
+```
+qhbind XXX
+```
+
+将QQ号与雀魂账号绑定
+
+```
+qhmXX 在绑定自己后，可以省略对象，快捷查询自己的数据
+```
+例如: qhmpt 3 输出自己3麻的PT
 
 ```
 qhdisable/enable qhpt/qhsl/qhyb ......
