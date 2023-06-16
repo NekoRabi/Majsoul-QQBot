@@ -1,3 +1,9 @@
+"""
+:Author:  NekoRabi
+:Update Time:  2023/6/16 2:09
+:Describe: 抽老婆插件，已经不用了，远不如AI绘画和色图
+:Version: 0.0.0
+"""
 import base64
 import random
 import aiohttp
@@ -8,6 +14,8 @@ from mirai import GroupMessage, Plain
 from core import bot, add_help, blacklist
 from utils.MessageChainBuilder import messagechain_builder
 from PIL import Image, ImageDraw
+
+from utils.MessageChainSender import messagechain_sender
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -22,7 +30,8 @@ user_agent_list = [
 
 asytimeout = aiohttp.ClientTimeout(total=60)
 
-__all__ = ['drawwife']
+# __all__ = ['drawwife']
+__all__ = []
 
 
 async def download_img(url):
@@ -56,8 +65,7 @@ async def drawwife(event: GroupMessage):
     if m:
         index = random.randint(1, 9999)
         img = await download_img(f'https://www.thiswaifudoesnotexist.net/example-{index}.jpg')
-        return await bot.send(event, await messagechain_builder(at=event.sender.id,
-                                                          imgbase64=img))
+        return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                     imgbase64=img))
 
-
-add_help('group', "抽老婆 : 返回一张算法随机生成的老婆\n")
+# add_help('group', "抽老婆 : 返回一张算法随机生成的老婆\n")

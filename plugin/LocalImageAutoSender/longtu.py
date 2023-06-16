@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 2:01
+:Update: /
+:Describe: 龙图发射器
+:Version: 0.0.1
+"""
 import os
 import random
 import re
@@ -23,14 +30,13 @@ _enable = read_file("./config/LocalImageAutoSender/config.yml").get("dragonimg",
 @bot.on(GroupMessage)
 async def dragon_img(event: GroupMessage):
     """
-    其他网站找来的龙图
+    发送找来的龙图
     """
     if not _enable:
         return
     if not _setting['silence']:
         if event.group.id in _silencegroup:
             return
-
         if event.sender.id in _blacklist:
             return
         msg = "".join(map(str, event.message_chain[Plain]))

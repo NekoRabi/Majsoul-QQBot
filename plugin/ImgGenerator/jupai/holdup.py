@@ -1,12 +1,20 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 1:57
+:Update: /
+:Describe:举牌文本生成
+:Version: 0.0.1
+"""
 import os
 import random
 import re
-
 import numpy as np
+
 from utils.MessageChainBuilder import messagechain_builder
 from PIL import ImageFont, ImageDraw, Image
 from mirai import GroupMessage, Plain
 from core import bot, commandpre, blacklist
+from utils.MessageChainSender import messagechain_sender
 
 if not os.path.exists("./images/ImgGenerator/jupai"):
     os.mkdir("./images/ImgGenerator/jupai")
@@ -81,7 +89,9 @@ async def jupai(event: GroupMessage):
     if m:
 
         if len(m.group(1)) > 40:
-            await bot.send(event, "最多支持做40个字的举牌哦~")
+            # await bot.send(event, "最多支持做40个字的举牌哦~")
+            await messagechain_sender(event=event, msg="最多支持做40个字的举牌哦~")
         imgoutput(event.sender.id, (m.group(1)))
         message_chain = await messagechain_builder(imgpath=f'./images/ImgGenerator/jupai/{event.sender.id}.png')
-        await bot.send(event, message_chain)
+        # await bot.send(event, message_chain)
+        await messagechain_sender(event=event, msg=message_chain)

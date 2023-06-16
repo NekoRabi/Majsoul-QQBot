@@ -17,6 +17,8 @@ from utils.MessageChainBuilder import messagechain_builder
 
 __all__ = ['cskill']
 
+from utils.MessageChainSender import messagechain_sender
+
 
 async def jisha(user: str, target: str, headshot=None, penetrate=None):
     """
@@ -93,7 +95,8 @@ async def cskill(event: GroupMessage):
         fr"^击杀(\S+)?$", msg.strip())
     if m:
         if m.group(1):
-            await bot.send(event, await jisha(event.sender.member_name, m.group(1)))
+            # await bot.send(event, await jisha(event.sender.member_name, m.group(1)))
+            await messagechain_sender(event=event, msg=await jisha(event.sender.member_name, m.group(1)))
         elif At in event.message_chain:
             target_id = event.message_chain.get_first(At).target
             memberinfo = await bot.get_group_member(group=event.group.id, id_=target_id)
@@ -102,4 +105,5 @@ async def cskill(event: GroupMessage):
                 membername = memberprofile.nickname
             else:
                 membername = memberinfo.member_name
-            await bot.send(event, await jisha(event.sender.member_name, membername))
+            # await bot.send(event, await jisha(event.sender.member_name, membername))
+            await messagechain_sender(event=event, msg=await jisha(event.sender.member_name, membername))

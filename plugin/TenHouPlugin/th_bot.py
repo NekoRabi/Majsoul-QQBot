@@ -44,9 +44,9 @@ async def ranktenhouplayer(event: GroupMessage):
     m = re.match(fr"^{commandpre}{_cmd.get('thpt')}", msg.strip())
     if m:
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
-            return messagechain_sender(event=event,
-                                       msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
-                                                                      at=event.sender.id))
+            return await messagechain_sender(event=event,
+                                             msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                            at=event.sender.id))
         reset = True
         if m.group(3):
             reset = m.group(3)
@@ -85,11 +85,16 @@ async def deltenhouwatcher(event: GroupMessage):
     m = re.match(fr"^{commandpre}{_cmd.get('delwatch')}", msg.strip())
     if m:
         if is_having_admin_permission(event):
-            await bot.send(event,
-                           tenhou.removethwatch(playername=m.group(2), groupid=event.group.id,
-                                                isadmin=is_having_admin_permission(event)))
+            # await bot.send(event,
+            #                tenhou.removethwatch(playername=m.group(2), groupid=event.group.id,
+            #                                     isadmin=is_having_admin_permission(event)))
+            await messagechain_sender(event=event, msg=await messagechain_builder(
+                text=tenhou.removethwatch(playername=m.group(2), groupid=event.group.id,
+                                          isadmin=is_having_admin_permission(event))))
         else:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            # await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
 
 
 @bot.on(GroupMessage)
@@ -98,9 +103,13 @@ async def cleartenhouwatcher(event: GroupMessage):
     m = re.match(fr"^{commandpre}{_cmd.get('clearwatch')}", msg.strip())
     if m:
         if is_having_admin_permission(event):
-            await bot.send(event, tenhou.clearthwatch(groupid=event.group.id))
+            # await bot.send(event, tenhou.clearthwatch(groupid=event.group.id))
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(text=tenhou.clearthwatch(groupid=event.group.id)))
         else:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            # await bot.send(event, await messagechain_builder(at=event.sender.id, text=" 抱歉，只有管理员才能这么做哦"))
+            await messagechain_sender(event=event,
+                                      msg=await messagechain_builder(text='抱歉，此权限需要管理员', at=event.sender.id))
 
 
 @bot.on(FriendMessage)
@@ -110,9 +119,14 @@ async def friend_cleartenhouwatcher(event: GroupMessage):
     if m:
         if is_having_admin_permission(event):
             if m.group(1):
-                await bot.send(event, tenhou.clearthwatch(groupid=int(m.group(1))))
+                # await bot.send(event, tenhou.clearthwatch(groupid=int(m.group(1))))
+                await messagechain_sender(event=event,
+                                          msg=await messagechain_builder(
+                                              text=tenhou.clearthwatch(groupid=int(m.group(1)))))
             else:
-                await bot.send(event, "指令执行错误")
+                # await bot.send(event, "指令执行失败，请检查输入")
+                await messagechain_sender(event=event,
+                                          msg=await messagechain_builder(text="指令执行失败，请检查输入"))
 
 
 @bot.on(GroupMessage)
@@ -121,7 +135,9 @@ async def gettenhouwatcher(event: GroupMessage):
     # 匹配指令
     m = re.match(fr"^{commandpre}{_cmd.get('getwatch')}", msg.strip())
     if m:
-        await bot.send(event, tenhou.getthwatch(event.group.id))
+        # await bot.send(event, tenhou.getthwatch(event.group.id))
+        await messagechain_sender(event=event,
+                                  msg=await messagechain_builder(text=tenhou.getthwatch(event.group.id)))
 
 
 @bot.on(GroupMessage)
@@ -130,9 +146,9 @@ async def thmonthreport(event: GroupMessage):
     m = re.match(fr"^{commandpre}{_cmd.get('thyb')}", msg.strip())
     if m:
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, event.sender.id, 'thpt')):
-            return messagechain_sender(event=event,
-                                       msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
-                                                                      at=event.sender.id))
+            return await messagechain_sender(event=event,
+                                             msg=await messagechain_builder(text="你查的太频繁了,休息一下好不好", rndimg=True,
+                                                                            at=event.sender.id))
         searchtype = m.group(3)
         year = m.group(5)
         month = m.group(6)

@@ -248,13 +248,13 @@ async def getsometarots(event: GroupMessage):
                     msgC.append(fmn)
                     # msgC.append(Image(base64=card.imgcontent))
                 # ForwardMessageNode(event.sender,MessageChain(msgC))
-                return await bot.send(event, Forward(node_list=msgC))
+                return await messagechain_sender(event=event, msg=Forward(node_list=msgC))
             else:
                 return await messagechain_sender(event=event,
                                                  msg=await messagechain_builder(text='每次只能抽1-9张塔罗牌哦', rndimg=True))
         else:
             card = tarotcards.drawcards(userid=event.sender.id)[0]
-            return await bot.send(event, await messagechain_builder(imgbase64=card.imgcontent))
+            return await messagechain_sender(event=event, msg=await messagechain_builder(imgbase64=card.imgcontent))
 
 
 # 获取塔罗牌抽卡记录
@@ -265,4 +265,4 @@ async def getmytarots(event: GroupMessage):
     m = re.match(fr"^{commandpre}{commands_map['sys']['getmytarot']}", msg.strip())
     if m:
         msg = tarotcards.getmydrawcardsinfo(event.sender.id)
-        return await bot.send(event, await messagechain_builder(text=msg))
+        return await messagechain_sender(event=event, msg=await messagechain_builder(text=msg))

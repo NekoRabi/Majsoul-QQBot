@@ -15,6 +15,7 @@ from mirai import GroupMessage
 from core import bot, config
 from utils import write_file, read_file
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 
 last_bvid = {}
 
@@ -81,7 +82,8 @@ async def bili_resolve(event: GroupMessage):
                 img_url = f'http://{url}'''
             message_chain = await messagechain_builder(imgurl=img_url, text=msg)
             try:
-                await bot.send(event, message_chain)
+                # await bot.send(event, message_chain)
+                await messagechain_sender(event=event,msg =message_chain)
             except mirai.exceptions.ApiError as _e:
                 print(f'视频封面发送失败 {_e.args}')
     return

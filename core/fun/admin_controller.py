@@ -62,7 +62,7 @@ async def deladmin(event: FriendMessage):
             else:
                 return await messagechain_sender(event=event, msg=f"{m.group(1)} 不是再管理员了")
         else:
-            await bot.send(event, await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
+            await messagechain_sender(event=event, msg=await messagechain_builder(text="抱歉,您无权这么做哦", rndimg=True))
     return
 
 
@@ -74,8 +74,8 @@ async def getbotinfo(event: FriendMessage):
     m = re.match(fr"^{commandpre}{commands_map['sys']['getbotinfo']}", msg.strip())
     if m:
         if userid in admin:
-            return await bot.send(event,
-                                  f"机器人设置:{config}\n白名单用户:{_whitelist}\n黑名单用户:{_black_list['user']}\n屏蔽群组:{_black_list['group']}")
+            return await messagechain_sender(event=event,
+                                             msg=f"机器人设置:{config}\n白名单用户:{_whitelist}\n黑名单用户:{_black_list['user']}\n屏蔽群组:{_black_list['group']}")
 
 
 @bot.on(GroupMessage)
@@ -90,9 +90,9 @@ async def addwhitelist(event: GroupMessage):
             _whitelist.append(int(m.group(1)))
             write_file(content=config, path=r'./config/config.yml')
             print(m)
-            return await bot.send(event, "添加成功")
+            return await messagechain_sender(event=event, msg="添加成功")
         else:
-            return await bot.send(event, "添加失败,用户已存在")
+            return await messagechain_sender(event=event, msg="添加失败,用户已存在")
 
 
 @bot.on(FriendMessage)
@@ -104,14 +104,14 @@ async def addblacklist(event: FriendMessage):
     if m:
         if userid in admin:
             if int(m.group(1)) in admin:
-                return await bot.send(event, "请不要将管理员加入黑名单")
+                return await messagechain_sender(event=event, msg="请不要将管理员加入黑名单")
             _black_list['user'].append(int(m.group(1)))
 
             write_file(content=config, path=r'./config/config.yml')
             print(m)
-            return await bot.send(event, "添加成功")
+            return await messagechain_sender(event=event, msg="添加成功")
         else:
-            return await bot.send(event, "添加失败,用户已存在")
+            return await messagechain_sender(event=event, msg="添加失败,用户已存在")
 
 
 @bot.on(FriendMessage)
@@ -126,9 +126,9 @@ async def delblacklist(event: FriendMessage):
                 _black_list['user'].remove(delperson)
 
                 write_file(content=config, path=r'./config/config.yml')
-                return await bot.send(event, "删除成功")
+                return await messagechain_sender(event=event, msg="删除成功")
             else:
-                return await bot.send(event, "删除失败,用户不存在")
+                return await messagechain_sender(event=event, msg="删除失败,用户不存在")
 
 
 @bot.on(FriendMessage)
@@ -138,7 +138,7 @@ async def getsyslog(event: FriendMessage):
         m = re.match(
             fr"^{commandpre}{commands_map['sys']['log']}", msg.strip())
         if m:
-            return await bot.send(event, "日志功能开发中")
+            return await messagechain_sender(event=event, msg="日志功能开发中")
 
 
 @bot.on(GroupMessage)
@@ -150,11 +150,12 @@ async def tell_to_master(event: GroupMessage):
     if m:
         qqid = event.sender.id
         if qqid in _black_list:
-            return await bot.send(event, await messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text='你已被列入黑名单,禁止使用该功能'))
         if master != 0:
             if not cmdbuffer.updategroupcache(LongTimeGroupCommand(event.group.id, event.sender.id, 'tell_master')):
-                return bot.send(event, await messagechain_builder(text="只能每5分钟发一条消息哦~", at=event.sender.id))
+                return messagechain_sender(event=event,
+                                           msg=await messagechain_builder(text="只能每5分钟发一条消息哦~", at=event.sender.id))
 
             message = m.group(1)
             await bot.send_friend_message(master, await messagechain_builder(text=f'qq {qqid} 的人说:{message}'))
-            await bot.send(event, await messagechain_builder(text='已转告主人'))
+            await messagechain_sender(event=event, msg=await messagechain_builder(text='已转告主人'))

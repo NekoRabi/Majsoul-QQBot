@@ -22,6 +22,7 @@ from core import bot, config, bot_cfg
 
 # 还可以import其他的模块，比如 工具类,sqlite3,asyncio,time,math 等等
 
+# 推荐使用 utils.MessageChainBuilder和 utils.MessageChainSender 中的方法来构造和发送消息链
 
 async def asy_hello():
     """

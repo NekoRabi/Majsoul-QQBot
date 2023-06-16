@@ -21,7 +21,7 @@ async def ping(event: FriendMessage):
         m = re.match(
             fr"^{commandpre}{commands_map['sys']['ping']}", msg.strip())
         if m:
-            await bot.send(event, "pong!")
+            await messagechain_sender(event=event, msg="pong!")
     return
 
 

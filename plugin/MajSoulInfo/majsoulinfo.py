@@ -1518,8 +1518,8 @@ def levelswitch(level, score, select_type='三麻', separator=':', space_length=
     else:
         for i in range(space_length):
             space += " "
-    stage_level = int(str(level)[2]) - 3    # 大段：士、杰、豪、圣、魂
-    score_level = int(str(level)[3:]) - 1   #当前小段:一二三 (魂天1-20)
+    stage_level = int(str(level)[2]) - 3  # 大段：士、杰、豪、圣、魂
+    score_level = int(str(level)[3:]) - 1  # 当前小段:一二三 (魂天1-20)
     maxscore = 2000
     msg = ""
     if stage_level < 3:
@@ -1790,7 +1790,7 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
         return await messagechain_builder(at=qq, text=msg)
     if _config.get('broadcast', 'image').lower() in ['text', 'txt', 'str']:
         return await messagechain_builder(text=msg)
-    return await messagechain_builder(imgbase64=text_to_image(text=msg,needtobase64=True))
+    return await messagechain_builder(imgbase64=text_to_image(text=msg, needtobase64=True))
 
 
 async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 4, month: str = None,

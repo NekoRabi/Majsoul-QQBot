@@ -1,9 +1,17 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 2:03
+:Update: /
+:Describe: 牌理分析，有错误因为不是我写的，网上找的，我也不懂，注释就是这样的
+:Version: 0.0.1
+"""
 import pickle
 from plugin.paili_analysis.utils import *
 from plugin.paili_analysis.dfs import *
 from mirai import GroupMessage, Plain
 from core import bot
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 from utils.text_to_img import text_to_image
 
 __all__ = ['paili_calculator']
@@ -178,6 +186,12 @@ async def paili_calculator(event: GroupMessage):
     if m:
         shoupai = m.group(3)
         try:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, imgbase64=calc_shanten_14(shoupai),text='牌理分析仅供参考, 有bug存在错误'))
+            # await bot.send(event, await messagechain_builder(at=event.sender.id, imgbase64=calc_shanten_14(shoupai),text='牌理分析仅供参考, 有bug存在错误'))
+            await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                  imgbase64=calc_shanten_14(shoupai),
+                                                                                  text='牌理分析仅供参考, 有bug存在错误'))
         except ValueError:
-            await bot.send(event, await messagechain_builder(at=event.sender.id, text='请输入14位手牌'))
+            # await bot.send(event, await messagechain_builder(at=event.sender.id, text='请输入14位手牌'))
+            await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                  imgbase64=calc_shanten_14(shoupai),
+                                                                                  text='请输入14位手牌'))

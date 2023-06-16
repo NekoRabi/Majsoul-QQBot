@@ -1,9 +1,17 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 2:18
+:Update: /
+:Describe: 腾讯云接口API
+:Version: 0.0.1
+"""
 import re
 
 from mirai import GroupMessage, Plain, FriendMessage, Voice
 from core import config, bot, commandpre, commands_map
 from plugin.TencentCloudAPI.text_to_voice import VoiceCreater
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 from utils.cfg_loader import *
 
 __all__ = []
@@ -13,7 +21,7 @@ _cfg: dict = read_file(r'./config/TencentCloudAPI/config.yml')
 _secretId = _cfg.get('secretId', None)
 _secretKey = _cfg.get('secretKey', None)
 if _secretId:
-    if isinstance(_secretId,str):
+    if isinstance(_secretId, str):
         if _secretId.strip() == '':
             __plugin_enable = False
     else:
@@ -22,7 +30,7 @@ else:
     __plugin_enable = False
 
 if _secretKey:
-    if isinstance(_secretKey,str):
+    if isinstance(_secretKey, str):
         if _secretKey.strip() == '':
             __plugin_enable = False
     else:
@@ -58,12 +66,13 @@ if __plugin_enable:
                             return
                     text = m.group(1).strip()
                     if len(text) > 40:
-                        return await bot.send(event, await messagechain_builder(text="文本太长啦", rndimg=True))
+                        return await messagechain_sender(event=event,
+                                                         msg=await messagechain_builder(text="文本太长啦", rndimg=True))
                     voice = getbase64voice(text)
                     if not voice['error']:
-                        return await bot.send(event, Voice(base64=voice['file']))
-                        # return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
-                        # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
+                        return await messagechain_sender(event=event, msg=Voice(base64=voice['file']))
+                        # return await messagechain_sender(event=event,msg= await Voice.from_local(content=voice['file']))  # 有问题
+                        # return await messagechain_sender(event=event,msg= await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 
 
         @bot.on(FriendMessage)
@@ -78,12 +87,13 @@ if __plugin_enable:
                     groupid = int(m.group(1))
                     text = m.group(2).strip()
                     if len(text) > 40:
-                        return await bot.send(event, await messagechain_builder(text="文本太长啦", rndimg=True))
+                        return await messagechain_sender(event=event,
+                                                         msg=await messagechain_builder(text="文本太长啦", rndimg=True))
                     voice = getbase64voice(text)
                     if not voice['error']:
-                        return await bot.send_group_message(groupid, Voice(base64=voice['file']))
-                        # return await bot.send(event, await Voice.from_local(content=voice['file']))  # 有问题
-                        # return await bot.send(event, await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
+                        return await messagechain_sender(grouptarget=groupid, msg=Voice(base64=voice['file']))
+                        # return await messagechain_sender(event=event,msg= await Voice.from_local(content=voice['file']))  # 有问题
+                        # return await messagechain_sender(event=event,msg= await Voice.from_local(filename=f'./data/audio/{text}.{vc.codec}'))
 
     if len(__all__) > 0:
         print(f' |---已启用的腾讯云API服务{__all__}')

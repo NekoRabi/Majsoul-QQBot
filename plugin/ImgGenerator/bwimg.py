@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 1:50
+:Update: /
+:Describe: CS击杀制作
+:Version: 0.0.1
+"""
 import os
 import re
 
@@ -9,6 +16,7 @@ from core import bot, commandpre, blacklist
 __all__ = ['bwimg']
 
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 
 if not os.path.exists("./images/ImgGenerator"):
     os.mkdir("./images/ImgGenerator")
@@ -64,7 +72,8 @@ async def bwimg(event: GroupMessage):
         imgname = img.image_id
         await img.download(filename=f'./images/tempimg/{imgname}')
         makebwimg(imgname, m.group(1))
-        await bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
+        # await bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
+        await messagechain_sender(event=event,msg=await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
         deletesource(imgname)
         # except Exception as e:
         #     print(e)

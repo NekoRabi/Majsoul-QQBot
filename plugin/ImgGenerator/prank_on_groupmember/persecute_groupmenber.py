@@ -1,7 +1,7 @@
 """
 :Author:  NekoRabi
 :Create:  2022/8/13 20:13
-:Update: /
+:Update: 2023/6/16
 :Describe: 一个'迫害'群友的插件
 """
 import base64
@@ -13,6 +13,7 @@ from PIL import Image, ImageFont, ImageDraw
 from mirai.models import Plain, GroupMessage, Quote
 from core import bot, blacklist
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 
 default_fontsize = 48
 default_maxwidth = default_fontsize * 15
@@ -193,7 +194,8 @@ async def groupmessage_screenshot(event: GroupMessage):
             origin_msg = origin_msg.replace('[图片]', '').replace('[动画表情]', '').replace('[符号表情]', '')
             origig_sender = quote.sender_id
             if origin_msg == '':
-                return await bot.send(event, await messagechain_builder(text='只能截图文本哦'))
+                # return await bot.send(event, await messagechain_builder(text='只能截图文本哦'))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text='只能截图文本哦'))
             headimg = await get_head_sculpture(origig_sender)
             headimg = headimg.resize((default_fontsize * 5, default_fontsize * 5), Image.ANTIALIAS)
             memberinfo = await bot.get_group_member(group=event.group.id, id_=origig_sender)  # 获取群友群信息
@@ -231,7 +233,8 @@ async def groupmessage_screenshot(event: GroupMessage):
                 msgchain = await messagechain_builder(text='消息似乎太久了，找不到完整的了', imgbase64=imgcontent)
             else:
                 msgchain = await messagechain_builder(imgbase64=imgcontent)
-            res = await bot.send(event, msgchain)
+            res = await messagechain_sender(event=event, msg=msgchain)
             if res == -1:
-                await bot.send(event, await messagechain_builder(text='截图发送失败'))
+                # await bot.send(event, await messagechain_builder(text='截图发送失败'))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text='截图发送失败'))
         return

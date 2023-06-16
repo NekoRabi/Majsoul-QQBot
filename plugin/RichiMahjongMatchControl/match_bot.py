@@ -2,7 +2,7 @@
 :Author:  NekoRabi
 :Create:  2022/10/15 21:19
 :Update: /
-:Describe: 比赛机器人
+:Describe: 模拟比赛机器人，但几乎没有用
 :Version: 0.0.1
 """
 
@@ -28,14 +28,14 @@ async def create_match(event: GroupMessage):
     m = re.match(fr"^{commandpre}创建比赛\s*(\w+)\s*(\d{{4}}-\d{{2}}-\d{{2}})\s*(\w+)?$", msg.strip())
     if m:
         if not is_having_admin_permission(event):
-            return await bot.send(event, await messagechain_builder(text="仅管理员可以创建新比赛", at=event.sender.id))
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text="仅管理员可以创建新比赛", at=event.sender.id))
         if m.group(2):
             description = m.group(3)
         else:
             description = ""
         res = MatchOperator.register_match(sourcegroup=event.group.id, host=event.sender.id, matchname=m.group(1),
                                            ddl=m.group(2), description=description)
-        await bot.send(event, await messagechain_builder(text=res))
+        await messagechain_sender(event=event, msg=await messagechain_builder(text=res))
 
 
 @bot.on(GroupMessage)
@@ -52,7 +52,7 @@ async def join_match(event: GroupMessage):
             teamname = matchname
         res = MatchOperator.join_match(matchname=m.group(1), qqid=event.sender.id, teamname=teamname,
                                        position=position, playername=playername)
-        await bot.send(event, await messagechain_builder(text=res))
+        await messagechain_sender(event=event, msg=await messagechain_builder(text=res))
 
 
 @bot.on(GroupMessage)
@@ -87,7 +87,7 @@ async def get_teammembers(event: GroupMessage):
                     msg += f"{position}({qqs})\n"
             else:
                 msg += f"{position}{players}\n"
-        await bot.send(event, await messagechain_builder(text=msg[:-1]))
+        await messagechain_sender(event=event, msg=await messagechain_builder(text=msg[:-1]))
 
 
 @bot.on(GroupMessage)
@@ -107,9 +107,9 @@ async def remove_teammate(event: GroupMessage):
                 _id = int(_id)
             except ValueError:
                 msg = "请输入正确的qq,如需输入玩家名,请在玩家名前加上' %playername%= '"
-                return await bot.send(event, await messagechain_builder(text=msg))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text=msg))
         res = MatchOperator.remove_teammate(matchname=matchname, teamname=teamname, _id=_id, position=position)
-        return await bot.send(event, await messagechain_builder(text=res))
+        return await messagechain_sender(event=event, msg=await messagechain_builder(text=res))
 
 
 @bot.on(GroupMessage)
@@ -123,4 +123,4 @@ async def create_team(event: GroupMessage):
         description = m.group(3)
         res = MatchOperator.create_team(matchname=matchname, teamname=teamname, description=description,
                                         leader=event.sender.id)
-        return await bot.send(event, await messagechain_builder(text=res))
+        return await messagechain_sender(event=event, msg=await messagechain_builder(text=res))

@@ -1,12 +1,13 @@
 """
 :Author:  NekoRabi
 :Create:  2022/9/23 14:08
-:Update: /
+:Update: 2023/6/16
 :Describe: 群成员图片制作
 :Version: 0.0.1
 """
 import random
 
+from utils import root_logger
 from utils.MessageChainBuilder import messagechain_builder
 from mirai import GroupMessage, At, Plain
 from core import bot, blacklist
@@ -17,6 +18,8 @@ import aiohttp
 import re
 import os
 import base64
+
+from utils.MessageChainSender import messagechain_sender
 
 if not os.path.exists("./images/ImgGenerator"):
     os.mkdir("./images/ImgGenerator")
@@ -142,6 +145,7 @@ async def holdup(userid):
 
 @bot.on(GroupMessage)
 async def daiburen(event: GroupMessage):
+    """生成逮捕图"""
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -157,7 +161,8 @@ async def daiburen(event: GroupMessage):
         if userid:
             # await makedaibu(userid)
             # return bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/daibu_{userid}.png'))
-            return await bot.send(event, await messagechain_builder(imgbase64=await makedaibu(userid)))
+            return await messagechain_sender(event=event,
+                                             msg=await messagechain_builder(imgbase64=await makedaibu(userid)))
 
 
 @bot.on(GroupMessage)
@@ -181,15 +186,20 @@ async def xka(event: GroupMessage):
                     await makesmalllove(userid, memberinfo.member_name, member_profile.sex)
                 else:
                     await makesmalllove(userid, member_profile.nickname, member_profile.sex)
-                await bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/xiaokeai_{userid}.png'))
+                # await bot.send(event,
+                #                await messagechain_builder(imgpath=f'./images/ImgGenerator/xiaokeai_{userid}.png'))
+                await messagechain_sender(event=event,
+                                          msg=await messagechain_builder(
+                                              imgpath=f'./images/ImgGenerator/xiaokeai_{userid}.png'))
             except Exception as e:
                 print(e)
-                pass
+                root_logger.error(f"制作并发生'小可爱'时发生了错误\n{e}")
     return
 
 
 @bot.on(GroupMessage)
 async def diuren(event: GroupMessage):
+    """丢人制作"""
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -203,7 +213,8 @@ async def diuren(event: GroupMessage):
             userid = event.message_chain.get_first(At).target
         if userid:
             img = await throwpeople(userid)
-            await bot.send(event, await messagechain_builder(imgbase64=img))
+            # await bot.send(event, await messagechain_builder(imgbase64=img))
+            await messagechain_sender(event=event, msg=await messagechain_builder(imgbase64=img))
         # else:
         #     await bot.send(event, await messagechain_builder(text='请At要丢的人哦~'))
     return
@@ -211,6 +222,7 @@ async def diuren(event: GroupMessage):
 
 @bot.on(GroupMessage)
 async def chiren(event: GroupMessage):
+    """吃掉头像"""
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -219,12 +231,13 @@ async def chiren(event: GroupMessage):
         if At in event.message_chain:
             userid = event.message_chain.get_first(At).target
             img = await eatpeople(userid)
-            await bot.send(event, await messagechain_builder(imgbase64=img))
+            await messagechain_sender(event=event, msg=await messagechain_builder(imgbase64=img))
     return
 
 
 @bot.on(GroupMessage)
 async def juren(event: GroupMessage):
+    """举高高"""
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -238,5 +251,5 @@ async def juren(event: GroupMessage):
             userid = event.message_chain.get_first(At).target
         if userid:
             img = await holdup(userid)
-            await bot.send(event, await messagechain_builder(imgbase64=img))
+            await bot.messagechain_sender(event=event, msg=await messagechain_builder(imgbase64=img))
     return

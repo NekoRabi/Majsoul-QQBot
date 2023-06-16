@@ -6,3 +6,4 @@ from core.fun.gethelp import *
 from core.fun.signin import *
 from core.fun.roll import *
 from core.fun.tarot import *
+from .bot_state_in_group import *

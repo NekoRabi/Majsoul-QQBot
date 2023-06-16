@@ -1,8 +1,8 @@
 """
 :Author:  NekoRabi
-:Update Time:  2022/8/16 20:02
-:Describe: 塔罗牌抽卡
-:Version: 0.0.1
+:Update Time:  2023/6/16
+:Describe: 塔罗牌抽卡,现已经集成进签到
+:Version: 0.0.2
 """
 
 import os

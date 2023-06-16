@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 1:59
+:Update: /
+:Describe: 从本地发生柴郡图
+:Version: 0.0.1
+"""
 import os
 import random
 import re

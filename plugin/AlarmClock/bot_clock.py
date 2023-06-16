@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from mirai import GroupMessage, Plain, At #, Startup
+from mirai import GroupMessage, Plain, At  # , Startup
 
 from core import bot, scheduler, config, bot_cfg, commandpre
 from plugin.AlarmClock.file_init import *
@@ -48,11 +48,14 @@ async def addclock(event: GroupMessage):
             description = m.group(4)
             info = date_check(date)
             if not info.get('effective'):
-                return await bot.send(event, await messagechain_builder(text=info.get('error')))
+                # return await bot.send(event, await messagechain_builder(text=info.get('error')))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text=info.get('error')))
             if m.group(3):
                 info = time_check(time)
                 if not info.get('effective'):
-                    return await bot.send(event, await messagechain_builder(text=info.get('error')))
+                    # return await bot.send(event, await messagechain_builder(text=info.get('error')))
+                    return await messagechain_sender(event=event,
+                                                     msg=await messagechain_builder(text=info.get('error')))
             else:
                 time = '00:00:00'
             groupid = event.group.id
@@ -72,14 +75,20 @@ async def group_fixed_clock():
     hour_now = datetime.datetime.now().hour
     for groupid in _alarmclockgroup:
         if groupid != 0 and type(groupid) == int:
-            await bot.send_group_message(groupid,
-                                         await messagechain_builder(
-                                             text=f"准点报时: {datetime.datetime.now().hour}:00",
-                                             rndimg=True))
+            # await bot.send_group_message(groupid,
+            #                              await messagechain_builder(
+            #                                  text=f"准点报时: {datetime.datetime.now().hour}:00",
+            #                                  rndimg=True))
+            await messagechain_sender(grouptarget=groupid,
+                                      msg=await messagechain_builder(text=f"准点报时: {datetime.datetime.now().hour}:00",
+                                                                     rndimg=True))
             if hour_now == 22:
-                await bot.send_group_message(groupid,
-                                             await messagechain_builder(text=f"晚上10点了，大家可以休息了,{_botname}也要休息了",
-                                                                        rndimg=True))
+                # await bot.send_group_message(groupid,
+                #                              await messagechain_builder(text=f"晚上10点了，大家可以休息了,{_botname}也要休息了",
+                #                                                         rndimg=True))
+                await messagechain_sender(grouptarget=groupid,
+                                          msg=await messagechain_builder(text=f"晚上10点了，大家可以休息了,{_botname}也要休息了",
+                                                                         rndimg=True))
 
 
 if len(_alarmclockgroup) > 0:

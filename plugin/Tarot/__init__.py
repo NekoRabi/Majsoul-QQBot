@@ -1,1 +1,1 @@
-from plugin.Tarot.tarot import *
+# from plugin.Tarot.tarot import *

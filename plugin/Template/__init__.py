@@ -10,7 +10,7 @@
 # 把你写的插件文件，按照 plugin.包名.文件名 的形式引入
 
 # from plugin.Template.file_init import *
-#from plugin.Template.helloworld import *
+# from plugin.Template.helloworld import *
 
 # print("插件加载成功")
 

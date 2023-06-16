@@ -15,6 +15,7 @@ from mirai import GroupMessage, Plain, MessageChain, Image
 
 from core import bot, commandpre, add_help, config
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 from utils.bufferpool import *
 from utils.cfg_loader import read_file
 
@@ -197,9 +198,9 @@ async def getremakeimg(event: GroupMessage):
     if m:
         senderid = event.sender.id
         if senderid in _blackuser:
-            return await bot.send(event, await messagechain_builder(text='你已被列入黑名单', at=senderid))
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text='你已被列入黑名单', at=senderid))
         if not cmdbuffer.updategroupcache(GroupCommand(event.group.id, senderid, 'remake')):
-            return await bot.send(event, await messagechain_builder(text="好快的重开", at=senderid))
+            return await messagechain_sender(event=event, msg=await messagechain_builder(text="好快的重开", at=senderid))
         _today = time.strftime('%Y%m%d', time.localtime())
         if _remake_member.get(senderid, None) is None:
             _remake_member[senderid] = dict(time=_today, remakecount=0)
@@ -208,8 +209,9 @@ async def getremakeimg(event: GroupMessage):
             _remake_member[senderid] = dict(time=_today, remakecount=1)
         else:
             if member_info['remakecount'] >= _cfg['remake_perday']:
-                return await bot.send(event,
-                                      await messagechain_builder(text=f'每天只能重开{_cfg["remake_perday"]}次哦', at=senderid))
+                return await messagechain_sender(event=event,
+                                                 msg=await messagechain_builder(text=f'每天只能重开{_cfg["remake_perday"]}次哦',
+                                                                                at=senderid))
             member_info['remakecount'] += 1
         if m.group(2):
             basic_score = int(m.group(2))
@@ -221,8 +223,8 @@ async def getremakeimg(event: GroupMessage):
             worlddifficulty = None
         b64 = create_remakeimg(senderid, basic_score=basic_score,
                                worlddifficulty=worlddifficulty)
-        # await bot.send(event, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
-        await bot.send(event, MessageChain(Image(base64=b64)))
+        # await messagechain_sender(event=)(eventmsg=, MessageChain(Image(path=f'./images/Remake/{senderid}.png')))
+        await messagechain_sender(event=event, msg=MessageChain(Image(base64=b64)))
     return
 
 

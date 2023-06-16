@@ -8,6 +8,7 @@ import re
 from mirai import GroupMessage, Plain, FriendMessage
 
 from core import bot, config, commandpre, commands_map
+from utils.MessageChainSender import messagechain_sender
 from utils.cfg_loader import write_file
 
 settings = config.get('settings')
@@ -31,9 +32,11 @@ async def be_silence_from_friend(event: FriendMessage):
             if m.group(1).lower() == 'on' or m.group(1).lower() == 'true':
                 settings['silence'] = True
                 write_file(content=config, path=r'./config/config.yml')
+                await messagechain_sender(friendtarget=event.sender.id, msg='我会少说几句的')
             else:
                 settings['silence'] = False
                 write_file(content=config, path=r'./config/config.yml')
+                await messagechain_sender(friendtarget=event.sender.id, msg='那我多说几句')
 
 
 # 单群沉默 - 从群聊沉默
@@ -54,7 +57,9 @@ async def be_groupsilence_from_group(event: GroupMessage):
                 if event.group.id not in silencegroup:
                     silencegroup.append(event.group.id)
                     write_file(content=config, path=r'./config/config.yml')
+                    # await messagechain_sender(friendtarget=event.sender.id, msg='吵到了你的话，那我会少说几句的~')
             else:
                 if event.group.id in silencegroup:
                     silencegroup.remove(event.group.id)
                     write_file(content=config, path=r'./config/config.yml')
+                    # await messagechain_sender(friendtarget=event.sender.id, msg='这么欢迎我,那我多说几句~')

@@ -1,3 +1,10 @@
+"""
+:Author:  NekoRabi
+:Create:  2023/6/16 2:18
+:Update: /
+:Describe: 语音转文本功能
+:Version: 0.0.1
+"""
 import json
 import base64
 import time

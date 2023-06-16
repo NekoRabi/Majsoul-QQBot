@@ -21,7 +21,6 @@ if not os.path.exists("./database/sys"):
     os.mkdir("./database/sys")
 
 
-
 def db_init():
     cx = sqlite3.connect("./database/sys/sys.sqlite")
     cursor = cx.cursor()
@@ -99,12 +98,15 @@ async def sign_in(event: GroupMessage):
         success, signmsg = signin(event.sender.id)
         if success:
             card = tarotcards.drawcards(userid=event.sender.id)[0]
-            return await bot.send(event,
-                                  await messagechain_builder(at=event.sender.id, text=signmsg, imgbase64=card.imgcontent))
+            return await messagechain_sender(event=event,
+                                             msg=await messagechain_builder(at=event.sender.id, text=signmsg,
+                                                                            imgbase64=card.imgcontent))
             # else:
             #     return await messagechain_sender(await messagechain_builder(at=event.sender.id, text=signmsg))
         else:
-            return await bot.send(event, await messagechain_builder(at=event.sender.id, text=signmsg, rndimg=True))
+            return await messagechain_sender(event=event,
+                                             msg=await messagechain_builder(at=event.sender.id, text=signmsg,
+                                                                            rndimg=True))
 
 
 # 查询积分
@@ -118,6 +120,7 @@ async def getuserscore(event: GroupMessage):
     if m:
         scoremsg = getscore(
             userid=event.sender.id)
-        return await bot.send(event, await messagechain_builder(text=scoremsg, rndimg=True))
+        return await messagechain_sender(event=event, msg=await messagechain_builder(text=scoremsg, rndimg=True))
+
 
 db_init()

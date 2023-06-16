@@ -16,7 +16,9 @@ from io import BytesIO
 from mirai import MessageChain, Plain, Image, GroupMessage, At
 from mirai.models import NudgeEvent
 from core import bot, config, replydata, commandpre, commands_map
+from utils import root_logger
 from utils.MessageChainBuilder import messagechain_builder
+from utils.MessageChainSender import messagechain_sender
 
 blacklist = config.get('blacklist', [])
 __all__ = ['nudge_petpet']
@@ -168,11 +170,10 @@ async def petpet(member_id, flip=False, squish=0, fps=15) -> None:
 
 @bot.on(NudgeEvent)
 async def nudge_petpet(event: NudgeEvent):
+    """检测戳一戳事件"""
     sender = event.from_id
-
     if sender == bot.qq:
         return
-
     if sender in blacklist:
         return
     if (not _settings['silence']) or _settings['nudgereply']:
@@ -181,40 +182,32 @@ async def nudge_petpet(event: NudgeEvent):
                 target = event.target
                 if target == bot.qq:
                     if sender in _admin:
-                        await bot.send_group_message(event.subject.id, await messagechain_builder(
+                        await messagechain_sender(grouptarget=event.subject.id, msg=await messagechain_builder(
                             reply_choices=replydata['nudgedata']['admin']))
                         await petpet(target)
-                        await bot.send_group_message(event.subject.id,
-                                                     await messagechain_builder(imgpath=f'./images/PetPet/temp/tempPetPet-{target}.gif'))
+                        await messagechain_sender(grouptarget=event.subject.id, msg=await messagechain_builder(
+                            imgpath=f'./images/PetPet/temp/tempPetPet-{target}.gif'))
                     else:
                         if random.random() < _nudgeconfig['sendnudgechance']:
                             if random.random() < _nudgeconfig['supersendnudgechance']:
-                                await bot.send_group_message(event.subject.id,
-                                                             await messagechain_builder(
-                                                                 reply_choices=replydata['nudgedata'][
-                                                                     'supernudgereply'],
-                                                                 rndimg=True))
+                                await messagechain_sender(grouptarget=event.subject.id, msg=await messagechain_builder(
+                                    reply_choices=replydata['nudgedata']['supernudgereply'],
+                                    rndimg=True))
                                 for i in range(_nudgeconfig['supernudgequantity']):
                                     await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
                                 return
                             else:
                                 await bot.send_nudge(subject=event.subject.id, target=sender, kind='Group')
-                                return await bot.send_group_message(event.subject.id,
-                                                                    await messagechain_builder(
-                                                                        reply_choices=replydata['nudgedata'][
-                                                                            'nudgereply'],
-                                                                        rndimg=True))
+                                return await messagechain_sender(grouptarget=event.subject.id,
+                                                                 msg=await messagechain_builder(
+                                                                     reply_choices=replydata['nudgedata']['nudgereply'],
+                                                                     rndimg=True))
                         else:
-                            return await bot.send_group_message(event.subject.id,
-                                                                MessageChain(
-                                                                    [Plain(
-                                                                        random.choice(
-                                                                            replydata['nudgedata']['other']))]))
+                            return await messagechain_sender(grouptarget=event.subject.id,
+                                                             msg=random.choice(replydata['nudgedata']['other']))
                 else:
                     await petpet(target)
-                    await bot.send_group_message(event.subject.id,
-                                                 MessageChain(
-                                                     Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
+                    await messagechain_sender(grouptarget=event.subject.id, msg=MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif')))
     return
 
 
@@ -226,9 +219,10 @@ async def touchhead(event: GroupMessage):
         if At in event.message_chain:
             target = event.message_chain.get_first(At).target
             await petpet(target)
-            if await bot.send(event,
-                              MessageChain(Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif'))) == -1:
+            if await messagechain_sender(event=event, msg=MessageChain(
+                    Image(path=f'./images/PetPet/temp/tempPetPet-{target}.gif'))) == -1:
                 print('摸头发送失败')
+                root_logger.error('摸头发送失败')
         # else:
         #     target = m.group(2)
         #     await petpet(target)

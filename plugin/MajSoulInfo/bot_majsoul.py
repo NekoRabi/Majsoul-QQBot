@@ -24,8 +24,10 @@ from utils.get_groupmember_authority import is_having_admin_permission
 
 __all__ = ['disableqhplugin', 'enableqhplugin', 'qhpt', 'getrecentqhpaipu', 'getplayerdetails', 'getqhmonthreport',
            'getqhwatcher', 'addmajsoulwatch', 'delmajsoulwatch', 'qhdrawcards', 'getmyqhdrawcards',
-           'clearmajsoulwatcher', 'clearmajsoulgroupwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag', 'asyqh_autopaipu',
-           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation', 'get_player_detail_website', 'qhgroupauthentication']
+           'clearmajsoulwatcher', 'clearmajsoulgroupwatcher', 'qhaddtag', 'qhdeltag', 'qhtagoperate', 'qhlisttag',
+           'asyqh_autopaipu',
+           'freshqhpaipu', 'game_guan_wang', 'qhbind', 'qhbind_operation', 'get_player_detail_website',
+           'qhgroupauthentication']
 _admin = config.get('admin', [])
 _master = config.get('master', 1215791340)
 
@@ -595,8 +597,9 @@ async def get_player_detail_website(event: GroupMessage):
         elif m.group(1) == '天凤':
             await messagechain_sender(event=event, msg='https://nodocchi.moe/tenhoulog/')
     if msg.strip().lower() == "mortal":
-        await messagechain_sender(event=event,msg='https://mjai.ekyu.moe')
+        await messagechain_sender(event=event, msg='https://mjai.ekyu.moe')
     return
+
 
 async def asyqh_autopaipu():
     """结合scheduler自定定时刷新数据库"""
@@ -652,7 +655,6 @@ async def initialization(_):
         # 如果设置ignore_history，机器人启动时将不再的关注用户进行上一局的对局播报
         await majsoul.freshdb_when_start()
         await asyncio.sleep(240)
-
 
     if _qhsettings.get('autoquery', False):
         _searchfrequency = int(_qhsettings.get("searchfrequency", 6))
