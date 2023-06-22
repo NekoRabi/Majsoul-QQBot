@@ -1,5 +1,7 @@
 ***代码都在 [plugin/Template 包](../plugin/Template)中***
 
+***引言：我已经预先创建一些会用的方法，希望大家能够都走这些方法做相同的事务，方便未来进行进一步的详细操纵***
+
 # 一、先引入需要用的包和模块
 ```python
 
@@ -64,6 +66,8 @@ def readfile(path):
 import re
 from core import bot, bot_cfg
 from mirai import GroupMessage, Plain, FriendMessage
+from utils.MessageChainBuilder import *
+from utils.MessageChainSender import *
 
 @bot.on(GroupMessage)  # 当群聊事件发生时
 async def helloworld(event: GroupMessage):
@@ -81,12 +85,17 @@ async def helloworld(event: GroupMessage):
         # msg = await asy_hello()
         # 普通方法调用
         # msg = common_hello()
+   
+        # 创建一个消息链对象
+        
+        # 方法① 
+        messagechain = await messagechain_builder(text="你好")
+        # 方法②
+        messagechain = await MessageChainBuilder().addText("你好").build()
 
-        # from utils.MessageChainBuilder import messagechain_builder
-        # 最后让机器人发信息，给出反馈,可以用utils.MessageChainBuilder包的 messagechain_builder() 方法来快速构造一个消息链
-
-        await bot.send(event, f'114514191810 ! This is {bot_cfg.get("nickname")}')
-
+        # 最后发送消息链
+        await messagechain_sender(event=event,msg=messagechain)
+        
 
 @bot.on(FriendMessage)  # 当私聊事件发生时
 async def helloworld(event: FriendMessage):
@@ -105,11 +114,13 @@ async def helloworld(event: FriendMessage):
         # 普通方法调用
         # msg = common_hello()
 
-        from utils.MessageChainBuilder import messagechain_builder
+        # from utils.MessageChainBuilder import messagechain_builder
         # 最后让机器人发信息，给出反馈,可以用utils.MessageChainBuilder包的 messagechain_builder(text=msg) 方法来快速构造一个消息链
 
-        await bot.send(event, f'私聊成功! This is {bot_cfg.get("nickname")}')
-
+        # await bot.send(event, f'私聊成功! This is {bot_cfg.get("nickname")}')
+        
+        # 私聊方法和群聊一样
+        return 
 ```
 
 # 四、编写__init__.py文件

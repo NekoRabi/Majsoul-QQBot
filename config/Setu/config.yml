@@ -9,14 +9,17 @@ allowsearchself: false
 
 # 开启色图的群聊
 setugroups:
-  - 586468489
+  - 0
 
 # 开启r18搜索的群聊
 r18groups:
-  - 586468489
+  - 0
 
 # 撤回时间,-1为不撤回,单位为 秒
 recalltime: 50
 
 # 色图发送错误时会报错
 err_opt: True
+
+# mirai-api-http的版本，不同版本不一样
+#mah_version: "2.4" # 已经自动检测了

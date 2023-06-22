@@ -10,6 +10,8 @@ import base64
 import os.path
 import random
 import re
+
+import mirai
 import yaml
 import aiohttp
 import json
@@ -17,8 +19,9 @@ import json
 # from io import BytesIO
 
 # from PIL.Image import Image
-from mirai import GroupMessage, Plain
+from mirai import GroupMessage, Plain, FriendMessage
 from core import bot, commandpre, commands_map, config
+from utils import root_logger
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 from utils.bufferpool import *
@@ -37,7 +40,7 @@ from utils.cfg_loader import write_file
 # dsc	boolean	false
 ###
 
-__all__ = ['getsomesetu', 'enablesetu', 'disablesetu']
+__all__ = ['getsomesetu', 'enablesetu', 'disablesetu', 'global_setu_control']
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
@@ -159,8 +162,29 @@ admin = config.get('admin', [])
 blackuser = config.get('blacklist', [])
 
 with open(r'./config/Setu/config.yml', 'r', encoding='utf-8') as f:
-    setu_config = yaml.safe_load(f)
+    setu_config: dict = yaml.safe_load(f)
 stfinder = SetuFinder(config['botconfig']['botname'], setu_config)
+
+_global_cmd = r'(setu|[色涩]图)\s*(\w)+$'
+
+_mahversion = None
+
+@bot.on(FriendMessage)
+async def global_setu_control(event: FriendMessage):
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^{commandpre}{commands_map.get('setu').get('globalenable', _global_cmd)}", msg.strip())
+    if m:
+        if event.sender.id in admin:
+            if m.group(1):
+                state = m.group(1).lower()
+                if state in ['true', 'open', 'enable']:
+                    setu_config['enable'] = True
+                else:
+                    setu_config['enable'] = False
+                write_file(content=setu_config,
+                           path=r'./config/Setu/config.yml')
+                await messagechain_sender(event=event, msg=await messagechain_builder(text="全局色图状态切换成功"))
 
 
 @bot.on(GroupMessage)
@@ -178,7 +202,8 @@ async def enablesetu(event: GroupMessage):
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
                 # w_cfg_to_file(content=config, path=r'./config/config.yml')
-                write_file(content=setu_config, path=r'./config/Setu/config.yml')
+                write_file(content=setu_config,
+                           path=r'./config/Setu/config.yml')
                 await messagechain_sender(event=event, msg=await messagechain_builder(text="色图开启成功"))
 
 
@@ -196,27 +221,32 @@ async def disablesetu(event: GroupMessage):
                 # with open(r'./config/config.yml', 'w', encoding='utf-8') as file:
                 #     yaml.dump(config, file, allow_unicode=True)
                 # w_cfg_to_file(content=config, path=r'./config/config.yml')
-                write_file(content=setu_config, path=r'./config/Setu/config.yml')
+                write_file(content=setu_config,
+                           path=r'./config/Setu/config.yml')
                 await messagechain_sender(event=event, msg=await messagechain_builder(text="色图已关闭"))
             else:
                 await messagechain_sender(event=event, msg=await messagechain_builder(text="本群色图已关闭"))
 
 
-@bot.on(GroupMessage)
-async def randomsetu(event: GroupMessage):
-    """发一个随机涩图网站"""
-    msg = "".join(map(str, event.message_chain[Plain]))
-    m = re.match(
-        fr"^随机[涩色]图(网[址站]?)?", msg.strip())
-    if m:
-        await messagechain_sender(event=event, msg=await messagechain_builder(text='https://iw233.cn/API/Random.php'))
-    return
+# @bot.on(GroupMessage)
+# async def randomsetu(event: GroupMessage):
+#     """发一个随机涩图网站"""
+#     msg = "".join(map(str, event.message_chain[Plain]))
+#     m = re.match(
+#         fr"^随机[涩色]图(网[址站]?)?", msg.strip())
+#     if m:
+#         await messagechain_sender(event=event, msg=await messagechain_builder(text='https://iw233.cn/API/Random.php'))
+#     return
 
 
 @bot.on(GroupMessage)
 async def getsomesetu(event: GroupMessage):
+    global _mahversion
     msg = "".join(map(str, event.message_chain[Plain]))
-
+    if _mahversion is None:
+        _mahversion = await bot.about()
+        _mahversion = _mahversion.data.get('version')[:3]
+        print(_mahversion)
     # 匹配指令
     m1 = re.match(
         fr"^{commandpre}{commands_map['setu']['getsetu1']}", msg.strip())
@@ -246,13 +276,23 @@ async def getsomesetu(event: GroupMessage):
                     # imgb64 = download_setu_base64_from_url(imginfo['url'])
                     res = await messagechain_sender(event=event, msg=await messagechain_builder(imgurl=imginfo['url']))
                     # res = await messagechain_sender(event=)(evenmsg=t,await messagechain_builder(imgbase64=imgb64))
-                    if res == -1:
-                        await messagechain_sender(event=event, msg=f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
-                    elif stfinder.recalltime != -1:
+                    # if res == -1:
+                    #     await messagechain_sender(event=event, msg=f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
+                    # elif stfinder.recalltime != -1:
+                    #     await asyncio.sleep(stfinder.recalltime)
+                    #     await bot.recall(res)
+                    if stfinder.recalltime != -1 and res != -1:
                         await asyncio.sleep(stfinder.recalltime)
-                        await bot.recall(res)
+                        if _mahversion == '2.4':
+                            await bot.recall(res)
+                        else:
+                            await bot.recall(target=event.group.id, sessionKey=bot.session, messageId=res)
+                except mirai.ApiError as e:
+                    print(f"Mirai API ERROR,请等待作者更新适配\n{e}")
+                    root_logger.error(f"Mirai API ERROR,请等待作者更新适配{e}")
                 except Exception as e:
                     print(f"色图请求失败:{e}")
+                    root_logger.error(f"色图插件 ERROR {e}")
                     if setu_config.get('err_opt', True):
                         await messagechain_sender(event=event, msg=await messagechain_builder(
                             text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))
@@ -280,13 +320,23 @@ async def getsomesetu(event: GroupMessage):
                                                                                                          'ErrorMsg']))
                     res = await messagechain_sender(event=event, msg=await messagechain_builder(imgurl=imginfo['url']))
                     # await messagechain_sender(event=)(evenmsg=t, MessageChain([Image(url=imginfo['url'])]))
-                    if res == -1:
-                        await messagechain_sender(event=event, msg=f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
-                    elif stfinder.recalltime != -1:
+                    # if res == -1:
+                    #     await messagechain_sender(event=event, msg=f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
+                    # elif stfinder.recalltime != -1:
+                    #     await asyncio.sleep(stfinder.recalltime)
+                    #     await bot.recall(res)
+                    if stfinder.recalltime != -1 and res != -1:
                         await asyncio.sleep(stfinder.recalltime)
-                        await bot.recall(res)
+                        if _mahversion == '2.4':
+                            await bot.recall(res)
+                        else:
+                            await bot.recall(target=event.group.id, sessionKey=bot.session, messageId=res)
+                except mirai.ApiError as e:
+                    print(f"Mirai API ERROR,请等待作者更新适配\n{e}")
+                    root_logger.error(f"Mirai API ERROR,请等待作者更新适配 {e}")
                 except Exception as e:
                     print(f"色图请求失败:{e}")
+                    root_logger.error(f"色图插件 ERROR {e}")
                     if setu_config.get('err_opt', True):
                         await messagechain_sender(event=event, msg=await messagechain_builder(
                             text=f"出错了!这肯定不是{config['botconfig']['botname']}的问题!"))

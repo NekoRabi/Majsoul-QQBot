@@ -1,7 +1,10 @@
 import os
+import asyncio
+import time
 
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Line
+from pyecharts.charts.chart import RectChart, Chart
 from pyecharts.faker import Faker
 from pyecharts.globals import ThemeType
 from pyecharts.render import make_snapshot
@@ -56,7 +59,15 @@ def create_charts_from_option(option: dict, filename: str) -> dict:
     return result
 
 
-def majsoul_bar(filename: str, x_data: list, y1_data: list, timecross="2022-2"):
+def create_chart(chart: RectChart, html_name, png_name, del_html=True):
+    make_snapshot(snapshot, chart.render(f"{html_name}.html"), f"images/MajSoulInfo/{png_name}.png")
+    # make_snapshot(snapshot, bar.render(f"{filename}.html"), f"{filename}.png")
+    if del_html:
+        os.remove(f'{html_name}.html')
+    # return 0
+
+
+async def majsoul_bar(filename: str, x_data: list, y1_data: list, timecross="2022-2")->Bar:
     y1_data.reverse()
     y2_data = []
     newy1 = []
@@ -83,13 +94,30 @@ def majsoul_bar(filename: str, x_data: list, y1_data: list, timecross="2022-2"):
                              )
 
     )
-    make_snapshot(snapshot, bar.render(f"{filename}.html"), f"images/MajSoulInfo/{filename}.png")
+
+    # def blocking_io():
+    #     print(f"start blocking_io at {time.strftime('%X')}")
+    #     time.sleep(1)
+    #     print(f"blocking_io complete at {time.strftime('%X')}")
+    #
+    # def aadds():
+    #     print()
+
+    # await asyncio.gather(
+    #     asyncio.to_thread(blocking_io),
+    #     asyncio.sleep(1))
+    await asyncio.to_thread(create_chart, bar, filename, filename)
+    # coro = asyncio.to_thread(create_chart(bar,filename,filename))
+    # task = asyncio.create_task(coro)
+    # await task
+
     # make_snapshot(snapshot, bar.render(f"{filename}.html"), f"{filename}.png")
-    os.remove(f'{filename}.html')
-    return
+    # os.remove(f'{filename}.html')
+
+    return bar
 
 
-def majsoul_line(filename: str, x_data: list, y1_data: list, y2_data: list = None, timecross="2022-2"):
+async def majsoul_line(filename: str, x_data: list, y1_data: list, y2_data: list = None, timecross="2022-2") -> Line:
     # x = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期七', '星期日']
     # print(x_data)
     # print(y1_data)
@@ -139,10 +167,16 @@ def majsoul_line(filename: str, x_data: list, y1_data: list, y2_data: list = Non
         #     )
         # )
     )
-    make_snapshot(snapshot, line.render(f"{filename}.html"), f"images/MajSoulInfo/{filename}.png")
-    # make_snapshot(snapshot, line.render(f"{filename}.html"), f"{filename}.png")
-    os.remove(f'{filename}.html')
-    return
+    # make_snapshot(snapshot, line.render(f"{filename}.html"), f"images/MajSoulInfo/{filename}.png")
+    # # make_snapshot(snapshot, line.render(f"{filename}.html"), f"{filename}.png")
+    # os.remove(f'{filename}.html')
+
+    await asyncio.to_thread(create_chart, line, filename, filename)
+    return line
+
+
+# async def create_majsoul_charts(filename: str, x_data: list, y1_data: list, timecross="2022-2"):
+#     await asyncio.to_thread(create_chart, line, filename, filename)
 
 
 def tenhou_bar(filename: str, x_data: list, y1_data: list, timecross="2022-2"):
@@ -231,8 +265,6 @@ def tenhou_line(filename: str, x_data: list, y1_data: list, y2_data: list = None
     # make_snapshot(snapshot, line.render(f"{filename}.html"), f"{filename}.png")
     os.remove(f'{filename}.html')
     return
-
-
 
 # 下 inforesponse
 # """{'count': 104, '和牌率': 0.3173076923076923, '自摸率': 0.45454545454545453, '默听率': 0.030303030303030304, '放铳率': 0.18269230769230768, '副露率': 0.34615384615384615, '立直率': 0.3173076923076923, '平均打点': 9348, '最大连庄': 2, '和了巡数': 11.151515151515152, '平均铳点': 8663, '流局率': 0.14423076923076922, '流听率': 0.6666666666666666, '一发率': 0.058823529411764705, '里宝率': 0.5294117647058824, '被炸率': 0.16666666666666666, '平均被炸点数': 9150, '放铳时立直率': 0.2631578947368421, '放铳时副露率': 0.3684210526315789, '立直后放铳率': 0.15151515151515152, '立直后非瞬间放铳率': 0.09090909090909091, '副露后放铳率': 0.19444444444444445, '立直后和牌率': 0.5151515151515151, '副露后和牌率': 0.4166666666666667, '立直后流局率': 0.18181818181818182, '副露后流局率': 0.1111111111111111, '放铳至立直': 7, '放铳至副露': 9, '放铳至默听': 3, '立直和了': 17, '副露和了': 15, '默听和了': 1, '立直巡目': 8.91919191919192, '立直收支': 4109, '立直收入': 10335, ' 立直支出': 8420, '先制率': 0.7575757575757576, '追立率': 0.24242424242424243, '被追率': 0.15151515151515152, '振听立直率': 0, '立直好型': 0.8181818181818182, '立直多面': 0.8181818181818182, '立直好型2': 0.48484848484848486, '最大累计番数': 10, '打点效率': 2966, '铳点损失': 1583, '净打点效率': 1384, '平均起手向听': 3.298076923076923, '平均起手向听亲': 3.0588235294117645, '平均起手向听子': 3.414285714285714, '最近大铳': {'id': '220905-2f058eef-7e52-425a-9bdf-30b279bc7c38', 'start_time': 1662348873, 'fans': [{'id': 29, 'label': '清一色', 'count': 6, '役满': 0}, {'id': 31, 'label': '宝牌', 'count': 2, '役满': 0}, {'id': 32, 'label': '红宝牌', 'count': 1, '役满': 0}]}, 'id': 1056373, 'played_modes': [23]}"""

@@ -107,7 +107,7 @@ def get_qhpturl(playername, searchtype=3):
     return url
 
 
-def get_player_records_url(playerid, searchtype, end_time=None, start_time=1262304000000, total=599):
+def get_player_records_url(playerid, searchtype, end_time=None, start_time=1262304000000, total=1999):
     """
     获取玩家对局记录的URL
 
@@ -733,9 +733,9 @@ class MajsoulQuery:
                 return await messagechain_builder(text=msg)
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
         else:
-            majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+            await majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
                         y1_data=y_data, timecross=timecross)
-            majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+            await majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
                          y1_data=y_data, timecross=timecross)
             if _broadcast_type in ['txt', 'text', 'str']:
                 return await messagechain_builder(text=msg, imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
@@ -1929,9 +1929,9 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
             return await messagechain_builder(text=msg)
         return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
     else:
-        majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+        await majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
                     y1_data=y_data, timecross=timecross)
-        majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+        await majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
                      y1_data=y_data, timecross=timecross)
 
         _broadcast_type = _config.get('broadcast', 'image').lower()

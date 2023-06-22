@@ -1,6 +1,6 @@
 [comment]: <> (<strong>本项目已停止更新，不再支持Yiri-Mirai与Mirai，现新版使用NB2和gocq搭建，具体请点击前往 [新版本]&#40;&#41; 查看</strong>)
 
-# 由于Mirai的严重风控，目前转为使用 NoneBot2 和 gocq 进行开发，敬请期待新版本
+[comment]: <> (# 由于Mirai的严重风控，目前转为使用 NoneBot2 和 gocq 进行开发，敬请期待新版本)
 
 # Majsoul-QQBot
 一个基于YiriMirai的QQ机器人，主要有雀魂和天凤的相关功能(如查询、十连、监控等等)，还有一些娱乐性的功能，比如入群欢迎，制作/发送图片，随机复读等等
@@ -55,10 +55,14 @@
 
 ## [B站教程视频](https://www.bilibili.com/video/BV1nW4y19728)
 
+## [插件编写教程](./docs/HowToCreateYourFirstPlugin.md)
+
 ---
 
 <p style="font-size:20px;color:red;font-weight:bold">Yiri-Mirai 已处于半停机状态，不支持最新的Mirai-Api-Http！！！<br/>
 为减少使用中的问题，请将mah的版本固定在2.4-2.5，yirimirai版本固定在0.2.6</p>
+
+<font size=4>↑ 也许高版本的mah可用，部分适配高版本mah ↑</font>
 
 正在换成NoneBot重新开发
 
@@ -72,8 +76,6 @@
 
 可以使用 ``` pip install -r requirements.txt``` 来快速安装所需依赖。
 
-我提供了自己的 [Mirai](./other/自用mirai/mcl1.0.6.zip) 和 [Mirai-Api-Http](./other/mirai-api-http/setting.yml) 配置，可以直接进行复制和替换。
-
 本程序 `WebSocketAdapter` 的端口号为 `17280`。 
 
 
@@ -85,9 +87,13 @@
 
 **建议使用 Python 3.9 和 Java 17**
 
-EXE不支持Win7，Win7请自行下载 Python 3.8 并安装依赖
+EXE不支持Win7，Win7请自行下载 Python 并安装依赖
 
-已知Python 3.10 有问题跑不起来，如已安装并报错，请降级安装python 3.8-9 *以后会去解决3.10的问题*
+
+**自从Python 3.10 开始，`*loop` 已经不再是必需参数，如遇此问题，请降级安装python 3.8或者3.9，也可自行搜索解决方案**
+
+
+~~已知Python 3.10 有问题跑不起来，如已安装并报错，请降级安装python 3.8-9 *以后会去解决3.10的问题*~~
 
 # 关于风控
 
@@ -95,9 +101,11 @@ EXE不支持Win7，Win7请自行下载 Python 3.8 并安装依赖
 
 如果是初次使用，风控几乎是必然的。机器人挂着放一两天就好了。
 
+**TX严打bot中，45/235/238都是常态，可向群友寻找解决方案**
+
 # 配置文件
 
-**配置文件有大变动，将重做**
+**配置文件有大变动，会重做**
 
 ### config.yml
  ``` 注意, '冒号' (:) 后必须有空格 ```
@@ -188,7 +196,7 @@ settings: # 功能开关
 
 ### 雀魂十连的配置 drawcards.yml 
 
-移步雀魂相关
+请移步雀魂插件查看详细内容 **[链接](./plugin/MajSoulInfo/doc.md)**
 
 #### 我会不定期更新配置和图片资源
 
@@ -262,12 +270,13 @@ up: # up的物品池，如果十连参数为 限时，up列表的装扮和人物
  1. ~~config.yml编辑后乱码。 （基本候是将 UTF-8 编码保存为 GBK 或者反过来）~~
  ~~解决办法: 将config.yml重新编码 ( 现已全部都使用 utf-8 编码 )~~
  2. ~~网络请求超时(网络不好)~~
+ 3. 雀魂查询bug(底层设计问题，会换框架重做)
 
  # 开发计划
 
   [ ] 修复牌理Bug
 
-  [ ] 增加雀魂月报的图案输出
+  [x] 增加雀魂月报的图案输出
 
   [ ] 将每个模块都补充完整的注释和文档
 
@@ -283,7 +292,7 @@ QQ:1215791340 验证消息： 可爱的拉克丝
 
 欢迎提交 需求、BUG、问题，也可以找我询问项目相关的问题。我很乐意有人来和我一起维护这个项目 
 
-*做毕设和实习中，开发缓慢*
+**上班了**
 
 # 开源协议
 由于 [mirai](https://github.com/mamoe/mirai) 、 mirai-api-http 、 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) 均采用了 AGPL-3.0 开源协议，本项目同样采用 AGPL-3.0 协议。
@@ -295,6 +304,6 @@ QQ:1215791340 验证消息： 可爱的拉克丝
 
 [YiriMirai](https://github.com/YiriMiraiProject/YiriMirai) : 提供SDK
 
-[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ： 回复语录提供
+[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) : 回复语录提供
 
-[Lolicon API](https://api.lolicon.app/#/setu) : 色图
+[Lolicon API](https://api.lolicon.app/#/setu) : 色图支持

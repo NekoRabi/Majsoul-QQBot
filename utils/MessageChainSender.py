@@ -21,6 +21,16 @@ __all__ = ['messagechain_sender']
 
 _last_error_message = dict(groupmessage=dict(), friendmessage=dict(), other=dict())
 
+#
+# class MessageChainSender:
+#     target: str
+#     targetId: int
+#     messageChain: MessageChain
+#     recall: int
+#     errorText: str
+#
+#     def __init__(self):
+#         self.target = ''
 
 async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], event: MessageEvent = None,
                               grouptarget: int = None, friendtarget: int = None, errortext: str = None) -> int:
@@ -70,7 +80,7 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
         if grouptarget:
             target = grouptarget
             if bot.get_group(target):
-                res = await bot.send_group_message(grouptarget, msg)
+                res = await bot.send_group_message(grouptarget, msg).message_id
                 if res == -1 and not onlyImg:
                     await bot.send_group_message(grouptarget, errtext)
                 # errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
@@ -80,7 +90,7 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
         elif friendtarget:
             target = friendtarget
             if bot.get_friend(target):
-                res = await bot.send_friend_message(friendtarget, msg)
+                res = await bot.send_friend_message(friendtarget, msg).message_id
                 if res == -1 and not onlyImg:
                     await bot.send_group_message(friendtarget, errtext)
                 # errtext += f'消息类型:FriendMessageEvent,消息目标:{friendtarget}'
