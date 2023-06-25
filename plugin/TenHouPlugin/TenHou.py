@@ -19,6 +19,8 @@ import re
 from plugin.TenHouPlugin.ptcalculation import ptcalculation, levelmap, get_tenhou_month_report
 from utils import text_to_image, read_file, write_file
 
+TIME_FORMAT = "%Y-%m-%d %H:%M "
+
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
@@ -82,39 +84,39 @@ def format_players(players):
 async def asyautoget_th_match() -> list:
     """使用aiohttp编写的自动抓取天风结算 - 异步爬虫"""
     jptz = pytz.timezone('Asia/Tokyo')
-    zhtz = pytz.timezone('Asia/Shanghai')
-    minute = datetime.datetime.now(tz=zhtz).strftime("%M")
-    zhnowtime = datetime.datetime.now(tz=zhtz).strftime("%Y%m%d%H")
-    jpnowtime = datetime.datetime.now(tz=jptz).strftime("%Y%m%d%H")
-    zhdaytime = datetime.datetime.now(tz=zhtz).strftime("%Y-%m-%d")
-    jpdaytime = datetime.datetime.now(tz=jptz).strftime("%Y-%m-%d")
+    now = datetime.datetime.now(tz=jptz)
+    before = now - datetime.timedelta(hours=1)
+    hour_before = before.strftime("%Y%m%d%H")
+    hour_now = now.strftime("%Y%m%d%H")
+    date_before = before.strftime("%Y-%m-%d")
+    date_now = now.strftime("%Y-%m-%d")
 
     cx = sqlite3.connect('./database/TenHouPlugin/TenHou.sqlite')
     cursor = cx.cursor()
-    if int(minute) <= 10:
-        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime)]
+    if now.minute <= 7:  # 本程序基于如下假设：一个半庄最快不少于2分钟，最慢不超过 (55分钟-查询间隔)，观战延迟为5分钟
+        timelist = [dict(date_hour=hour_before, date=date_before)]
     else:
-        timelist = [dict(nowtime=zhnowtime, daytime=zhdaytime),
-                    dict(nowtime=jpnowtime, daytime=jpdaytime)]
+        timelist = [dict(date_hour=hour_before, date=date_before),
+                    dict(date_hour=hour_now, date=date_now)]
 
     msglist = []
     for usetime in timelist:
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=timeout,
                                          headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            async with session.get(url=f'https://tenhou.net/sc/raw/dat/scb{usetime["nowtime"]}.log.gz',
+            async with session.get(url=f'https://tenhou.net/sc/raw/dat/scb{usetime["date_hour"]}.log.gz',
                                    allow_redirects=True) as response:
                 filedata = await response.read()
         open(
-            f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz', 'wb').write(filedata)
-        un_gz(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
-        os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log.gz')
+            f'./data/TenHouPlugin/scb{usetime["date_hour"]}.log.gz', 'wb').write(filedata)
+        un_gz(f'./data/TenHouPlugin/scb{usetime["date_hour"]}.log.gz')
+        os.remove(f'./data/TenHouPlugin/scb{usetime["date_hour"]}.log.gz')
         # cursor.execute("select playername from watchedplayer where watchedgroupcount > 0")
         cursor.execute("select playername from watchedplayersview")
         result = cursor.fetchall()
         playername = []
         for player in result:
             playername.append(player[0])
-        with open(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log', 'r', encoding='utf-8') as f:
+        with open(f'./data/TenHouPlugin/scb{usetime["date_hour"]}.log', 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -130,7 +132,7 @@ async def asyautoget_th_match() -> list:
                 if p in plname:
                     print(f"{datas}\n")
                     cursor.execute(
-                        f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['daytime']} {startTime}'")
+                        f"select * from paipu where player1 = '{players[0]}' and startTime = '{usetime['date']} {startTime}'")
                     record = cursor.fetchall()
                     if len(record) > 0:
                         print("该记录已存在")
@@ -139,7 +141,9 @@ async def asyautoget_th_match() -> list:
                     # msg = "检测到新的对局信息:\n"
                     msg = ""
                     msg += f"{model}\n"
-                    msg += f"{usetime['daytime']} {startTime} , 对局时长: {duration}\n"
+                    localtime = datetime.datetime.strptime(f"{usetime['date']} {startTime}", TIME_FORMAT) \
+                        .replace(tzinfo=jptz).astimezone().strftime(TIME_FORMAT)
+                    msg += f"{localtime}，对局时长: {duration}\n"
                     order = get_matchorder(
                         playerlist=plname, playername=p)
                     if len(players) == 4:
@@ -153,14 +157,14 @@ async def asyautoget_th_match() -> list:
                     msg = msg[:-1]
                     if len(players) == 3:
                         cursor.execute(
-                            f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
+                            f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['date']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","Null")''')
                     else:
                         cursor.execute(
-                            f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['daytime']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")''')
+                            f'''insert into paipu(startTime,duration,model,player1,player2,player3,player4) values("{usetime['date']} {startTime}","{duration}","{model}","{players[0]}","{players[1]}","{players[2]}","{players[3]}")''')
                     cx.commit()
                     msglist.append(dict(playername=p, msg=msg))
                     break
-        os.remove(f'./data/TenHouPlugin/scb{usetime["nowtime"]}.log')
+        os.remove(f'./data/TenHouPlugin/scb{usetime["date_hour"]}.log')
         # print(msglist)
     cursor.close()
     cx.close()

@@ -80,7 +80,7 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
         if grouptarget:
             target = grouptarget
             if bot.get_group(target):
-                res = await bot.send_group_message(grouptarget, msg).message_id
+                res = await bot.send_group_message(grouptarget, msg)
                 if res == -1 and not onlyImg:
                     await bot.send_group_message(grouptarget, errtext)
                 # errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
