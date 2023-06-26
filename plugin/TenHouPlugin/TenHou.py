@@ -141,8 +141,8 @@ async def asyautoget_th_match() -> list:
                     # msg = "检测到新的对局信息:\n"
                     msg = ""
                     msg += f"{model}\n"
-                    localtime = datetime.datetime.strptime(f"{usetime['date']} {startTime}", TIME_FORMAT) \
-                        .replace(tzinfo=jptz).astimezone().strftime(TIME_FORMAT)
+                    localtime = jptz.localize(datetime.datetime.strptime(f"{usetime['date']} {startTime}", TIME_FORMAT)) \
+                        .astimezone().strftime(TIME_FORMAT)
                     msg += f"{localtime}，对局时长: {duration}\n"
                     order = get_matchorder(
                         playerlist=plname, playername=p)
