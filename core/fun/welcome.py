@@ -28,6 +28,8 @@ async def welcome(event: MemberJoinEvent) -> None:
         personname = event.member.member_name
         groupname = event.member.group.name
         groupid = event.member.group.id
+        if groupid in config.get('no_welcome', []):
+            return
         info: str = random.choice(config['welcomeinfo'])
         info = info.replace('%ps%', personname).replace('%gn%', groupname)
         await messagechain_sender(

@@ -17,7 +17,8 @@ nest_asyncio.apply()
 if __name__ == '__main__':
 
     config = load_config()
-    create_helpimg()
+    if config.get('setting',{}).get('general_help',True):
+        create_helpimg()
     settings = config['settings']
     botname = config['botconfig']['botname']
 

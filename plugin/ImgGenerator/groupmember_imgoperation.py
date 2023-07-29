@@ -5,12 +5,13 @@
 :Describe: 群成员图片制作
 :Version: 0.0.1
 """
+import datetime
 import random
 
-from utils import root_logger
+from utils import root_logger, read_file
 from utils.MessageChainBuilder import messagechain_builder
 from mirai import GroupMessage, At, Plain
-from core import bot, blacklist
+from core import bot, blacklist, commandpre
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 
@@ -24,7 +25,9 @@ from utils.MessageChainSender import messagechain_sender
 if not os.path.exists("./images/ImgGenerator"):
     os.mkdir("./images/ImgGenerator")
 
-__all__ = ['xka', 'daiburen', 'diuren', 'chiren', 'juren']
+__all__ = ['xka', 'daiburen', 'diuren', 'chiren', 'juren', 'merry_random_group_member', 'merry_group_member']
+
+_cfg = read_file(r'./config/ImgGenerator/config.yml')
 
 
 def img_to_base64(img: Image):
@@ -146,6 +149,8 @@ async def holdup(userid):
 @bot.on(GroupMessage)
 async def daiburen(event: GroupMessage):
     """生成逮捕图"""
+    if not _cfg.get('Arrest', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -167,6 +172,8 @@ async def daiburen(event: GroupMessage):
 
 @bot.on(GroupMessage)
 async def xka(event: GroupMessage):
+    if not _cfg.get('SmallLove', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -200,6 +207,8 @@ async def xka(event: GroupMessage):
 @bot.on(GroupMessage)
 async def diuren(event: GroupMessage):
     """丢人制作"""
+    if not _cfg.get('Throw', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -223,6 +232,8 @@ async def diuren(event: GroupMessage):
 @bot.on(GroupMessage)
 async def chiren(event: GroupMessage):
     """吃掉头像"""
+    if not _cfg.get('Eat', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -238,6 +249,8 @@ async def chiren(event: GroupMessage):
 @bot.on(GroupMessage)
 async def juren(event: GroupMessage):
     """举高高"""
+    if not _cfg.get('HoldUp', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -253,3 +266,59 @@ async def juren(event: GroupMessage):
             img = await holdup(userid)
             await bot.messagechain_sender(event=event, msg=await messagechain_builder(imgbase64=img))
     return
+
+
+@bot.on(GroupMessage)
+async def merry_random_group_member(event: GroupMessage):
+    """每日找对象"""
+    if not _cfg.get('Marry', False):
+        return
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^{commandpre}\s*(娶群友|找对象)\s*$", msg.strip())
+    if m:
+        if At in event.message_chain:
+            at = event.message_chain.get_first(At)
+            avatar = await get_head_sculpture(at.target)
+            userimg = avatar.resize((200, 200), Image.ANTIALIAS)
+            userimg = img_to_base64(userimg)
+            return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                         text=f'你今天的老婆是 {at.display}',
+                                                                                         imgbase64=userimg))
+        else:
+            time = datetime.datetime.now().strftime('%Y%m%d')
+            seed = int(time) + event.sender.id
+            random.seed(seed)
+            memberlist = await bot.member_list.get(event.group.id)
+            memberlist = memberlist.data
+            member = memberlist[random.randint(0, len(memberlist) - 1)]
+            avatar = await get_head_sculpture(member.id)
+            userimg = avatar.resize((200, 200), Image.ANTIALIAS)
+            userimg = img_to_base64(userimg)
+            return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                         text=f'你今天的老婆是 {member.member_name}',
+                                                                                         imgbase64=userimg))
+
+
+@bot.on(GroupMessage)
+async def merry_group_member(event: GroupMessage):
+    """和指定群友结婚"""
+    if not _cfg.get('Marry', False):
+        return
+    msg = "".join(map(str, event.message_chain[Plain]))
+    m = re.match(
+        fr"^{commandpre}\s*(结婚|娶)\s*$", msg.strip())
+    if m:
+        if At in event.message_chain:
+            at = event.message_chain.get_first(At)
+            avatar = await get_head_sculpture(at.target)
+            userimg = avatar.resize((200, 200), Image.ANTIALIAS)
+            userimg = img_to_base64(userimg)
+            count = random.random() * 100
+            if count < 1:
+                pass
+            else:
+                pass
+            return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                         text=f'恭喜你和 {at.display} 结婚',
+                                                                                         imgbase64=userimg))

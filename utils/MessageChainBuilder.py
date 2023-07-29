@@ -32,7 +32,7 @@ class MessageChainBuilder:
     atAll = False
 
     def __init__(self):
-        self.messageChain = []
+        self._messageChain = []
         self.text = ''
         self.at = []
         self.rndImg = False
@@ -131,6 +131,9 @@ class MessageChainBuilder:
             self.imgPath.extend(imgbase64)
         return self
 
+    def getMessaheChain(self):
+        return self._messageChain
+
     async def build(self) -> MessageChain:
         """ 构建消息链 """
         messageChain = []
@@ -156,11 +159,11 @@ class MessageChainBuilder:
                 messageChain.append(Image(url=url))
         if self.rndImg:
             if enable_countenance:
-                self.messageChain.append(
+                self._messageChain.append(
                     await Image.from_local(
                         filename=f"./data/reply/img/{replydata['replyimgpath']}/{random.choice(replydata['img'])}"))
-        if len(self.messageChain) > 0:
-            return MessageChain(self.messageChain)
+        if len(self._messageChain) > 0:
+            return MessageChain(self._messageChain)
         else:
             raise ValueError("消息链为空")
 

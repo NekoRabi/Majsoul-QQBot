@@ -12,12 +12,15 @@ from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 from mirai.models import Plain, GroupMessage, Quote
 from core import bot, blacklist
+from utils import read_file
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 
 default_fontsize = 48
 default_maxwidth = default_fontsize * 15
 
+
+_cfg = read_file(r'./config/ImgGenerator/config.yml')
 
 
 __all__ = ['groupmessage_screenshot']
@@ -166,11 +169,15 @@ def addfont(text: str, sender_name=None, position: tuple = (0, 0), textcolor=(0,
     return maxwidth + 2 * fontsize, (line_count + 1) * line_heaight, img
 
 
+
 @bot.on(GroupMessage)
 async def groupmessage_screenshot(event: GroupMessage):
     """
-    迫害群友
+    迫害群友,截图聊天记录
     """
+
+    if not _cfg.get('Screenshot', True):
+        return
     if event.sender.id in blacklist:
         return
     quote_find_error = False

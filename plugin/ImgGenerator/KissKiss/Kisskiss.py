@@ -16,6 +16,7 @@ from mirai import GroupMessage, Plain, At
 from moviepy.editor import ImageSequenceClip as imageclip
 from io import BytesIO
 from core import bot, commands_map, commandpre, blacklist
+from utils import read_file
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 
@@ -23,6 +24,8 @@ if not os.path.exists("./images/ImgGenerator/KissKiss"):
     os.mkdir("./images/ImgGenerator/KissKiss")
 
 __all__ = ['on_kiss']
+
+_cfg = read_file(r'./config/ImgGenerator/config.yml')
 
 
 async def save_gif(gif_frames, dest, fps=10):
@@ -87,6 +90,8 @@ async def kiss(operator_id, target_id) -> None:
 
 @bot.on(GroupMessage)
 async def on_kiss(event: GroupMessage):
+    if not _cfg.get('Kiss', True):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -97,9 +102,11 @@ async def on_kiss(event: GroupMessage):
             target_id = event.message_chain.get_first(At).target
             if operator_id == target_id:
                 # return await bot.send(event, await messagechain_builder(text="请不要自交", rndimg=True))
-                return await messagechain_sender(event=event, msg= await messagechain_builder(text="请不要自交", rndimg=True, at=event.sender.id))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text="请不要自交", rndimg=True,
+                                                                                             at=event.sender.id))
             else:
                 await kiss(operator_id=operator_id, target_id=target_id)
                 # await bot.send(event, await messagechain_builder(
                 #     imgpath=f'./images/ImgGenerator/KissKiss/tempKiss-{operator_id}-{target_id}.gif'))
-                return await messagechain_sender(event=event, msg= await messagechain_builder(imgpath=f'./images/ImgGenerator/KissKiss/tempKiss-{operator_id}-{target_id}.gif'))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(
+                    imgpath=f'./images/ImgGenerator/KissKiss/tempKiss-{operator_id}-{target_id}.gif'))

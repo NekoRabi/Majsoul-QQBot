@@ -13,11 +13,14 @@ from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 from mirai import GroupMessage, Plain, At
 from core import bot, blacklist
+from utils import read_file
 from utils.MessageChainBuilder import messagechain_builder
 
 __all__ = ['cskill']
 
 from utils.MessageChainSender import messagechain_sender
+
+_cfg = read_file(r'./config/ImgGenerator/config.yml')
 
 
 async def jisha(user: str, target: str, headshot=None, penetrate=None):
@@ -88,6 +91,8 @@ async def jisha(user: str, target: str, headshot=None, penetrate=None):
 
 @bot.on(GroupMessage)
 async def cskill(event: GroupMessage):
+    if not _cfg.get('CSGOKill', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))

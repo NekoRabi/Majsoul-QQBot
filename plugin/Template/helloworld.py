@@ -15,7 +15,6 @@ from mirai import GroupMessage, Plain, FriendMessage
 
 from core import bot, config, bot_cfg
 
-
 # bot 是必须导入的, config 和 bot_cfg 是可选
 # config 是系统配置文件，有 指令前缀、黑白名单 等等
 # bot_cfg 是机器人的配置，比如 QQ号、昵称 等等数据
@@ -23,6 +22,9 @@ from core import bot, config, bot_cfg
 # 还可以import其他的模块，比如 工具类,sqlite3,asyncio,time,math 等等
 
 # 推荐使用 utils.MessageChainBuilder和 utils.MessageChainSender 中的方法来构造和发送消息链
+from utils.MessageChainBuilder import *
+from utils.MessageChainSender import *
+
 
 async def asy_hello():
     """
@@ -61,6 +63,7 @@ def readfile(path):
     print(data)
     return data
 
+
 @bot.on(GroupMessage)  # 当群聊事件发生时
 async def helloworld(event: GroupMessage):
     """
@@ -82,7 +85,12 @@ async def helloworld(event: GroupMessage):
         # from utils.MessageChainBuilder import messagechain_builder
         # 最后让机器人发信息，给出反馈,可以用utils.MessageChainBuilder包的 messagechain_builder() 方法来快速构造一个消息链
 
-        await bot.send(event, f'114514191810 ! This is {bot_cfg.get("nickname")}')
+        # await bot.send(event, f'114514191810 ! This is {bot_cfg.get("nickname")}')
+        msgchain = await MessageChainBuilder().addText('Hello Word!').addAt(event.sender.id).build()
+        #  or
+        msgchain = await messagechain_builder(text='Hello World', at=event.sender.id)
+
+        await messagechain_sender(event=event, msg=msgchain)
 
 
 @bot.on(FriendMessage)  # 当私聊事件发生时
@@ -106,4 +114,4 @@ async def helloworld(event: FriendMessage):
         from utils.MessageChainBuilder import messagechain_builder
         # 最后让机器人发信息，给出反馈,可以用utils.MessageChainBuilder包的 messagechain_builder(text=msg) 方法来快速构造一个消息链
 
-        await bot.send(event, f'私聊成功! This is {bot_cfg.get("nickname")}')
+        await bot.send(event, f'Hello ! This is {bot_cfg.get("nickname")}')

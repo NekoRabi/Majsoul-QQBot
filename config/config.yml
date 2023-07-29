@@ -4,8 +4,8 @@ adapter: # Mirai-Api-Http
   verify_key: NekoRabi
 
 botconfig:
-  botname: '' # 机器人名字
-  qq: 123456  # 机器人QQ
+  botname: "" # 机器人名字
+  qq: 123456 # 机器人QQ
 
 admin: # 以下都是管理员
   - 1215791340
@@ -19,11 +19,11 @@ blacklist: # 黑名单
 mutegrouplist:
   - 0
 
-commandpre: ''  # 指令前缀
+commandpre: "" # 指令前缀
 
-master: 0  # 机器人主人,必填
+master: 0 # 机器人主人,必填
 
-replyimgpath : fox # 表情包路径
+replyimgpath: fox # 表情包路径
 
 loglevel: INFO # 日志等级
 
@@ -31,36 +31,41 @@ loglevel: INFO # 日志等级
 nudgeconfig:
   # 在某群禁用 摸头事件
   disnudgegroup:
-    - 0
-  sendnudgechance: 1  # 被戳时 以 "戳一戳" 还击的概率
+    - 469789730
+    - 586468489
+  sendnudgechance: 1 # 被戳时 以 "戳一戳" 还击的概率
   supersendnudgechance: 0.2 # 还击的"戳一戳"中，触发超级还击的概率
   supernudgequantity: 10 # 单次超级还击的发送 "戳一戳" 的次数
 
 # 在某群关闭自动回复
 norepeatgroup:
-  - 0
+  - 586468489
 
 silencegroup:
-  - 0     # 设置单群沉默
+  - 586468489 # 设置单群沉默
 
-welcomeinfo:  # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
+welcomeinfo: # 新人入群欢迎词，%ps%为新人名字，%gn%为群聊名字
   - 欢迎%ps%加入%gn%
 
+no_welcome:
+  - 586468489
+
 whitelist:
-  - 0   # 白名单
+  - 1215791340 # 白名单
 
 trash_folders: # 需要清理垃圾的文件夹
-  - './images/MajSoulInfo'
-  - './images/PetPet'
-  - './images/Remake'
-  - './images/ImgGenerator'
+  - "./images/MajSoulInfo"
+  - "./images/PetPet"
+  - "./images/Remake"
+  - "./images/ImgGenerator"
 
 settings: # 功能开关
-  autogetpaipu: true  # 自动获取雀魂牌谱
-  autowelcome: true   # 自动欢迎新人
-  nudgereply: true    # 是否启用摸头事件
-  r18talk: true       # 开启管理员词库
-  silence: false      # 全局沉默,降低发言频率
-  norepeat: false     # 全局自动回复
-  help: true          # 是否显示帮助
-  saveflashimg: false # 保存闪照
+  autogetpaipu: true # 自动获取雀魂牌谱
+  autowelcome: true # 自动欢迎新人
+  nudgereply: true # 是否启用摸头事件
+  r18talk: true # 开启管理员词库
+  silence: false # 全局沉默,降低发言频率
+  norepeat: false # 全局自动回复
+  help: true # 是否显示帮助
+  # saveflashimg: false # 保存闪照
+  general_help: true # 自动生成帮助图片

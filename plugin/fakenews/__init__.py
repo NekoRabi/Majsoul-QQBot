@@ -1,0 +1,1 @@
+from .fakenews import *

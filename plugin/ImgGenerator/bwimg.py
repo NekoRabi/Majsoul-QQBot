@@ -13,6 +13,8 @@ from mirai import GroupMessage, Plain, Image
 
 from core import bot, commandpre, blacklist
 
+from utils.cfg_loader import read_file
+
 __all__ = ['bwimg']
 
 from utils.MessageChainBuilder import messagechain_builder
@@ -20,6 +22,8 @@ from utils.MessageChainSender import messagechain_sender
 
 if not os.path.exists("./images/ImgGenerator"):
     os.mkdir("./images/ImgGenerator")
+
+_cfg = read_file(r'./config/ImgGenerator/config.yml')
 
 
 def makebwimg(imgname, text: str = ""):
@@ -61,6 +65,8 @@ def deletesource(imgname):
 
 @bot.on(GroupMessage)
 async def bwimg(event: GroupMessage):
+    if not _cfg.get('BW_img', False):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -73,7 +79,8 @@ async def bwimg(event: GroupMessage):
         await img.download(filename=f'./images/tempimg/{imgname}')
         makebwimg(imgname, m.group(1))
         # await bot.send(event, await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
-        await messagechain_sender(event=event,msg=await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
+        await messagechain_sender(event=event,
+                                  msg=await messagechain_builder(imgpath=f'./images/ImgGenerator/{imgname}'))
         deletesource(imgname)
         # except Exception as e:
         #     print(e)

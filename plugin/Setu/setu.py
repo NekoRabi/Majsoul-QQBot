@@ -169,6 +169,7 @@ _global_cmd = r'(setu|[色涩]图)\s*(\w)+$'
 
 _mahversion = None
 
+
 @bot.on(FriendMessage)
 async def global_setu_control(event: FriendMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
@@ -246,7 +247,6 @@ async def getsomesetu(event: GroupMessage):
     if _mahversion is None:
         _mahversion = await bot.about()
         _mahversion = _mahversion.data.get('version')[:3]
-        print(_mahversion)
     # 匹配指令
     m1 = re.match(
         fr"^{commandpre}{commands_map['setu']['getsetu1']}", msg.strip())

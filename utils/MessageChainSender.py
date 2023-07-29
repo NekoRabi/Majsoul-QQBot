@@ -12,6 +12,7 @@ from typing import Union
 import mirai.exceptions
 from mirai import MessageChain, MessageEvent, GroupMessage, FriendMessage
 from mirai.models import MessageComponent
+from mirai.models.api import MessageResponse
 
 from core import bot, bot_cfg, master
 from utils import root_logger
@@ -20,6 +21,10 @@ from utils.MessageChainBuilder import messagechain_builder
 __all__ = ['messagechain_sender']
 
 _last_error_message = dict(groupmessage=dict(), friendmessage=dict(), other=dict())
+
+# _mahversion = await bot.about()  # 获取MAH的版本
+# _mahversion = _mahversion.data.get('version')[:3]  # MAH的版本我只取前三位，如'2.4','2.9'
+
 
 #
 # class MessageChainSender:
@@ -81,6 +86,8 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
             target = grouptarget
             if bot.get_group(target):
                 res = await bot.send_group_message(grouptarget, msg)
+                # if isinstance(res, MessageResponse):
+                #     res = res.message_id
                 if res == -1 and not onlyImg:
                     await bot.send_group_message(grouptarget, errtext)
                 # errtext += f'消息类型:GroupMessageEvent,消息目标:{grouptarget}'
@@ -90,7 +97,9 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
         elif friendtarget:
             target = friendtarget
             if bot.get_friend(target):
-                res = await bot.send_friend_message(friendtarget, msg).message_id
+                res = await bot.send_friend_message(friendtarget, msg)
+                # if isinstance(res, MessageResponse):
+                #     res = res.message_id
                 if res == -1 and not onlyImg:
                     await bot.send_group_message(friendtarget, errtext)
                 # errtext += f'消息类型:FriendMessageEvent,消息目标:{friendtarget}'
@@ -116,6 +125,11 @@ async def messagechain_sender(msg: Union[MessageChain, str, MessageComponent], e
                 await bot.send_friend_message(master, f"向 {target} 发送消息失败,可能被禁言")
             print(f"向 {target} 发送消息失败,可能被禁言")
             root_logger.error(f"向 {target} 发送消息失败,可能被禁言")
+        elif _e.code == 6:
+            if nowtime - last_time > 3600:
+                await bot.send_friend_message(master, f"向 {target} 发送消息失败,指定图片不存在")
+            print(f"向 {target} 发送消息失败,指定图片不存在")
+            root_logger.error(f"向 {target} 发送消息失败,指定图片不存在\n{_e.args}")
         else:
             if nowtime - last_time > 3600:
                 _last_error_message['groupmessage'] = dict(time=nowtime, target=target, message=msg, error=_e)

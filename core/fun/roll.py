@@ -88,15 +88,35 @@ async def roll_item(event: GroupMessage or FriendMessage):
                 if m2:
                     return await messagechain_sender(event=event, msg=await messagechain_builder(
                         text=f'{_random_int_general(m2.group(1), m2.group(2))}'))
-                m3 = re.match(r'[Dd](\d+)$', content)
+                m3 = re.match(r'(\d+)?[Dd](\d+)$', content)
                 if m3:
-                    dice = int(m3.group(1))
+                    counts = m3.group(1)
+                    if counts:
+                        counts = int(counts)
+                    else:
+                        counts = 1
+                    if counts < 1:
+                        counts = 1
+                    elif counts > 100:
+                        return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id, text='我累了'))
+                    dice = int(m3.group(2))
                     if dice < 1 or dice > 100:
                         return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id, text='我没有这样的骰子'))
                     elif dice % 2 == 1 and dice > 9:
                         return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id, text='我只有10面以下的奇数面骰子~'))
+                    each_rnd = _random_int_general(dn=dice)
+                    sum = each_rnd
+                    rnd_str = f'{each_rnd}'
+                    for i in range(counts):
+                        if i == 0:
+                            continue
+                        each_rnd = _random_int_general(dn=dice)
+                        sum += each_rnd
+                        rnd_str += f' + {each_rnd}'
+                    rnd_str += f' = {sum}'
+
                     return await messagechain_sender(event=event, msg=await messagechain_builder(
-                        text=f'{_random_int_general(dn=dice)}'))
+                        text=f'{rnd_str}'))
                 m4 = content.split(' ')
                 return await messagechain_sender(event=event, msg=await messagechain_builder(text=_random_item(m4)))
         return await messagechain_sender(event=event, msg=await messagechain_builder(text=f'{_random_int_general()}'))
@@ -107,7 +127,7 @@ _roll_help = [
     "roll 正整数a : 返回 0-a 的随机整数 ",
     "roll a-b : 返回 a-b 之间的随机整数",
     "roll itemA itemB …… : 返回随机一个元素",
-    "roll dn: 投掷n面骰"
+    "roll ndn: 投掷n次n面骰"
 ]
 add_help('group', [
     'roll 返回100以内的随机整数',

@@ -64,7 +64,7 @@ def write_file(content, path: str, filetype: str = None, encoding='utf-8', allow
             if filetype in ['yml', 'yaml']:
                 yaml.dump(content, filecfg, allow_unicode=allow_unicode)
             elif filetype in ['json']:
-                json.dump(content, filecfg, allow_unicode=allow_unicode)
+                json.dump(content, filecfg, ensure_ascii=not allow_unicode)
             else:
                 raise Exception("不支持的文件类型! 目前仅支持 JSON、 YML")
         return True

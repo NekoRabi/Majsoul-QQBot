@@ -60,10 +60,10 @@ def create_charts_from_option(option: dict, filename: str) -> dict:
 
 
 def create_chart(chart: RectChart, html_name, png_name, del_html=True):
-    make_snapshot(snapshot, chart.render(f"{html_name}.html"), f"images/MajSoulInfo/{png_name}.png")
+    make_snapshot(snapshot, chart.render(f"images/MajSoulInfo/{html_name}.html"), f"images/MajSoulInfo/{png_name}.png")
     # make_snapshot(snapshot, bar.render(f"{filename}.html"), f"{filename}.png")
     if del_html:
-        os.remove(f'{html_name}.html')
+        os.remove(f'images/MajSoulInfo/{html_name}.html')
     # return 0
 
 

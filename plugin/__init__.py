@@ -24,16 +24,17 @@ import os
 
 # 'Else'
 
-from plugin.AlarmClock import *
-from plugin.AutoReply import *
-from plugin.BilibiliPlugin import *
-from plugin.ImgGenerator import *
-from plugin.LocalImageAutoSender import *
-from plugin.MajSoulInfo import *
-from plugin.paili_analysis import *
-from plugin.Petpet import *
-from plugin.Remake import *
-from plugin.RichiMahjongMatchControl import *
-from plugin.Setu import *
-from plugin.TencentCloudAPI import *
-from plugin.TenHouPlugin import *
+from .AlarmClock import *
+from .AutoReply import *
+from .BilibiliPlugin import *
+from .fakenews import *
+from .ImgGenerator import *
+from .LocalImageAutoSender import *
+from .MajSoulInfo import *
+from .paili_analysis import *
+from .Petpet import *
+from .Remake import *
+from .RichiMahjongMatchControl import *
+from .Setu import *
+from .TencentCloudAPI import *
+from .TenHouPlugin import *

@@ -10,6 +10,7 @@ import random
 import re
 import numpy as np
 
+from utils import read_file
 from utils.MessageChainBuilder import messagechain_builder
 from PIL import ImageFont, ImageDraw, Image
 from mirai import GroupMessage, Plain
@@ -20,6 +21,8 @@ if not os.path.exists("./images/ImgGenerator/jupai"):
     os.mkdir("./images/ImgGenerator/jupai")
 
 __all__ = ['jupai']
+
+_cfg = read_file(r'./config/ImgGenerator/config.yml')
 
 
 def find_coeffs(pa, pb):
@@ -81,6 +84,8 @@ def imgoutput(senderid: int, textMessage='拉克丝真可爱'):
 @bot.on(GroupMessage)
 async def jupai(event: GroupMessage):
     """创建举牌文字"""
+    if not _cfg.get('HoldUpCard', True):
+        return
     if event.sender.id in blacklist:
         return
     msg = "".join(map(str, event.message_chain[Plain]))
