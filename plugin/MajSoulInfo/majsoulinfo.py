@@ -17,6 +17,7 @@ from typing import Union
 
 import aiohttp
 import yaml
+from urllib.parse import quote_plus
 from PIL import Image
 from mirai import MessageChain
 
@@ -100,6 +101,7 @@ if type(_query_limit) != int:
 
 def get_qhpturl(playername, searchtype=3):
     """查询玩家的URL"""
+    playername = quote_plus(playername)
     if searchtype in [3, '3']:
         url = f"https://{_link_index}.data.amae-koromo.com/api/v2/pl3/search_player/{playername}?limit=20&tag=all"
     else:
@@ -689,7 +691,8 @@ class MajsoulQuery:
                     else:
                         rank = 3
                     for player in playerrank:
-                        if player['nickname'] == playername:
+                        # if player['nickname'] == playername:
+                        if playerid == player['accountId']:
                             ptchange += player['gradingScore']
                             y_data.append(player['gradingScore'])
                             rankdict[f"{rank}"] += 1
@@ -729,17 +732,22 @@ class MajsoulQuery:
             return await messagechain_builder(text="查询超时,请稍后再试")
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if stop_general_echarts or not _echarts_enable:
+            _broadcast_type = _config.get('broadcast', 'image').lower()
             if _broadcast_type in ['txt', 'text', 'str']:
                 return await messagechain_builder(text=msg)
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
         else:
-            await majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                        y1_data=y_data, timecross=timecross)
-            await majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                         y1_data=y_data, timecross=timecross)
+            _broadcast_type = _config.get('broadcast', 'image').lower()
             if _broadcast_type in ['txt', 'text', 'str']:
-                return await messagechain_builder(text=msg, imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
-                                                                     f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+                return await messagechain_builder(text=msg)
+            if '#' in playername: # 含 '#'的id无法生成图片，会报’echarts is not define‘，但可以生成html
+                return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+            await majsoul_bar(filename=f'{chart_title}PT得失图',
+                              x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                              y1_data=y_data, timecross=timecross)
+            await majsoul_line(filename=f'{chart_title}PT变化图',
+                               x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                               y1_data=y_data, timecross=timecross)
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
                                               imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
                                                        f"images/MajSoulInfo/{chart_title}PT变化图.png"])
@@ -1890,7 +1898,8 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
     for playerrank in playerslist:
         rank = len(playerrank)
         for player in playerrank:
-            if player['nickname'] == playername:
+            # if player['nickname'] == playername:
+            if playerid == player['accountId']:
                 ptchange += player['gradingScore']
                 y_data.append(player['gradingScore'])
                 rankdict[f"{rank}"] += 1
@@ -1929,15 +1938,17 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
             return await messagechain_builder(text=msg)
         return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
     else:
-        await majsoul_bar(filename=f'{chart_title}PT得失图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                    y1_data=y_data, timecross=timecross)
-        await majsoul_line(filename=f'{chart_title}PT变化图', x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                     y1_data=y_data, timecross=timecross)
-
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if _broadcast_type in ['txt', 'text', 'str']:
-            return await messagechain_builder(text=msg, imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
-                                                                 f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+            return await messagechain_builder(text=msg)
+        if '#' in playername:
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
+        await majsoul_bar(filename=f'{chart_title}PT得失图',
+                          x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                          y1_data=y_data, timecross=timecross)
+        await majsoul_line(filename=f'{chart_title}PT变化图',
+                           x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                           y1_data=y_data, timecross=timecross)
         return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
                                           imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
                                                    f"images/MajSoulInfo/{chart_title}PT变化图.png"])
