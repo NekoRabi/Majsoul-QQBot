@@ -363,6 +363,7 @@ class MajsoulQuery:
         Returns: 抽卡结果信息,还需要解析
 
         """
+
         if not os.path.exists('./images/MajsoulInfo'):
             os.mkdir('./images/MajsoulInfo')
 
@@ -402,11 +403,13 @@ class MajsoulQuery:
         with open(r'./config/MajSoulInfo/drawcards.yml', 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
             lottery = config['lottery']
+            limit_person = config.get('limit_person', [])
             up_person = config['up']['person']
             up_decoration = config['up']['decoration']
             decoration = lottery['decoration']
             gift = lottery['gift']
             person = lottery['person']
+            probability = config.get('probability', {})
 
         drawtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         random.seed()
@@ -425,16 +428,35 @@ class MajsoulQuery:
                 cursor.execute(
                     f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',{gfrare},'{gf}')''')
                 break
-            if luck < 5:
+            if luck < probability.get('person', 5):
                 if up:
-                    if random.random() * 100 < 59:
-                        person_name = random.choice(up_person)
+                    if random.random() * 100 < probability.get('sp_limit', 20) and len(limit_person) > 0:
+                        person_name = random.choice(limit_person)
                         ps = person_name + '\n'
                         drawcounts['person'] += 1
                         cursor.execute(
                             f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
                         results.append(f'./Images/person/{person_name}.png')
                         resultsmsg += ps
+                        continue
+                    elif random.random() * 100 < probability.get('up_person', 60):
+                        if 'other' in up_person:
+                            person_index = random.randint(0, person['length'] - 1)
+                            ps = person['item'][person_index]['name']
+                            drawcounts['person'] += 1
+                            # psrare = person['item'][person_index]['rare']
+                            results.append(person['item'][person_index]['url'])
+                            resultsmsg += ps
+                            cursor.execute(
+                                f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
+                        else:
+                            person_name = random.choice(up_person)
+                            ps = person_name + '\n'
+                            drawcounts['person'] += 1
+                            cursor.execute(
+                                f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
+                            results.append(f'./Images/person/{person_name}.png')
+                            resultsmsg += ps
                         continue
                 person_index = random.randint(0, person['length'] - 1)
                 ps = person['item'][person_index]['name']
@@ -444,9 +466,9 @@ class MajsoulQuery:
                 resultsmsg += ps
                 cursor.execute(
                     f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
-            elif luck < 15:
+            elif luck < probability.get('person', 5) + probability.get('decoration', 20):
                 if up:
-                    if random.random() * 100 < 49:
+                    if random.random() * 100 < 50:
                         decoration_name = random.choice(up_decoration)
                         dec = decoration_name + '\n'
                         drawcounts['decoration'] += 1
@@ -465,8 +487,8 @@ class MajsoulQuery:
                 resultsmsg += dec
             else:
                 gift_index = random.randint(0, 7) * 3
-                gifttype = random.randint(0, 10)
-                if gifttype < 3:
+                gifttype = random.random() *100
+                if gifttype < 6.25:
                     gift_index += 2
                 # elif gifttype < 9:
                 else:
@@ -740,7 +762,7 @@ class MajsoulQuery:
             _broadcast_type = _config.get('broadcast', 'image').lower()
             if _broadcast_type in ['txt', 'text', 'str']:
                 return await messagechain_builder(text=msg)
-            if '#' in playername: # 含 '#'的id无法生成图片，会报’echarts is not define‘，但可以生成html
+            if '#' in playername:  # 含 '#'的id无法生成图片，会报’echarts is not define‘，但可以生成html
                 return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
             await majsoul_bar(filename=f'{chart_title}PT得失图',
                               x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
@@ -1943,15 +1965,20 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
             return await messagechain_builder(text=msg)
         if '#' in playername:
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
-        await majsoul_bar(filename=f'{chart_title}PT得失图',
-                          x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                          y1_data=y_data, timecross=timecross)
-        await majsoul_line(filename=f'{chart_title}PT变化图',
-                           x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                           y1_data=y_data, timecross=timecross)
-        return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
-                                          imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
-                                                   f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+        try:
+            await majsoul_bar(filename=f'{chart_title}PT得失图',
+                              x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                              y1_data=y_data, timecross=timecross)
+            await majsoul_line(filename=f'{chart_title}PT变化图',
+                               x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+                               y1_data=y_data, timecross=timecross)
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
+                                              imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+                                                       f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+        except Exception as _e:
+            print(f'玩家{playername}详细月报生成失败')
+            logging.getLogger().exception(_e)
+            return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
 
 
 async def get_playerinfo_byid(player_info: dict, selecttype: Union[str, int] = 4, model=None,

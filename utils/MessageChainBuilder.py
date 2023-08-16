@@ -144,7 +144,7 @@ class MessageChainBuilder:
             for _at in self.at:
                 messageChain.append(At(_at))
             messageChain.append("\n")
-        if len(self.replyChoices)>0:
+        if len(self.replyChoices) > 0:
             messageChain.append(random.choice(self.replyChoices))
         if len(self.text) > 0:
             messageChain.append(self.text)

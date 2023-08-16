@@ -11,7 +11,7 @@ import random
 from utils import root_logger, read_file
 from utils.MessageChainBuilder import messagechain_builder
 from mirai import GroupMessage, At, Plain
-from core import bot, blacklist, commandpre
+from core import bot, blacklist, commandpre, admin, bot_cfg
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 
@@ -25,7 +25,7 @@ from utils.MessageChainSender import messagechain_sender
 if not os.path.exists("./images/ImgGenerator"):
     os.mkdir("./images/ImgGenerator")
 
-__all__ = ['xka', 'daiburen', 'diuren', 'chiren', 'juren', 'merry_random_group_member', 'merry_group_member']
+__all__ = ['xka', 'daiburen', 'diuren', 'chiren', 'juren', 'marry_random_group_member', 'marry_group_member']
 
 _cfg = read_file(r'./config/ImgGenerator/config.yml')
 
@@ -269,7 +269,7 @@ async def juren(event: GroupMessage):
 
 
 @bot.on(GroupMessage)
-async def merry_random_group_member(event: GroupMessage):
+async def marry_random_group_member(event: GroupMessage):
     """每日找对象"""
     if not _cfg.get('Marry', False):
         return
@@ -292,6 +292,17 @@ async def merry_random_group_member(event: GroupMessage):
             memberlist = await bot.member_list.get(event.group.id)
             memberlist = memberlist.data
             member = memberlist[random.randint(0, len(memberlist) - 1)]
+            if member.id == event.sender.id:
+                return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                             text=f'倒霉的你今天没有对象'))
+            if member.id == bot.qq:
+                if not _cfg.get('bot_married', False):
+                    if event.sender.id in admin:
+                        return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                                     text=f'Lucky! '
+                                                                                                          f'你今天的老婆是我这个小可爱 {bot_cfg.get("nickname")} 哦'))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                             text=f'今天你不许娶群友'))
             avatar = await get_head_sculpture(member.id)
             userimg = avatar.resize((200, 200), Image.ANTIALIAS)
             userimg = img_to_base64(userimg)
@@ -301,7 +312,7 @@ async def merry_random_group_member(event: GroupMessage):
 
 
 @bot.on(GroupMessage)
-async def merry_group_member(event: GroupMessage):
+async def marry_group_member(event: GroupMessage):
     """和指定群友结婚"""
     if not _cfg.get('Marry', False):
         return
@@ -319,6 +330,21 @@ async def merry_group_member(event: GroupMessage):
                 pass
             else:
                 pass
+            if at.target == event.sender.id:
+                return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                             text=f'请不要自交!'))
+            if at.target == bot.qq:
+                if not _cfg.get('bot_married', False):
+                    if event.sender.id in admin:
+                        return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                                     text=f'Lucky! 你的小可爱 {bot_cfg.get("nickname")} 来了'))
+                    return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                                 text=f'不许娶我'))
+                return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
+                                                                                             text=f'小可爱 {bot_cfg.get("nickname")} 来了'))
+            member = await bot.get_group_member(event.group.id, at.target)
+            if member is None:
+                return await messagechain_sender(event=event, msg=await messagechain_builder(text=f'Error,未找到此群友'))
             return await messagechain_sender(event=event, msg=await messagechain_builder(at=event.sender.id,
-                                                                                         text=f'恭喜你和 {at.display} 结婚',
+                                                                                         text=f'恭喜你和 {member.member_name} 结婚',
                                                                                          imgbase64=userimg))

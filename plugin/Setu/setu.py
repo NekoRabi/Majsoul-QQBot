@@ -25,7 +25,7 @@ from utils import root_logger
 from utils.MessageChainBuilder import messagechain_builder
 from utils.MessageChainSender import messagechain_sender
 from utils.bufferpool import *
-from utils.cfg_loader import write_file
+from utils.cfg_loader import write_file, read_file
 
 ###
 # r18	int	0	0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
@@ -54,10 +54,15 @@ user_agent_list = [
 
 if not os.path.exists("./config/Setu"):
     os.mkdir("./config/Setu")
+if not os.path.exists("./images/Setu"):
+    os.mkdir("./images/Setu")
 if not os.path.exists(r'./config/Setu/config.yml'):
     cfg = dict(r18enable=False, enable=False, allowsearchself=False, setugroups=[0], r18groups=[0],
-               recalltime=50, err_opt=True)
+               recalltime=50, err_opt=True, timeout=60, download=False)
     write_file(content=cfg, path=r'./config/Setu/config.yml')
+if not os.path.exists(r'./config/Setu/SetuInfoData.yml'):
+    SetuInfoData = {}
+    write_file(content=SetuInfoData, path=r'./config/Setu/SetuInfoData.yml')
 
 
 async def download_setu_base64_from_url(userid):
@@ -96,8 +101,9 @@ async def getsetuinfo(description: str, num: int) -> dict:
             r18 = True
     keyword = {}
     url = f"https://api.lolicon.app/setu/v2?num={num}"
-    if tag and tag != '':
-        keyword['tag'] = tag
+    if tag is not None:
+        if tag != '':
+            keyword['tag'] = tag
     if r18:
         keyword['r18'] = 1
     if len(keyword) > 0:
@@ -107,8 +113,7 @@ async def getsetuinfo(description: str, num: int) -> dict:
                                      timeout=aiohttp.ClientTimeout(total=10),
                                      headers={'User-Agent': random.choice(user_agent_list)}) as session:
         async with session.get(f"{url}") as response:
-            text = await response.text()
-    text = json.loads(text)
+            text = await response.json()
     print('色图结果:', text.get('data'))
     return text
 
@@ -133,6 +138,8 @@ class SetuFinder:
         self.recalltime = _config.get('recalltime', 30)
         self.botname = botname
         self.err_opt = _config.get('err_opt', True)
+        self.timeout = _config.get('timeout', 60)
+        self.download = _config.get('download', False)
 
     async def getsetu(self, description, groupid, num=1) -> dict:
         if not num:
@@ -144,9 +151,10 @@ class SetuFinder:
                     return imginfo
             if self.botname in description and not self.allowsearchself:
                 return dict(FoundError=True, ErrorMsg="不许搜咱的图")
-
+        # else:
         # content = finish_all_asytasks([getsetuinfo(description, num)])
         response = await getsetuinfo(description, num)
+
         # response = content[0]
         if len(response['data']) == 0:
             # imginfo = dict(FoundError=True, ErrorMsg="没找到这样的图片呢")
@@ -155,6 +163,36 @@ class SetuFinder:
             imginfo: dict = response['data'][0]
             imginfo['FoundError'] = False
             imginfo['url'] = imginfo['urls']['original'].replace("cat", "re")
+            imgtype = imginfo['url'].split('.')[-1]
+            if self.download:
+                pid = imginfo["pid"]
+                try:
+                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, limit=5),
+                                                     timeout=aiohttp.ClientTimeout(
+                                                         total=self.timeout),
+                                                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
+                        async with session.get(url=imginfo['url'], allow_redirects=True) as response:
+                            imgbytes = await response.read()
+                    with open(f'./images/Setu/{pid}.{imgtype}', 'wb') as f:
+                        f.write(imgbytes)
+                    imgdatalist = read_file(r'./config/Setu/SetuInfoData.yml')
+                    if imgdatalist.get(imginfo["pid"], None) is None:
+                        imgdatalist[pid] = imginfo
+                        write_file(
+                            imgdatalist, r'./config/Setu/SetuInfoData.yml')
+                except asyncio.exceptions.TimeoutError as e:
+                    print(e)
+                    root_logger.error('SetuFinder 下载图片超时')
+                    imgdatalist = read_file(r'./config/Setu/SetuInfoData.yml')
+                    if imgdatalist.get(imginfo["pid"], None) is None:
+                        imgdatalist[pid] = imginfo
+                        write_file(
+                            imgdatalist, r'./config/Setu/SetuInfoData.yml')
+                    # imginfo = dict(FoundError=True, ErrorMsg=f"图片发送超时，只能发链接了{imginfo.get('url')}")
+                except Exception as e:
+                    print(e)
+                    root_logger.error('SetuFinder 尝试下载一张不存在的图片')
+                    imginfo = dict(FoundError=True, ErrorMsg="图片发送失败")
         return imginfo
 
 
@@ -246,7 +284,8 @@ async def getsomesetu(event: GroupMessage):
     msg = "".join(map(str, event.message_chain[Plain]))
     if _mahversion is None:
         _mahversion = await bot.about()
-        _mahversion = _mahversion.data.get('version')[:3]
+        _mahversion = _mahversion.data.get('version')[:3].strip()
+        print(_mahversion)
     # 匹配指令
     m1 = re.match(
         fr"^{commandpre}{commands_map['setu']['getsetu1']}", msg.strip())
@@ -281,12 +320,14 @@ async def getsomesetu(event: GroupMessage):
                     # elif stfinder.recalltime != -1:
                     #     await asyncio.sleep(stfinder.recalltime)
                     #     await bot.recall(res)
+                    print(res)
                     if stfinder.recalltime != -1 and res != -1:
                         await asyncio.sleep(stfinder.recalltime)
-                        if _mahversion == '2.4':
-                            await bot.recall(res)
-                        else:
-                            await bot.recall(target=event.group.id, sessionKey=bot.session, messageId=res)
+                        # if _mahversion == '2.4':
+                        #     await bot.recall(res.message_id)
+                        # else:
+                        #     await bot.recall(target=event.group.id, sessionKey=bot.session, messageId=res)
+                        await bot.recall(res.message_id)
                 except mirai.ApiError as e:
                     print(f"Mirai API ERROR,请等待作者更新适配\n{e}")
                     root_logger.error(f"Mirai API ERROR,请等待作者更新适配{e}")
@@ -319,7 +360,7 @@ async def getsomesetu(event: GroupMessage):
                                                                                                      text=imginfo[
                                                                                                          'ErrorMsg']))
                     res = await messagechain_sender(event=event, msg=await messagechain_builder(imgurl=imginfo['url']))
-                    # await messagechain_sender(event=)(evenmsg=t, MessageChain([Image(url=imginfo['url'])]))
+                    # await messagechain_sender(event=event, MessageChain([Image(url=imginfo['url'])]))
                     # if res == -1:
                     #     await messagechain_sender(event=event, msg=f"色图发送失败!这肯定不是{config['botconfig']['botname']}的问题!")
                     # elif stfinder.recalltime != -1:
@@ -327,10 +368,11 @@ async def getsomesetu(event: GroupMessage):
                     #     await bot.recall(res)
                     if stfinder.recalltime != -1 and res != -1:
                         await asyncio.sleep(stfinder.recalltime)
-                        if _mahversion == '2.4':
-                            await bot.recall(res)
-                        else:
-                            await bot.recall(target=event.group.id, sessionKey=bot.session, messageId=res)
+                        # if _mahversion == '2.4':
+                        #     await bot.recall(res)
+                        # else:
+                        #     await bot.recall(target=event.group.id, sessionKey=bot.session, messageId=res)
+                        await bot.recall(res)
                 except mirai.ApiError as e:
                     print(f"Mirai API ERROR,请等待作者更新适配\n{e}")
                     root_logger.error(f"Mirai API ERROR,请等待作者更新适配 {e}")

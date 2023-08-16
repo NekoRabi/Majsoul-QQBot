@@ -9,5 +9,5 @@ if not os.path.exists(r'./config/ImgGenerator'):
 
 if not os.path.exists(r'./config/ImgGenerator/config.yml'):
     cfg = {'HoldUpCard': True, 'HoldUp': True, 'Kiss': True, 'Arrest': True, 'SmallLove': True, 'Throw': True,
-           'Eat': True, 'BW_img': True, 'Marry': True, 'Screenshot': True, 'CSGOKill': True}
+           'Eat': True, 'BW_img': True, 'Marry': True, 'Screenshot': True, 'CSGOKill': True, 'bot_married': False}
     write_file(content=cfg, path=r'./config/ImgGenerator/config.yml')

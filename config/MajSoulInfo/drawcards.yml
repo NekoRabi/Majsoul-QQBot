@@ -256,7 +256,162 @@ lottery:
       rare: 3
       type: decoration
       url: ./Images/decoration/立直棒-虚无传送门.jpg
-    length: 51
+    - index: 51
+      name: 立直棒-秘传之卷
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-秘传之卷.jpg
+    - index: 52
+      name: 立直-毒烟玉
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-毒烟玉.jpg
+    - index: 53
+      name: 和牌-天地无用
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-天地无用.jpg
+    - index: 54
+      name: 一心一智
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/一心一智.jpg
+    - index: 55
+      name: 和牌-收割时刻
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-收割时刻.jpg
+    - index: 56
+      name: 和牌-水之道
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-水之道.jpg
+    - index: 57
+      name: 胜途
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/胜途-水之道.jpg
+    - index: 58
+      name: 凌云
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/凌云.jpg
+    - index: 59
+      name: 立阵
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立阵.jpg
+    - index: 60
+      name: 纵情
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/纵情.jpg
+    - index: 60
+      name: 未来
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/未来.jpg
+    - index: 60
+      name: 和谐
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和谐.jpg
+    - index: 61
+      name: 炭炭桌布
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/炭炭桌布.jpg
+    - index: 62
+      name: 酒红桌布
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/酒红桌布.jpg
+    - index: 63
+      name: 桌布-藤萝月色
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-藤萝月色.jpg
+    - index: 64
+      name: 桌布-萤火之森
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-萤火之森.jpg
+    - index: 65
+      name: 桌布-花月夜
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-花月夜.jpg
+    - index: 66
+      name: 桌布-萌芽地
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/桌布-萌芽地.jpg
+    - index: 67
+      name: 立直棒-法棍面包
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-法棍面包.jpg
+    - index: 68
+      name: 立直棒-学霸眼镜
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-学霸眼镜.jpg
+    - index: 69
+      name: 立直棒-霓彩路标
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-霓彩路标.jpg
+    - index: 70
+      name: 立直棒-棒球英杰
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直棒-棒球英杰.jpg
+    - index: 71
+      name: 和牌-黑洞
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/和牌-黑洞.jpg
+    - index: 72
+      name: 立直-猫过留痕
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-猫过留痕.jpg
+    - index: 73
+      name: 立直-问心之镰
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-问心之镰.jpg
+    - index: 74
+      name: 立直-滚雪球效应
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/立直-滚雪球效应.jpg
+    - index: 75
+      name: 牌背-香菇
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-香菇.jpg
+    - index: 76
+      name: 牌背-心想事橙
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-心想事橙.jpg
+    - index: 77
+      name: 牌背-珠贝流光
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/牌背-珠贝流光.jpg
+    - index: 78
+      name: 暮云灰牌背
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/暮云灰牌背.jpg
+    - index: 79
+      name: 天蓝牌背
+      rare: 3
+      type: decoration
+      url: ./Images/decoration/天蓝牌背.jpg
+    length: 80
   gift:
     item:
     - index: 0
@@ -517,7 +672,6 @@ lottery:
       rare: 4
       type: person
       url: ./Images/person/四宫冬实.png
-
     - index: 27
       name: 青鸾
       rare: 4
@@ -533,16 +687,27 @@ lottery:
       rare: 4
       type: person
       url: ./Images/person/未来.png
-    length: 30
+    - index: 30
+      name: 岚星
+      rare: 4
+      type: person
+      url: ./Images/person/岚星.png
+    length: 31
 up:
   decoration:
-  - 和牌-绝对的命令
-  - 立直棒-骑士的钥匙
-  - 立直-王者的决意
-  - 牌背-假面的裁决
-  - 桌布-魔女的契约
-  person:
-  - 鲁鲁修-兰佩罗基
-  - 红月卡莲
-  - 枢木朱雀
-  - CC
+  - 炽热时刻
+  - 牌背-鸥气满满
+  - 头像框-大小姐发带
+  - 立直棒-包甜好瓜
+  - 桌布-去海边
+  person: # 启用sp的时候，person填入 other
+  - other
+
+probability:
+  sp_limit: 20 # up角色中限定的出率
+  up_person: 60 # up池中，up角色占有up池角色的概率
+  person: 5 # 角色出率 5%
+  decoration: 20 # 装扮出率 20%
+
+limit_person:  # 限定角色,填写方式参照up.person, 记得删掉 []
+  - 东城玄音
