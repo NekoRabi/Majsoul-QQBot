@@ -487,7 +487,7 @@ class MajsoulQuery:
                 resultsmsg += dec
             else:
                 gift_index = random.randint(0, 7) * 3
-                gifttype = random.random() *100
+                gifttype = random.random() * 100
                 if gifttype < 6.25:
                     gift_index += 2
                 # elif gifttype < 9:

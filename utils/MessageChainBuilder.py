@@ -168,7 +168,7 @@ class MessageChainBuilder:
             raise ValueError("消息链为空")
 
 
-async def messagechain_builder(reply_choices: list = None, text: str = None, imgpath: Union[str, list] = None,
+async def messagechain_builder(reply_choices: list = None, text: str = "", imgpath: Union[str, list] = None,
                                rndimg=False,
                                imgurl: str = None, imgbase64=None, at: Union[list, int] = None,
                                atall=False) -> MessageChain:
@@ -202,7 +202,7 @@ async def messagechain_builder(reply_choices: list = None, text: str = None, img
         msgchain.append(Plain(" "))
     if reply_choices:
         msgchain.append(Plain(random.choice(reply_choices)))
-    elif text:
+    elif len(text)>0:
         msgchain.append(Plain(text))
     if reply_choices or text:
         msgchain.append(Plain(' '))
@@ -217,7 +217,7 @@ async def messagechain_builder(reply_choices: list = None, text: str = None, img
             msgchain.append(Plain("\n"))
         msgchain.append(Image(base64=imgbase64))
     if imgpath:
-        if reply_choices or text:
+        if reply_choices or len(text)>0:
             msgchain.append(Plain("\n"))
         if isinstance(imgpath, str):
             msgchain.append(
@@ -227,7 +227,7 @@ async def messagechain_builder(reply_choices: list = None, text: str = None, img
                 msgchain.append(
                     await Image.from_local(filename=f"{path}"))
     if imgurl:
-        if reply_choices or text:
+        if reply_choices or len(text)>0:
             msgchain.append(Plain("\n"))
         msgchain.append(Image(url=imgurl))
     return MessageChain(msgchain)
