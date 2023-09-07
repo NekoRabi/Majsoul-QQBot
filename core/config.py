@@ -86,7 +86,7 @@ def create_init_config():
                       welcomeinfo=["欢迎%ps%加入%gn%"], alarmclockgroup=[0],
                       trash_folders=['./images/MajSoulInfo', './images/PetPet', './images/Remake',
                                      './images/ImgGenerator'],
-                      silencegroup=[0], disnudgegroup=[0], commandpre="",
+                      silencegroup=[0], disnudgegroup=[0], commandpre="", runport=17580,
                       master=0, loglevel="INFO", replyimgpath='fox', botconfig=dict(qq=123456, botname=""),
                       nudgeconfig=dict(disnudgegroup=[0], sendnudgechance=0.3, supernudgequantity=10,
                                        supersendnudgechance=0.2),

@@ -17,7 +17,7 @@ nest_asyncio.apply()
 if __name__ == '__main__':
 
     config = load_config()
-    if config.get('setting',{}).get('general_help',True):
+    if config.get('setting', {}).get('general_help', True):
         create_helpimg()
     settings = config['settings']
     botname = config['botconfig']['botname']
@@ -38,7 +38,7 @@ if __name__ == '__main__':
                 if type(item) != Source:
                     msgchain.append(item)
             _info = {'groupid': event.group.id, 'groupname': event.group.name, 'membername': event.sender.member_name,
-                  'message': msgchain}
+                     'message': msgchain}
             root_logger.info(_info)
         elif isinstance(event, FriendMessage):
             msgchain = []
@@ -59,8 +59,7 @@ if __name__ == '__main__':
     #             except Exception as _e:
     #                 print(f'闪照保存发生错误: {_e}')
 
-
     scheduler.add_job(cmdbuffer.clearcache, 'cron', hour='0')
     scheduler.add_job(cleaner.do_clean, 'cron', hour='0')
 
-    bot.run(port=17580)
+    bot.run(port=config.get("runport", 17580))

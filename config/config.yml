@@ -3,6 +3,8 @@ adapter: # Mirai-Api-Http
   port: 17280
   verify_key: NekoRabi
 
+runport: 17580 # 机器人开在那个端口上，不能和上面一样
+
 botconfig:
   botname: "" # 机器人名字
   qq: 123456 # 机器人QQ
@@ -68,4 +70,4 @@ settings: # 功能开关
   norepeat: false # 全局自动回复
   help: true # 是否显示帮助
   # saveflashimg: false # 保存闪照
-  general_help: true # 自动生成帮助图片
+  general_help: false # 自动生成帮助图片
