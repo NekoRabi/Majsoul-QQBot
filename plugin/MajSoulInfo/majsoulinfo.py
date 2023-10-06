@@ -62,7 +62,8 @@ match_level = {
     }
 }
 
-_match_level_name = ['all', '金', '金东', '金南', '玉', '玉东', '玉南', '王', '王座', '王座东', '王座南']
+_match_level_name = ['all', '金', '金东', '金南',
+                     '玉', '玉东', '玉南', '王', '王座', '王座东', '王座南']
 
 infomodel = dict(基本=['和牌率', '放铳率', '自摸率', '默听率', '流局率', '流听率', '副露率', '立直率', '和了巡数', '平均打点', '平均铳点', '平均顺位', '被飞率'],
                  立直=['立直率', '立直和了', '立直放铳A', '立直放铳B', '立直收支', '立直收入', '立直支出', '先制率', '追立率', '被追率', '立直巡目', '立直流局',
@@ -227,7 +228,8 @@ class MajsoulQuery:
         rule = "三麻"
 
         try:
-            url = get_player_extended_stats_url(playerid, selecttype, mode=selectlevel)
+            url = get_player_extended_stats_url(
+                playerid, selecttype, mode=selectlevel)
             if f'{selecttype}' == "4":
                 rule = "四麻"
             async with aiohttp.ClientSession(
@@ -246,7 +248,8 @@ class MajsoulQuery:
 
         except aiohttp.client.ClientConnectorError as _e:
             if not _config.get('silence_CLI', False):
-                print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+                print(
+                    f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
         if content.get('error', False):
             return await messagechain_builder(text='未找到该玩家在这个场次的的对局')
@@ -441,7 +444,8 @@ class MajsoulQuery:
                         continue
                     elif random.random() * 100 < probability.get('up_person', 60):
                         if 'other' in up_person:
-                            person_index = random.randint(0, person['length'] - 1)
+                            person_index = random.randint(
+                                0, person['length'] - 1)
                             ps = person['item'][person_index]['name']
                             drawcounts['person'] += 1
                             # psrare = person['item'][person_index]['rare']
@@ -455,7 +459,8 @@ class MajsoulQuery:
                             drawcounts['person'] += 1
                             cursor.execute(
                                 f'''insert into playerdrawcard(userid,drawtime,itemlevel,itemname) values({userid},'{drawtime}',4,'{ps}')''')
-                            results.append(f'./Images/person/{person_name}.png')
+                            results.append(
+                                f'./Images/person/{person_name}.png')
                             resultsmsg += ps
                         continue
                 person_index = random.randint(0, person['length'] - 1)
@@ -676,15 +681,18 @@ class MajsoulQuery:
         playerid = get_playerid(playername)
         if not playerid:
             return await messagechain_builder(text="查询失败,数据库中无此用户,请先用 qhpt 查询该用户。")
-        selectmontht = int(time.mktime(time.strptime(selectmonth, '%Y-%m')) * 1000)
+        selectmontht = int(time.mktime(
+            time.strptime(selectmonth, '%Y-%m')) * 1000)
         if getrecent:
             nextmontht = int(time.time() * 1000)
             selectmontht = nextmontht - 2592000 * 1000
         else:
-            nextmontht = int(time.mktime(time.strptime(nextmonth, '%Y-%m')) * 1000)
+            nextmontht = int(time.mktime(
+                time.strptime(nextmonth, '%Y-%m')) * 1000)
 
         try:
-            url = get_player_records_url(playerid, selecttype, nextmontht, selectmontht)
+            url = get_player_records_url(
+                playerid, selecttype, nextmontht, selectmontht)
             async with aiohttp.ClientSession(
                     connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
                     headers={'User-Agent': random.choice(user_agent_list)}) as session:
@@ -692,7 +700,8 @@ class MajsoulQuery:
                     if response.status == 503:
                         return await messagechain_builder(text='牌谱屋似乎离线了')
                     paipuresponse = await response.json()
-                url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
+                url = get_player_extended_stats_url(
+                    playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
                 async with session.get(url) as response:
                     if response.status == 503:
                         return await messagechain_builder(text='牌谱屋似乎离线了')
@@ -750,7 +759,8 @@ class MajsoulQuery:
             print(f'获取雀魂详情 请求超时:\t{_e}')
             return await messagechain_builder(text="查询超时,请稍后再试")
         except aiohttp.client.ClientConnectorError as _e:
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+            print(
+                f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
         _broadcast_type = _config.get('broadcast', 'image').lower()
         if stop_general_echarts or not _echarts_enable:
@@ -764,15 +774,21 @@ class MajsoulQuery:
                 return await messagechain_builder(text=msg)
             if '#' in playername:  # 含 '#'的id无法生成图片，会报’echarts is not define‘，但可以生成html
                 return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
-            await majsoul_bar(filename=f'{chart_title}PT得失图',
-                              x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                              y1_data=y_data, timecross=timecross)
-            await majsoul_line(filename=f'{chart_title}PT变化图',
-                               x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                               y1_data=y_data, timecross=timecross)
+            await majsoul_echarts(filename=f'{chart_title}PT变化图',
+                                  x_data=[
+                                      f'{i + 1}' for i in range(len(paipuresponse))],
+                                  y_data=y_data, timecross=timecross)
+            # await majsoul_bar(filename=f'{chart_title}PT得失图',
+            #                   x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+            #                   y1_data=y_data, timecross=timecross)
+            # await majsoul_line(filename=f'{chart_title}PT变化图',
+            #                    x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+            #                    y1_data=y_data, timecross=timecross)
+            # return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
+            #                                   imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+            #                                            f"images/MajSoulInfo/{chart_title}PT变化图.png"])
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
-                                              imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
-                                                       f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+                                              imgpath=[f"images/MajSoulInfo/{chart_title}PT变化图.png"])
 
     @staticmethod
     def removewatch(playername: str, groupid: int, isadmin=True) -> str:
@@ -862,7 +878,8 @@ class MajsoulQuery:
             print(f'开始执行清除群聊{groupid}的雀魂关注')
         cursor.execute(
             f"update watchedplayer set watchedgroupcount = watchedgroupcount -1 where watchedgroupcount > 0 and playername in (select playername from group2player where groupid = {groupid} and iswatching = 1)")
-        cursor.execute(f'update group2player set iswatching = 0 where groupid = {groupid}')
+        cursor.execute(
+            f'update group2player set iswatching = 0 where groupid = {groupid}')
         cx.commit()
         cursor.close()
         cx.close()
@@ -881,7 +898,8 @@ class MajsoulQuery:
         nowtime = math.floor(nowtime / 10) * 10000 + 9999
         cx = sqlite3.connect('./database/MajSoulInfo/majsoul.sqlite')
         cursor = cx.cursor()
-        cursor.execute(f"select playerid from watchedplayersview where watchedgroupcount > 0")
+        cursor.execute(
+            f"select playerid from watchedplayersview where watchedgroupcount > 0")
         playerids = cursor.fetchall()
         cursor.close()
         cx.close()
@@ -927,7 +945,8 @@ class MajsoulQuery:
         if user_p3_levelinfo:
             user_p3_levelinfo = user_p3_levelinfo.get("level")
             p3_level = user_p3_levelinfo.get("id")
-            p3_score = int(user_p3_levelinfo.get("score")) + int(user_p3_levelinfo.get("delta"))
+            p3_score = int(user_p3_levelinfo.get("score")) + \
+                int(user_p3_levelinfo.get("delta"))
             prtmsg += "\n" + levelswitch(p3_level, p3_score, "三麻")
         else:
             if not _config.get('silence_CLI', False):
@@ -942,7 +961,8 @@ class MajsoulQuery:
         if user_p4_levelinfo:
             user_p4_levelinfo = user_p4_levelinfo.get("level")
             p4_level = user_p4_levelinfo.get("id")
-            p4_score = int(user_p4_levelinfo.get("score")) + int(user_p4_levelinfo.get("delta"))
+            p4_score = int(user_p4_levelinfo.get("score")) + \
+                int(user_p4_levelinfo.get("delta"))
             prtmsg += "\n" + levelswitch(p4_level, p4_score, "四麻")
         else:
             if not _config.get('silence_CLI', False):
@@ -993,7 +1013,8 @@ class MajsoulQuery:
 
         except aiohttp.client.ClientConnectorError as _e:
             if not _config.get('silence_CLI', False):
-                print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+                print(
+                    f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return await messagechain_builder(text="查询超时,请稍后再试")
         if len(playerinfo) == 0:
             return await messagechain_builder(text="该玩家不存在或未进行金之间及以上对局")
@@ -1398,7 +1419,8 @@ async def asyqhpt(username: str, selecttype: str = None, selectindex: int = None
                 print(f"qhpt查询超时,{e}")
             return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
         except aiohttp.client.ClientConnectorError as _e:
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+            print(
+                f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
             return dict(error=True, muti3=muti3, muti4=muti4, offline=False)
         pl3info = None
         pl4info = None
@@ -1827,9 +1849,11 @@ async def query_pt_byid(playerid: int, searchtype: Union[str, list] = None, qq: 
             if maxlevel_info:
                 playername = content.get("nickname")
                 max_level = maxlevel_info.get("id")
-                max_score = int(maxlevel_info.get("score")) + int(maxlevel_info.get("delta"))
+                max_score = int(maxlevel_info.get("score")) + \
+                    int(maxlevel_info.get("delta"))
                 now_level = nowlevel_info.get("id")
-                now_score = int(nowlevel_info.get("score")) + int(nowlevel_info.get("delta"))
+                now_score = int(nowlevel_info.get("score")) + \
+                    int(nowlevel_info.get("delta"))
                 if stype in ['3', 3, '三麻', '三']:
                     msg += "\n三麻:\n最高" + levelswitch(max_level, max_score, '')
                     msg += "\n当前" + levelswitch(now_level, now_score, '')
@@ -1893,12 +1917,14 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
         async with aiohttp.ClientSession(
                 connector=aiohttp.TCPConnector(ssl=False, limit=_config.get('query_limit', 10)), timeout=aiotimeout,
                 headers={'User-Agent': random.choice(user_agent_list)}) as session:
-            url = get_player_records_url(playerid, selecttype, nextmontht, selectmontht)
+            url = get_player_records_url(
+                playerid, selecttype, nextmontht, selectmontht)
             async with session.get(url) as response:
                 if response.status == 503:
                     return await messagechain_builder(text='牌谱屋似乎离线了')
                 paipuresponse = await response.json()
-            url = get_player_extended_stats_url(playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
+            url = get_player_extended_stats_url(
+                playerid, selecttype, end_time=nextmontht, start_time=selectmontht)
             async with session.get(url) as response:
                 if response.status == 503:
                     return await messagechain_builder(text='牌谱屋似乎离线了')
@@ -1966,15 +1992,21 @@ async def get_monthreport_byid(player_info: dict, selecttype: Union[str, int] = 
         if '#' in playername:
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True))
         try:
-            await majsoul_bar(filename=f'{chart_title}PT得失图',
-                              x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                              y1_data=y_data, timecross=timecross)
-            await majsoul_line(filename=f'{chart_title}PT变化图',
-                               x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
-                               y1_data=y_data, timecross=timecross)
+            await majsoul_echarts(filename=f'{chart_title}PT变化图',
+                                  x_data=[
+                                      f'{i + 1}' for i in range(len(paipuresponse))],
+                                  y_data=y_data, timecross=timecross)
+            # await majsoul_bar(filename=f'{chart_title}PT得失图',
+            #                   x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+            #                   y1_data=y_data, timecross=timecross)
+            # await majsoul_line(filename=f'{chart_title}PT变化图',
+            #                    x_data=[f'{i + 1}' for i in range(len(paipuresponse))],
+            #                    y1_data=y_data, timecross=timecross)
+            # return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
+            #                                   imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
+            #                                            f"images/MajSoulInfo/{chart_title}PT变化图.png"])
             return await messagechain_builder(imgbase64=text_to_image(fontsize=36, text=msg, needtobase64=True),
-                                              imgpath=[f"images/MajSoulInfo/{chart_title}PT得失图.png",
-                                                       f"images/MajSoulInfo/{chart_title}PT变化图.png"])
+                                              imgpath=[f"images/MajSoulInfo/{chart_title}PT变化图.png"])
         except Exception as _e:
             print(f'玩家{playername}详细月报生成失败')
             logging.getLogger().exception(_e)
@@ -2022,7 +2054,8 @@ async def get_playerinfo_byid(player_info: dict, selecttype: Union[str, int] = 4
         return await messagechain_builder(text="查询超时,请稍后再试")
     except aiohttp.client.ClientConnectorError as _e:
         if not _config.get('silence_CLI', False):
-            print(f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
+            print(
+                f"发生了意外的错误,类别为aiohttp.client.ClientConnectorError,可能的原因是连接达到上限,可以尝试关闭代理:\n{_e}")
         return await messagechain_builder(text="查询超时,请稍后再试")
     if content.get('error', False):
         return await messagechain_builder(text='未找到该玩家在这个场次的的对局')

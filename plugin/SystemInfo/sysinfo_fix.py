@@ -9,7 +9,8 @@ from PIL import ImageDraw, ImageFont
 from httpx import AsyncClient
 from mirai import GroupMessage, Plain, Image
 
-from core import bot, admin
+from core import bot, admin, master
+
 
 @bot.on(GroupMessage)
 async def sysinfo(event: GroupMessage):
@@ -17,7 +18,7 @@ async def sysinfo(event: GroupMessage):
     m = re.match(fr"^sysinfo$", msg.strip())
     if m is None:
         return
-    if event.sender.id not in admin:
+    if event.sender.id != master:
         return
     cpu_percent = round((psutil.cpu_percent()), 2)  # cpu使用率
     memory = psutil.virtual_memory()
@@ -30,7 +31,8 @@ async def sysinfo(event: GroupMessage):
     percent_disk = disk.percent
     now = time.time()
     boot = psutil.boot_time()
-    boottime = datetime.datetime.fromtimestamp(boot).strftime("%Y-%m-%d %H:%M:%S")
+    boottime = datetime.datetime.fromtimestamp(
+        boot).strftime("%Y-%m-%d %H:%M:%S")
     up_time = str(
         datetime.datetime.utcfromtimestamp(now).replace(microsecond=0)
         - datetime.datetime.utcfromtimestamp(boot).replace(microsecond=0)
@@ -78,15 +80,22 @@ async def sysinfo(event: GroupMessage):
     img = IMG.open(r'./plugin/SystemInfo/cpu.jpg')
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype('msyh.ttc', 60)
-    draw.text((400,150),text=f'{cpu_percent}% 2.50 GHZ\n{up_time}',font=font,fill=(0, 0, 0))
-    draw.text((400,450),text=f'{used_nc}/{total_nc}MB\n{percent_nc}%',font=font,fill=(0, 0, 0))
-    draw.text((400,750),text=f'{used_disk}/{total_disk}GB\n{percent_disk}%',font=font,fill=(0, 0, 0))
-    draw.text((400,1050),text=f'{google_connection}\n{pixiv_connection}',font=font,fill=(0, 0, 0))
-    draw.rectangle((48,280-round(cpu_percent)*2,352,282-round(cpu_percent)*2),fill=(17,125,187))
-    draw.rectangle((48,580-round(percent_nc)*2,352,582-round(percent_nc)*2),fill=(139,18,174))
-    draw.rectangle((48,880-round(percent_disk)*2,352,882-round(percent_disk)*2),fill=(77,166,12))
-    draw.rectangle((48,1180-round(percent_pixiv)*2,352,1182-round(percent_pixiv)*2),fill=(167,79,1))
+    draw.text(
+        (400, 150), text=f'{cpu_percent}% 2.50 GHZ\n{up_time}', font=font, fill=(0, 0, 0))
+    draw.text(
+        (400, 450), text=f'{used_nc}/{total_nc}MB\n{percent_nc}%', font=font, fill=(0, 0, 0))
+    draw.text(
+        (400, 750), text=f'{used_disk}/{total_disk}GB\n{percent_disk}%', font=font, fill=(0, 0, 0))
+    draw.text(
+        (400, 1050), text=f'{google_connection}\n{pixiv_connection}', font=font, fill=(0, 0, 0))
+    draw.rectangle((48, 280-round(cpu_percent)*2, 352, 282 -
+                   round(cpu_percent)*2), fill=(17, 125, 187))
+    draw.rectangle((48, 580-round(percent_nc)*2, 352, 582 -
+                   round(percent_nc)*2), fill=(139, 18, 174))
+    draw.rectangle((48, 880-round(percent_disk)*2, 352, 882 -
+                   round(percent_disk)*2), fill=(77, 166, 12))
+    draw.rectangle((48, 1180-round(percent_pixiv)*2, 352, 1182 -
+                   round(percent_pixiv)*2), fill=(167, 79, 1))
     img.save(r'./plugin/SystemInfo/now_cpu.jpg')
     path = r'./plugin/SystemInfo/now_cpu.jpg'
-    return await bot.send(event,Image(path=r'./plugin/SystemInfo/now_cpu.jpg'))
-
+    return await bot.send(event, Image(path=r'./plugin/SystemInfo/now_cpu.jpg'))
