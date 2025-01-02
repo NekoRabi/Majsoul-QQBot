@@ -162,7 +162,7 @@ class PlayerScore:
         reducescore = int(levelmap[rk]['losescore'] * magnification)
         self.score[playernum] = self.score[playernum] - reducescore
         if self.score[playernum] < 0:
-            # print(f'{playernum}人麻将 在{time.strftime("%Y-%m-%d %H:%M",time.localtime(matchtime))}降段到了{levelmap.get(self.rank[playernum]).get("name")},此前分数{self.score[playernum]}')
+            # print(f'{playernum}人麻将 在{time.strftime("%Y-%m-%d %H:%M",time.localtime(matchtime))} 从{levelmap.get(self.rank[playernum]).get("name")}降段/归零,此前分数{self.score[playernum]}')
             if 9 < self.rank[playernum] < 20:
                 self.rank[playernum] = self.rank[playernum] - 1
                 self.score[playernum] = levelmap[self.rank[playernum]]['maxscore'] // 2
@@ -306,10 +306,10 @@ def readlevel(listenerjson: dict, playername: str, reset=True) -> str:
             oldP = True
         position = 1
         # print(time.strftime('%Y:%m:%d %H:%M', time.localtime(starttime)), end='\t')
-        if item['playlength'] == '2':
+        if int(item['playlength']) == 2:
             magnification = 1.5
         # print(magnification, end='\t')
-        if item['playernum'] == '4':
+        if int(item['playernum']) == 4:
             # print('4麻', end='\t')
             for i in range(1, 5):
                 if item[f'player{i}'] == ps.playername:
